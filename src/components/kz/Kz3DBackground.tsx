@@ -192,19 +192,19 @@ export function Kz3DBackground() {
   const meshGeo = (page: KzPage) => {
     switch (page) {
       case "services":
-        return new THREE.TorusKnotGeometry(11, 3.1, 80, 12);
+        return new THREE.TorusKnotGeometry(14, 4, 88, 14);
       case "technology":
-        return new THREE.BoxGeometry(17, 17, 17, 2, 2, 2);
+        return new THREE.IcosahedronGeometry(19, 1);
       case "infrastructure":
-        return new THREE.CylinderGeometry(9.5, 9.5, 25, 12, 5, true);
+        return new THREE.CylinderGeometry(12, 12, 32, 16, 6, true);
       case "process":
-        return new THREE.TorusGeometry(14.5, 3.4, 12, 48);
+        return new THREE.TorusGeometry(18.5, 4.3, 14, 56);
       case "about":
-        return new THREE.DodecahedronGeometry(13.5, 0);
+        return new THREE.DodecahedronGeometry(17, 1);
       case "contact":
-        return new THREE.SphereGeometry(13.5, 18, 12);
+        return new THREE.SphereGeometry(17, 22, 14);
       default:
-        return new THREE.IcosahedronGeometry(14, 1);
+        return new THREE.IcosahedronGeometry(18, 1);
     }
   };
 
@@ -221,10 +221,10 @@ export function Kz3DBackground() {
         about: 8.5,
         contact: 10.5,
       }[page] || 10;
-    const M = Math.min(NRef.current, 260);
+    const M = Math.min(NRef.current, 140);
     const segs: number[] = [];
     const t2 = thr * thr;
-    for (let i = 0; i < M && segs.length < 1400; i++) {
+    for (let i = 0; i < M && segs.length < 500; i++) {
       for (let j = i + 1; j < M; j++) {
         const a = i * 3;
         const b = j * 3;
@@ -266,59 +266,59 @@ export function Kz3DBackground() {
 
     if (dark) {
       pmat.color.set(0xa8d0ff);
-      pmat.opacity = narrow ? 0.55 : 0.78;
+      pmat.opacity = narrow ? 0.32 : 0.42;
       pmat.size = 1.85;
       pmat.blending = THREE.AdditiveBlending;
       if (lmat) {
         lmat.color.set(0x66b0ff);
-        lineFullRef.current = 0.22;
+        lineFullRef.current = 0.08;
         lmat.blending = THREE.AdditiveBlending;
       }
       if (mmat) {
         mmat.color.set(0xa38bff);
-        mmat.opacity = 0.48;
+        mmat.opacity = 0.62;
         mmat.blending = THREE.AdditiveBlending;
       }
       if (hmat) {
         hmat.color.set(0xbdd1ff);
-        hmat.opacity = 0.32;
+        hmat.opacity = 0.18;
         hmat.blending = THREE.AdditiveBlending;
       }
       if (smat) {
         smat.color.set(0x4ce8dd);
-        smat.opacity = 0.62;
+        smat.opacity = 0.42;
       }
       if (rmat) {
         rmat.color.set(0xa38bff);
-        rmat.opacity = 0.38;
+        rmat.opacity = 0.18;
       }
     } else {
       pmat.color.set(0x2450c8);
-      pmat.opacity = narrow ? 0.22 : 0.38;
+      pmat.opacity = narrow ? 0.14 : 0.22;
       pmat.size = 1.95;
       pmat.blending = THREE.NormalBlending;
       if (lmat) {
         lmat.color.set(0x2450c8);
-        lineFullRef.current = 0.12;
+        lineFullRef.current = 0.04;
         lmat.blending = THREE.NormalBlending;
       }
       if (mmat) {
         mmat.color.set(0x5a35e6);
-        mmat.opacity = 0.32;
+        mmat.opacity = 0.46;
         mmat.blending = THREE.NormalBlending;
       }
       if (hmat) {
         hmat.color.set(0x5a78c8);
-        hmat.opacity = 0.35;
+        hmat.opacity = 0.18;
         hmat.blending = THREE.NormalBlending;
       }
       if (smat) {
         smat.color.set(0x008f86);
-        smat.opacity = 0.42;
+        smat.opacity = 0.32;
       }
       if (rmat) {
         rmat.color.set(0x5a35e6);
-        rmat.opacity = 0.16;
+        rmat.opacity = 0.08;
       }
     }
 
@@ -380,7 +380,7 @@ export function Kz3DBackground() {
     groupRef.current = group;
     scene.add(group);
 
-    const N = Math.round(isMobile ? 700 : 1600);
+    const N = Math.round(isMobile ? 450 : 900);
     NRef.current = N;
     const pos = new Float32Array(N * 3);
     posRef.current = pos;
@@ -430,7 +430,7 @@ export function Kz3DBackground() {
     group.add(mesh);
 
     // ambient haze
-    const P = isMobile ? 160 : 320;
+    const P = isMobile ? 70 : 140;
     const hp = new Float32Array(P * 3);
     for (let i = 0; i < P; i++) {
       const r = 46 + Math.random() * 66;
@@ -462,19 +462,19 @@ export function Kz3DBackground() {
     });
     smatRef.current = smat;
     const sgeos = [
-      new THREE.BoxGeometry(3.2, 3.2, 3.2),
-      new THREE.OctahedronGeometry(2.6, 0),
-      new THREE.TetrahedronGeometry(2.9, 0),
+      new THREE.OctahedronGeometry(3.2, 0),
+      new THREE.TetrahedronGeometry(3.5, 0),
+      new THREE.IcosahedronGeometry(2.8, 0),
     ];
     const sats: THREE.Mesh[] = [];
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 3; i++) {
       const m = new THREE.Mesh(sgeos[i % 3], smat);
       m.userData = {
-        r: 38 + (i % 3) * 6.5 + Math.random() * 4,
-        sp: 0.08 + Math.random() * 0.12,
+        r: 46 + (i % 3) * 8 + Math.random() * 5,
+        sp: 0.05 + Math.random() * 0.08,
         ph: Math.random() * 6.283,
         tilt: 0.5 + Math.random() * 0.9,
-        rs: 0.5 + Math.random(),
+        rs: 0.4 + Math.random() * 0.6,
       };
       satGroup.add(m);
       sats.push(m);
