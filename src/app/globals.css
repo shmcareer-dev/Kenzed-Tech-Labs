@@ -1,26 +1,625 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ==========================================================================
+   Kenzed Tech Lab design tokens — ported from Kenzed Tech Lab.dc.html
+   Light mode by default; dark mode toggled via data-kz-theme="dark".
+   ========================================================================== */
+@theme {
+  --color-bg: var(--bg);
+  --color-bg2: var(--bg2);
+  --color-ink: var(--ink);
+  --color-mut: var(--mut);
+  --color-dim: var(--dim);
+  --color-line: var(--line);
+  --color-line2: var(--line2);
+  --color-card: var(--card);
+  --color-card2: var(--card2);
+  --color-acc: var(--acc);
+  --color-acc2: var(--acc2);
+  --color-acc3: var(--acc3);
+  --color-navbg: var(--navbg);
+
+  --font-sans: var(--font-archivo), system-ui, sans-serif;
+  --font-display: var(--font-archivo-black), var(--font-archivo), system-ui, sans-serif;
+  --font-mono: var(--font-ibm-plex-mono), ui-monospace, monospace;
+
+  --container-site: 1280px;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+:root,
+[data-kz-theme="light"] {
+  --bg: #f4f5f8;
+  --bg2: #ffffff;
+  --ink: #0c1424;
+  --mut: #49566f;
+  --dim: #939db2;
+  --line: rgba(12, 20, 36, 0.13);
+  --line2: rgba(12, 20, 36, 0.3);
+  --card: #ffffff;
+  --card2: #eef0f5;
+  --acc: #1c50e0;
+  --acc2: #5a35e6;
+  --acc3: #008f86;
+  --navbg: rgba(244, 245, 248, 0.82);
+  --shadow: 0 26px 48px -28px rgba(12, 20, 36, 0.28);
+  --gr: linear-gradient(120deg, #1c50e0, #5a35e6);
+  --grt: linear-gradient(115deg, #1546c9 0%, #5a35e6 70%, #008f86 130%);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+[data-kz-theme="dark"] {
+  --bg: #070a12;
+  --bg2: #0b1120;
+  --ink: #f0f4fb;
+  --mut: #c2cde2;
+  --dim: #a3afc7;
+  --line: rgba(233, 238, 248, 0.16);
+  --line2: rgba(233, 238, 248, 0.38);
+  --card: rgba(255, 255, 255, 0.07);
+  --card2: rgba(255, 255, 255, 0.13);
+  --acc: #66b0ff;
+  --acc2: #a38bff;
+  --acc3: #4ce8dd;
+  --navbg: rgba(7, 10, 18, 0.82);
+  --shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.7);
+  --gr: linear-gradient(120deg, #66b0ff, #a38bff);
+  --grt: linear-gradient(115deg, #a3d5ff 0%, #c2b3ff 55%, #8ff5ec 110%);
+}
+
+/* ==========================================================================
+   Base
+   ========================================================================== */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    line-height: 1.6;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection {
+    background: var(--acc);
+    color: #fff;
+  }
+
+  input,
+  select,
+  textarea {
+    font-family: var(--font-sans);
+  }
+
+  input:focus,
+  select:focus,
+  textarea:focus {
+    outline: none;
+    border-color: var(--acc) !important;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  a:hover {
+    color: var(--acc);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* ==========================================================================
+   Keyframe animations — ported from the HTML design
+   ========================================================================== */
+@keyframes kzMarq {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+@keyframes kzPgA {
+  from { opacity: 0; transform: translateY(22px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes kzPgB {
+  from { opacity: 0; transform: translateY(22px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes kzUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes kzPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+@keyframes kzExp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes kzFloat {
+  from { transform: translateY(-9px); }
+  to { transform: translateY(11px); }
+}
+
+@keyframes kzBlink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
+@keyframes kzBob {
+  from { transform: translateY(-3px); }
+  to { transform: translateY(4px); }
+}
+
+@keyframes kzEye {
+  0%, 6%, 54%, 60%, 100% { transform: scaleY(1); }
+  3%, 57% { transform: scaleY(0.1); }
+}
+
+@keyframes kzSwing {
+  from { transform: rotate(-8deg); }
+  to { transform: rotate(8deg); }
+}
+
+@keyframes kzCube {
+  from { transform: rotateX(0deg) rotateY(0deg); }
+  to { transform: rotateX(360deg) rotateY(360deg); }
+}
+
+@keyframes kzSphere {
+  from { transform: rotateX(0deg) rotateY(0deg); }
+  to { transform: rotateX(-360deg) rotateY(360deg); }
+}
+
+@keyframes kzTorus {
+  from { transform: rotateX(60deg) rotateY(0deg); }
+  to { transform: rotateX(60deg) rotateY(360deg); }
+}
+
+@keyframes kzOrbit {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes kzFlow {
+  from { background-position: 0 0; }
+  to { background-position: 200px 0; }
+}
+
+/* ==========================================================================
+   Components — the recurring visual primitives of the new design language
+   ========================================================================== */
+@layer components {
+  .kz-wrap {
+    max-width: var(--container-site);
+    margin-inline: auto;
+    padding-inline: clamp(18px, 4.5vw, 36px);
+  }
+
+  .kz-grad-text {
+    background: var(--grt);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .kz-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--acc);
+  }
+
+  .kz-eyebrow::before {
+    content: "";
+    width: 26px;
+    height: 1px;
+    background: var(--acc);
+    opacity: 0.7;
+  }
+
+  .kz-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 17px 28px;
+    border-radius: 12px;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border: 0;
+    transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s, color 0.25s;
+  }
+
+  .kz-btn-primary {
+    background: var(--ink);
+    color: var(--bg);
+  }
+
+  .kz-btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+  }
+
+  .kz-btn-ghost {
+    background: transparent;
+    color: var(--ink);
+    border: 1px solid var(--line2);
+  }
+
+  .kz-btn-ghost:hover {
+    transform: translateY(-2px);
+    border-color: var(--acc);
+  }
+
+  .kz-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s, background 0.3s;
+  }
+
+  .kz-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--line2);
+    box-shadow: var(--shadow);
+  }
+
+  .kz-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.1em;
+    padding: 9px 14px;
+    border: 1px solid var(--line2);
+    border-radius: 999px;
+    color: var(--mut);
+    transition: border-color 0.25s, color 0.25s;
+  }
+
+  .kz-pill:hover {
+    border-color: var(--acc);
+    color: var(--acc);
+  }
+
+  .kz-section-title {
+    font-family: var(--font-display);
+    font-weight: 400;
+    text-transform: uppercase;
+    font-size: clamp(1.5rem, 3.2vw, 2.2rem);
+    line-height: 1.06;
+    letter-spacing: -0.01em;
+    margin: 0;
+  }
+
+  .kz-page-title {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: clamp(2.1rem, 5.6vw, 4rem);
+    line-height: 1;
+    letter-spacing: -0.015em;
+    text-transform: uppercase;
+    margin: 0 0 20px;
+  }
+
+  .kz-page-lead {
+    font-size: clamp(0.98rem, 1.5vw, 1.15rem);
+    color: var(--mut);
+    max-width: 62ch;
+    margin: 0;
+  }
+
+  .kz-icon-tile {
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    background: var(--card2);
+    border: 1px solid var(--line);
+    flex: none;
+  }
+
+  .kz-field {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 13px 15px;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 11px;
+    color: var(--ink);
+    font-size: 0.94rem;
+    transition: border-color 0.2s;
+  }
+
+  .kz-field::placeholder {
+    color: var(--dim);
+  }
+
+  .kz-label {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 0.64rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--mut);
+    margin-bottom: 7px;
+  }
+
+  .kz-hover-row {
+    transition: background .3s;
+  }
+
+  .kz-hover-row:hover {
+    background: var(--card);
+  }
+
+  .kz-tag {
+    transition: color .2s, border-color .2s;
+  }
+
+  .kz-tag:hover {
+    color: var(--ink);
+    border-color: var(--line2);
+  }
+
+  .kz-hover-row:hover .process-num {
+    color: var(--acc);
+  }
+
+  .kz-reveal {
+    opacity: 0;
+    transform: translateY(24px);
+    transition:
+      opacity 0.7s cubic-bezier(0.2, 0.7, 0.2, 1),
+      transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+
+  .kz-reveal.is-visible {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ==========================================================================
+   Utility / page layout helpers
+   ========================================================================== */
+.kz-page-enter {
+  animation: kzPgA 0.65s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.kz-page-enter-alt {
+  animation: kzPgB 0.65s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+/* ==========================================================================
+   Legacy component classes — keep existing admin / utility pages working
+   These reuse the new design tokens so the admin area adapts to the redesign.
+   ========================================================================== */
+.wrap {
+  max-width: var(--container-site);
+  margin-inline: auto;
+  padding-inline: clamp(18px, 4.5vw, 36px);
+}
+
+.grad-text {
+  background: var(--grt);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 22px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.92rem;
+  cursor: pointer;
+  border: 0;
+  transition: 0.25s;
+}
+
+.btn-primary {
+  background: var(--gr);
+  color: #fff;
+  box-shadow: 0 10px 30px -8px rgba(28, 80, 224, 0.55);
+}
+
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 40px -8px rgba(90, 53, 230, 0.6);
+}
+
+.btn-ghost {
+  background: var(--card);
+  color: var(--ink);
+  border: 1px solid var(--line2);
+}
+
+.btn-ghost:hover {
+  background: var(--card2);
+  transform: translateY(-2px);
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 30px;
+  transition: 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+
+.card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--line2), transparent);
+  opacity: 0;
+  transition: 0.3s;
+}
+
+.card:hover {
+  transform: translateY(-6px);
+  border-color: var(--line2);
+  background: var(--card2);
+  box-shadow: var(--shadow);
+}
+
+.card:hover::before {
+  opacity: 1;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--acc);
+}
+
+.eyebrow::before {
+  content: "";
+  width: 26px;
+  height: 1px;
+  background: var(--acc);
+  opacity: 0.6;
+}
+
+.chip {
+  padding: 9px 16px;
+  border-radius: 999px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  font-size: 0.86rem;
+  color: var(--mut);
+  font-weight: 500;
+  transition: 0.2s;
+}
+
+.chip:hover {
+  color: var(--ink);
+  border-color: var(--line2);
+}
+
+.icon-tile {
+  width: 52px;
+  height: 52px;
+  border-radius: 13px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, rgba(28, 80, 224, 0.16), rgba(90, 53, 230, 0.16));
+  border: 1px solid var(--line2);
+}
+
+.icon-tile-sm {
+  width: 44px;
+  height: 44px;
+  border-radius: 11px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, rgba(0, 143, 134, 0.15), rgba(28, 80, 224, 0.15));
+  border: 1px solid var(--line2);
+  flex: none;
+}
+
+.field-input {
+  width: 100%;
+  padding: 13px 15px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 0.94rem;
+  transition: 0.2s;
+}
+
+.field-input:focus {
+  outline: none;
+  border-color: var(--acc);
+  background: var(--card2);
+}
+
+.field-input[aria-invalid="true"] {
+  border-color: #ff6b6b;
+}
+
+.field-input::placeholder {
+  color: var(--dim);
+}
+
+.field-input option {
+  background: var(--bg2);
+  color: var(--ink);
+}
+
+/* Scroll reveal helper used by legacy components */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition:
+    opacity 0.7s cubic-bezier(0.2, 0.7, 0.2, 1),
+    transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
