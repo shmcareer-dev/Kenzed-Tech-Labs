@@ -4,8 +4,8 @@ import Link from "next/link";
 
 import { KzReveal } from "@/components/kz/KzReveal";
 import { KzIcon } from "@/components/kz/KzIcon";
+import { KzScrollSpy } from "@/components/kz/KzScrollSpy";
 import { KzSectionTitle, KzButton } from "@/components/kz/primitives";
-import { useKzPage } from "@/components/kz/useKzPage";
 import type { Service } from "@/content/services";
 
 interface KzServiceDetailProps {
@@ -14,11 +14,10 @@ interface KzServiceDetailProps {
 }
 
 export function KzServiceDetail({ service, related }: KzServiceDetailProps) {
-  useKzPage("services");
 
   return (
     <>
-      <section style={{ padding: "clamp(130px, 18vh, 180px) 0 clamp(40px, 6vw, 70px)" }}>
+      <section id="top" style={{ padding: "clamp(130px, 18vh, 180px) 0 clamp(40px, 6vw, 70px)" }}>
         <div className="kz-wrap">
           <div
             style={{
@@ -49,7 +48,17 @@ export function KzServiceDetail({ service, related }: KzServiceDetailProps) {
         </div>
       </section>
 
-      <section style={{ padding: "0 0 clamp(70px, 10vw, 120px)", background: "var(--bg)" }}>
+      <KzScrollSpy
+        sections={[
+          { id: "top", label: service.title },
+          { id: "deliverables", label: "What we deliver" },
+          { id: "stack", label: "Technical stack" },
+          { id: "related", label: "Related services" },
+          { id: "enquire", label: "Start your project" },
+        ]}
+      />
+
+      <section id="deliverables" style={{ padding: "0 0 clamp(70px, 10vw, 120px)", background: "var(--bg)" }}>
         <div className="kz-wrap">
           <div
             style={{
@@ -138,7 +147,7 @@ export function KzServiceDetail({ service, related }: KzServiceDetailProps) {
         </div>
       </section>
 
-      <section style={{ padding: "0 0 clamp(50px, 7vw, 80px)", background: "var(--bg)" }}>
+      <section id="related" style={{ padding: "0 0 clamp(50px, 7vw, 80px)", background: "var(--bg)" }}>
         <div className="kz-wrap">
           <KzReveal delay={0}>
             <KzSectionTitle style={{ marginBottom: 26 }}>Related services</KzSectionTitle>
@@ -190,6 +199,7 @@ export function KzServiceDetail({ service, related }: KzServiceDetailProps) {
 
           <KzReveal delay={0}>
             <div
+              id="enquire"
               style={{
                 border: "1px solid var(--line)",
                 borderRadius: 24,
@@ -203,11 +213,10 @@ export function KzServiceDetail({ service, related }: KzServiceDetailProps) {
               <h2
                 style={{
                   fontFamily: "var(--font-display)",
-                  fontWeight: 700,
-                  textTransform: "uppercase",
+                  fontWeight: 600,
                   fontSize: "clamp(1.5rem, 3.8vw, 2.2rem)",
                   lineHeight: 1.06,
-                  letterSpacing: "-0.004em",
+                  letterSpacing: "-0.045em",
                   margin: "0 auto 18px",
                   maxWidth: "24ch",
                 }}

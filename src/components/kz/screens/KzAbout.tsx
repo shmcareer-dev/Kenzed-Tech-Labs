@@ -4,9 +4,9 @@ import { type CSSProperties } from "react";
 
 import { KzGridPattern } from "@/components/kz/motion/KzAmbient";
 import { KzFadeUp, KzStagger } from "@/components/kz/motion/KzEntrance";
+import { KzScrollSpy } from "@/components/kz/KzScrollSpy";
 import { KzHoverLift } from "@/components/kz/motion/KzPointer";
 import { KzSectionTitle, KzSphere, KzCube } from "@/components/kz/primitives";
-import { useKzPage } from "@/components/kz/useKzPage";
 import { kzValues, kzTeam, kzIndustries } from "@/content/kz";
 import { longStory, mission, vision } from "@/content/company";
 
@@ -17,7 +17,6 @@ const cardGrid = (min: number): CSSProperties => ({
 });
 
 export function KzAbout() {
-  useKzPage("about");
   return (
     <div style={{ position: "relative" }}>
       <div
@@ -46,7 +45,7 @@ export function KzAbout() {
       </div>
 
       {/* Above the fold: painted straight, never animated in. */}
-      <section style={{ padding: "clamp(130px, 18vh, 180px) 0 clamp(40px, 6vw, 70px)" }}>
+      <section id="top" style={{ padding: "clamp(130px, 18vh, 180px) 0 clamp(40px, 6vw, 70px)" }}>
         <div className="kz-wrap">
           <div
             style={{
@@ -71,7 +70,17 @@ export function KzAbout() {
         </div>
       </section>
 
-      <section style={{ padding: "0 0 clamp(50px, 7vw, 80px)", background: "var(--bg)" }}>
+      <KzScrollSpy
+        sections={[
+          { id: "top", label: "About us" },
+          { id: "story", label: "Our story" },
+          { id: "values", label: "Our values" },
+          { id: "disciplines", label: "Every discipline" },
+          { id: "industries", label: "Industries we serve" },
+        ]}
+      />
+
+      <section id="story" style={{ padding: "0 0 clamp(50px, 7vw, 80px)", background: "var(--bg)" }}>
         <div
           className="kz-wrap"
           style={{
@@ -161,6 +170,7 @@ export function KzAbout() {
       </section>
 
       <section
+        id="values"
         style={{
           padding: "0 0 clamp(50px, 7vw, 80px)",
           background: "var(--bg)",
@@ -202,8 +212,7 @@ export function KzAbout() {
                         fontFamily: "var(--font-display)",
                         fontWeight: 600,
                         fontSize: "clamp(1rem, 1.8vw, 1.2rem)",
-                        letterSpacing: "0.01em",
-                        textTransform: "uppercase",
+                        letterSpacing: "-0.035em",
                         margin: 0,
                         lineHeight: 1.25,
                         color: "var(--ink)",
@@ -221,7 +230,7 @@ export function KzAbout() {
         </div>
       </section>
 
-      <section style={{ padding: "0 0 clamp(50px, 7vw, 80px)", background: "var(--bg)" }}>
+      <section id="disciplines" style={{ padding: "0 0 clamp(50px, 7vw, 80px)", background: "var(--bg)" }}>
         <div className="kz-wrap">
           <KzFadeUp>
             <KzSectionTitle style={{ marginBottom: 10 }}>
@@ -279,7 +288,7 @@ export function KzAbout() {
         </div>
       </section>
 
-      <section style={{ padding: "0 0 clamp(70px, 10vw, 120px)", background: "var(--bg)" }}>
+      <section id="industries" style={{ padding: "0 0 clamp(70px, 10vw, 120px)", background: "var(--bg)" }}>
         <div className="kz-wrap">
           <KzFadeUp>
             <KzSectionTitle style={{ marginBottom: 10 }}>Industries we serve</KzSectionTitle>

@@ -652,7 +652,7 @@ export function KzDonut({ slices, title, centerLabel }: KzDonutProps) {
             y={98}
             textAnchor="middle"
             fontFamily="var(--font-display)"
-            fontWeight={700}
+            fontWeight={600}
             fontSize={22}
             fill="var(--ink)"
           >

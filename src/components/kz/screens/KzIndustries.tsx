@@ -1,21 +1,29 @@
 "use client";
 
 import { KzReveal } from "@/components/kz/KzReveal";
+import { KzScrollSpy } from "@/components/kz/KzScrollSpy";
 import { KzPageHero, KzSectionTitle } from "@/components/kz/primitives";
-import { useKzPage } from "@/components/kz/useKzPage";
 import { kzIndustries } from "@/content/kz";
 
 export function KzIndustries() {
-  useKzPage("about");
   return (
     <>
-      <KzPageHero
-        eyebrow="Industries we serve"
-        title="Solutions that adapt to your sector"
-        lead="Our work adapts to the realities of each sector. These are the industries where our AI and software solutions create the most impact."
-      />
+      <div id="top">
+        <KzPageHero
+          eyebrow="Industries we serve"
+          title="Solutions that adapt to your sector"
+          lead="Our work adapts to the realities of each sector. These are the industries where our AI and software solutions create the most impact."
+        />
 
-      <section style={{ padding: "0 0 clamp(70px, 10vw, 120px)", background: "var(--bg)" }}>
+        <KzScrollSpy
+          sections={[
+            { id: "top", label: "Industries" },
+            { id: "industries", label: "Industries we serve" },
+          ]}
+        />
+      </div>
+
+      <section id="industries" style={{ padding: "0 0 clamp(70px, 10vw, 120px)", background: "var(--bg)" }}>
         <div className="kz-wrap">
           <KzReveal delay={0}>
             <KzSectionTitle style={{ marginBottom: 10 }}>Industries we serve</KzSectionTitle>

@@ -231,8 +231,8 @@ const KZLR_CSS = `
   text-transform:uppercase;text-align:left;color:var(--acc);
 }
 .kzlr-title{
-  margin:0;font-family:var(--font-display);font-weight:700;text-transform:uppercase;
-  font-size:clamp(1.5rem,3.6vw,2.6rem);line-height:1.06;letter-spacing:-.004em;
+  margin:0;font-family:var(--font-display);font-weight:600;
+  font-size:clamp(1.5rem,3.6vw,2.6rem);line-height:1.06;letter-spacing:-.045em;
   color:var(--ink);text-align:left;
 }
 .kzlr-lead{margin:0;max-width:56ch;color:var(--kzlr-lead);font-size:clamp(.97rem,1.3vw,1.1rem)}

@@ -46,15 +46,14 @@ const FOOTER_CSS = `
 .kzf-lock{display:inline-flex;align-items:center;gap:11px;min-height:44px}
 .kzf-name{display:flex;flex-direction:column;line-height:1.15;text-align:left}
 /* The footer keeps its own copy of the KENZED/TECHLAB lockup (no gradient
-   rule, unlike KzWordmark). Solved the same way: KENZED is (3.646 + 5x.02) x
-   .92rem = 3.446rem wide, so TECHLAB at .55rem needs .33em of tracking to
-   span it — (4.2 + 6x.33) x .55rem = 3.399rem, 1.4% short, which reads flush.
-   Worth noting the old pairing never was: Archivo Black KENZED measured
-   4.379rem against an IBM Plex TECHLAB of 3.360rem, under-running by 23%, and
-   .kzf-n2 had no negative margin to cancel its trailing tracking gap. Both
-   are fixed here. */
+   rule, unlike KzWordmark). Re-measured for Geist, which sets wider than the
+   Space Grotesk it replaced: KENZED at 700/.92rem runs ≈(3.9 + 5x.02)em ≈
+   3.68rem, so TECHLAB at .55rem Geist Mono (fixed .6em advance, 4.2em for 7
+   glyphs) needs .41em of tracking to span it — (4.2 + 6x.41) x .55rem =
+   3.66rem, which reads flush. .kzf-n2's negative margin cancels the trailing
+   tracking gap so the lockup stays optically right-aligned. */
 .kzf-n1{font-family:var(--font-display);font-weight:700;font-size:.92rem;letter-spacing:.02em;color:var(--ink)}
-.kzf-n2{font-family:var(--font-mono);font-size:.55rem;letter-spacing:.33em;margin-right:-.33em;color:var(--mut)}
+.kzf-n2{font-family:var(--font-mono);font-size:.55rem;letter-spacing:.41em;margin-right:-.41em;color:var(--mut)}
 .kzf-blurb{margin:14px 0 0;max-width:34ch;font-size:.9rem;color:var(--mut)}
 .kzf-tag{margin:12px 0 0;font-family:var(--font-mono);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;text-align:left;color:var(--dim)}
 
@@ -67,11 +66,12 @@ const FOOTER_CSS = `
 .kzf-msg-ok{color:var(--acc3)}
 
 .kzf-markwrap{overflow:hidden;margin-top:clamp(34px,6vw,56px)}
-/* 700, not 400: this is a stroked outline, and Space Grotesk's 500 leaves
-   too little counter for the stroke to describe a legible letterform at
-   6.4rem. The tracking goes positive because the string is uppercase and
-   Space Grotesk is far narrower than the Archivo Black this replaced. */
-.kzf-mark{display:block;font-family:var(--font-display);font-weight:700;font-size:clamp(1.4rem,7.4vw,6.4rem);line-height:1.06;letter-spacing:.005em;text-align:left;white-space:nowrap;color:var(--line);will-change:transform,opacity}
+/* 700, not 400: this is a stroked outline, and a lighter weight leaves too
+   little counter for the stroke to describe a legible letterform at this
+   size. Geist sets wider than the Space Grotesk it replaced, so the size
+   ceiling comes down to 6rem and the tracking goes slightly negative — the
+   old positive tracking would read as spaced capitals in the wider face. */
+.kzf-mark{display:block;font-family:var(--font-display);font-weight:700;font-size:clamp(1.4rem,7.4vw,6rem);line-height:1.06;letter-spacing:-.02em;text-align:left;white-space:nowrap;color:var(--line);will-change:transform,opacity}
 /* Outline treatment. The colour above stays as the fill for engines without
    text-stroke, so the wordmark is never invisible. */
 @supports (-webkit-text-stroke-width:1px){.kzf-mark{color:transparent;-webkit-text-stroke-width:clamp(1px,.16vw,2px);-webkit-text-stroke-color:var(--line2)}}

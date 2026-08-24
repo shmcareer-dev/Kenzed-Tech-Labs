@@ -4,12 +4,12 @@ import { useState } from "react";
 
 import { KzWebFlow, type KzFlowNode } from "@/components/kz/KzDiagrams";
 import { KzIcon } from "@/components/kz/KzIcon";
+import { KzScrollSpy } from "@/components/kz/KzScrollSpy";
 import { KzGridPattern } from "@/components/kz/motion/KzAmbient";
 import { KzFadeUp } from "@/components/kz/motion/KzEntrance";
 import { KzSlidingTabs, type KzTabItem } from "@/components/kz/motion/KzNav";
 import { KZ_HOVER_GROUP, KzArrowNudge, KzTilt3D } from "@/components/kz/motion/KzPointer";
 import { KzButton, KzPageHero, KzSectionTitle, KzSphere, KzTorus } from "@/components/kz/primitives";
-import { useKzPage } from "@/components/kz/useKzPage";
 import { productCategories, products, type Product, type ProductTier } from "@/content/products";
 
 const ALL_PRODUCTS = "All products";
@@ -36,14 +36,13 @@ function knowPriceHref(slug: string, tier: string) {
 
 export function KzProductStudio() {
   /* The Kz3D page union has no product-studio scene, so this borrows the services one. */
-  useKzPage("services");
   const [category, setCategory] = useState(ALL_PRODUCTS);
 
   const shown =
     category === ALL_PRODUCTS ? products : products.filter((p) => p.category === category);
 
   return (
-    <div style={{ position: "relative" }}>
+    <div id="top" style={{ position: "relative" }}>
       <div
         aria-hidden="true"
         style={{
@@ -75,7 +74,17 @@ export function KzProductStudio() {
         lead="Six systems we build again and again — agent platforms, retrieval, voice, vision, automation, and private models. Each one arrives configured to your data and your workflows, not as a demo. Open a product to see what it does, what you receive, and what it costs to run."
       />
 
+      <KzScrollSpy
+        sections={[
+          { id: "top", label: "Product studio" },
+          { id: "products", label: "Products" },
+          { id: "engagement", label: "How an engagement runs" },
+          { id: "enquire", label: "Enquire now" },
+        ]}
+      />
+
       <section
+        id="products"
         style={{
           padding: "0 0 clamp(50px, 7vw, 80px)",
           background: "var(--bg)",
@@ -132,7 +141,7 @@ export function KzProductStudio() {
         </div>
       </section>
 
-      <section style={{ padding: "0 0 clamp(50px, 7vw, 80px)", background: "var(--bg)" }}>
+      <section id="engagement" style={{ padding: "0 0 clamp(50px, 7vw, 80px)", background: "var(--bg)" }}>
         <div className="kz-wrap">
           <KzFadeUp>
             <KzSectionTitle style={{ marginBottom: 10 }}>How an engagement runs</KzSectionTitle>
@@ -157,7 +166,7 @@ export function KzProductStudio() {
         </div>
       </section>
 
-      <section style={{ padding: "0 0 clamp(70px, 10vw, 120px)", background: "var(--bg)" }}>
+      <section id="enquire" style={{ padding: "0 0 clamp(70px, 10vw, 120px)", background: "var(--bg)" }}>
         <div className="kz-wrap">
           <KzFadeUp>
             <div
@@ -188,11 +197,10 @@ export function KzProductStudio() {
                 <h2
                   style={{
                     fontFamily: "var(--font-display)",
-                    fontWeight: 700,
-                    textTransform: "uppercase",
+                    fontWeight: 600,
                     fontSize: "clamp(1.7rem, 4.4vw, 3rem)",
                     lineHeight: 1.04,
-                    letterSpacing: "-0.008em",
+                    letterSpacing: "-0.045em",
                     margin: "0 auto 18px",
                     maxWidth: "20ch",
                   }}
@@ -341,8 +349,7 @@ function TierCard({ slug, tier }: { slug: string; tier: ProductTier }) {
               fontFamily: "var(--font-display)",
               fontWeight: 600,
               fontSize: "clamp(1rem, 2.2vw, 1.15rem)",
-              letterSpacing: "0.01em",
-              textTransform: "uppercase",
+              letterSpacing: "-0.035em",
               margin: 0,
               lineHeight: 1.25,
               color: "var(--ink)",
@@ -371,10 +378,10 @@ function TierCard({ slug, tier }: { slug: string; tier: ProductTier }) {
           <span
             style={{
               fontFamily: "var(--font-display)",
-              fontWeight: 700,
+              fontWeight: 600,
               fontSize: "clamp(1.4rem, 3.6vw, 1.75rem)",
               lineHeight: 1.05,
-              letterSpacing: "-0.015em",
+              letterSpacing: "-0.035em",
               color: "var(--ink)",
             }}
           >

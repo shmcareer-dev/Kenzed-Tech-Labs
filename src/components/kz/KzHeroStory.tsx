@@ -1,0 +1,500 @@
+"use client";
+
+/**
+ * KzHeroStory — the scroll-story hero adapted from the v1 mockup
+ * (kenzed-techlab-homepage-project-v1). The mechanism is the mockup's; every
+ * word of copy is the site's own. A ~235svh section pins a 100svh stage; a
+ * single rAF-coalesced scroll listener writes a lerped 0→1 progress into the
+ * `--progress` custom property, and pure CSS derives every fade, drift and
+ * scrub from it — so the main thread does one style write per frame no matter
+ * how many layers move.
+ *
+ * House motion rules honoured here:
+ *   - only transform / opacity / filter are animated (the mockup's scan line
+ *     and meter animated `top`/`width`; both are re-expressed as transforms);
+ *   - one easing curve, cubic-bezier(0.22, 1, 0.36, 1);
+ *   - nothing above the fold animates on first paint: the h1 is server-painted
+ *     at its final position and opacity, with no entrance attached;
+ *   - `prefers-reduced-motion` collapses the story into normal flow — static
+ *     art, stage 2 rendered below stage 1, no marquee, no parallax.
+ */
+
+import Image from "next/image";
+import { useEffect, useRef, useState } from "react";
+
+import { KzButton } from "@/components/kz/primitives";
+import { KzMagnetic } from "@/components/kz/motion/KzPointer";
+import { KzCountUp } from "@/components/kz/motion/KzFeedback";
+import { kzStats } from "@/content/kz";
+import { site } from "@/content/site";
+
+/**
+ * The capability ribbon renders the same items as KzMarquee. Its `terms`
+ * array is module-private and that file is outside this change's ownership,
+ * so the list is mirrored byte-for-byte here — if KzMarquee's terms change,
+ * change these with them.
+ */
+const KZ_RIBBON_ITEMS = [
+  "Agentic AI",
+  "RAG Pipelines",
+  "LLM Fine-Tuning",
+  "Voice AI",
+  "MCP Integrations",
+  "Computer Vision",
+  "3D Web / WebGL",
+  "On-Prem GPU Compute",
+  "Enterprise Software",
+  "Adaptive UI/UX",
+  "MLOps · CI/CD",
+  "Multi-Agent Systems",
+];
+
+/**
+ * Particle positions are derived from the index, never Math.random — the
+ * server HTML and the hydrated client must render identical markup, and a
+ * random layout would tear on hydration.
+ */
+const KZ_PARTICLES = Array.from({ length: 20 }, (_, index) => ({
+  left: `${5 + ((index * 17) % 90)}%`,
+  top: `${7 + ((index * 29) % 80)}%`,
+  delay: `${(index % 8) * -0.72}s`,
+}));
+
+/* ==========================================================================
+   Styles. Injected the same way KzFeedback injects its sheet: React 19
+   dedupes by href + precedence. Colours read from the theme tokens; the only
+   hardcoded darks live in the art overlays, which are gated to the dark theme
+   because the render they grade is intrinsically dark.
+   ========================================================================== */
+
+const KZ_HERO_STORY_CSS = `
+.kzhs-story{
+  --progress:0;--pointer-x:0;--pointer-y:0;
+  --kzhs-ease:cubic-bezier(0.22,1,0.36,1);
+  /* Matches the kz-wrap gutter: 1280px container, up to 36px inline padding. */
+  --kzhs-inset:max(clamp(18px,4.5vw,36px),calc((100vw - var(--container-site))/2 + 36px));
+  position:relative;height:235svh;background:var(--bg);
+}
+.kzhs-sticky{position:sticky;top:0;height:100svh;min-height:660px;overflow:hidden;isolation:isolate;background:var(--bg)}
+
+/* --- Art: blur-up on load, scroll drift + pointer parallax on the frame. --- */
+.kzhs-frame{
+  position:absolute;z-index:-5;inset:-3%;
+  opacity:0;filter:blur(18px) saturate(.7) brightness(.78);
+  transform:translate3d(calc(var(--pointer-x)*-8px),calc((var(--progress)*-10vh) + (var(--pointer-y)*-5px)),0) scale(calc(1.015 + var(--progress)*.085));
+  transition:opacity .7s var(--kzhs-ease),filter .8s var(--kzhs-ease);
+  will-change:transform;
+}
+.kzhs-frame.is-loaded{opacity:1;filter:blur(0) saturate(.83) contrast(1.07) brightness(.86)}
+.kzhs-scene{
+  position:absolute;z-index:-4;inset:0;
+  background:
+    radial-gradient(circle at calc(68% + var(--pointer-x)*3%) calc(68% + var(--pointer-y)*2%),rgba(77,163,255,.1),transparent 38%),
+    linear-gradient(90deg,rgba(2,6,10,.88) 0%,rgba(2,7,12,.62) 31%,rgba(2,7,12,.04) 66%),
+    linear-gradient(180deg,rgba(3,7,12,.58) 0%,transparent 30%,transparent 67%,rgba(3,7,12,.8) 100%);
+}
+.kzhs-vignette{
+  position:absolute;z-index:3;inset:0;pointer-events:none;
+  box-shadow:inset 0 0 150px 45px rgba(0,0,0,.42);
+  background:linear-gradient(180deg,rgba(1,5,9,.2),transparent 30%,transparent 72%,rgba(2,6,10,.55));
+}
+/* The 3D render and its grading gradients are intrinsically dark; over the
+   light palette they would bury the copy, so — like the old LED block — they
+   simply do not render there. Everything else reads from tokens and adapts. */
+[data-kz-theme="light"] .kzhs-frame,
+[data-kz-theme="light"] .kzhs-scene,
+[data-kz-theme="light"] .kzhs-vignette{display:none}
+
+/* --- Perspective floor grid, brightening as the story descends. --- */
+.kzhs-grid{
+  position:absolute;z-index:-3;inset:37% 0 0;
+  opacity:calc(.06 + var(--progress)*.14);
+  background-image:
+    linear-gradient(color-mix(in srgb,var(--acc2) 24%,transparent) 1px,transparent 1px),
+    linear-gradient(90deg,color-mix(in srgb,var(--acc2) 18%,transparent) 1px,transparent 1px);
+  background-size:64px 64px;
+  transform:perspective(500px) rotateX(61deg) scale(1.55) translateY(calc(var(--progress)*-28px));
+  transform-origin:center top;
+  -webkit-mask-image:linear-gradient(transparent,#000 20%,#000 70%,transparent);
+  mask-image:linear-gradient(transparent,#000 20%,#000 70%,transparent);
+}
+
+/* --- Floating particles over the lower art. --- */
+.kzhs-particles{position:absolute;z-index:2;inset:35% 0 0;pointer-events:none;opacity:clamp(0,calc((var(--progress) - .18)*3),.72)}
+.kzhs-particles i{
+  position:absolute;width:2px;height:2px;border-radius:50%;
+  background:var(--acc2);box-shadow:0 0 10px 2px var(--acc);
+  animation:kzhsParticle 5s ease-in-out infinite;
+}
+@keyframes kzhsParticle{0%,100%{transform:translate3d(0,8px,0);opacity:.2}50%{transform:translate3d(0,-18px,0);opacity:1}}
+
+/* --- Surface marker between the visible product and the foundation. --- */
+.kzhs-marker{
+  position:absolute;z-index:5;top:36.2%;left:0;width:100%;
+  display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:12px;
+  padding:0 var(--kzhs-inset);
+  color:var(--dim);font:500 9px var(--font-mono);letter-spacing:.16em;
+  opacity:clamp(0,calc(1 - var(--progress)*2.2),.7);pointer-events:none;
+}
+@media (max-width:1559px){.kzhs-marker span:first-child{visibility:hidden}}
+.kzhs-marker i{
+  height:1px;
+  background:linear-gradient(90deg,color-mix(in srgb,var(--acc3) 14%,transparent),color-mix(in srgb,var(--acc3) 75%,transparent),color-mix(in srgb,var(--acc3) 14%,transparent));
+  box-shadow:0 0 14px color-mix(in srgb,var(--acc) 30%,transparent);
+}
+
+/* --- Descending scan line. Scrubbed via transform, never top. --- */
+.kzhs-scan{
+  position:absolute;z-index:2;top:35%;left:0;width:100%;height:1px;
+  transform:translateY(calc(var(--progress)*48svh));
+  opacity:clamp(0,calc((var(--progress) - .06)*2),.42);
+  background:linear-gradient(90deg,transparent 5%,color-mix(in srgb,var(--acc3) 16%,transparent),var(--acc3) 50%,color-mix(in srgb,var(--acc3) 16%,transparent),transparent 95%);
+  box-shadow:0 0 22px color-mix(in srgb,var(--acc) 35%,transparent);
+}
+.kzhs-scan i{position:absolute;right:8%;top:-3px;width:7px;height:7px;border-radius:50%;background:var(--acc2);box-shadow:0 0 18px 4px var(--acc)}
+
+/* --- Stage 1: the site's hero copy, fading out as the story descends. --- */
+.kzhs-copy{
+  position:absolute;z-index:10;left:var(--kzhs-inset);top:50%;
+  width:min(730px,61vw);
+  transform:translateY(calc(-50% + var(--progress)*-62px));
+}
+.kzhs-intro{opacity:clamp(0,calc(1 - var(--progress)*2.15),1)}
+/* Once stage 2 owns the viewport the invisible CTAs must stop catching taps. */
+.kzhs-story[data-kzhs-past="true"] .kzhs-intro{visibility:hidden}
+.kzhs-eyebrow{
+  display:flex;align-items:center;gap:10px;margin:0 0 21px;
+  color:var(--mut);font:520 10px var(--font-mono);letter-spacing:.13em;text-transform:uppercase;
+}
+.kzhs-eyebrow > i{width:7px;height:7px;flex:none;border-radius:50%;background:var(--acc3);box-shadow:0 0 16px var(--acc3)}
+.kzhs-title{
+  margin:0;color:var(--ink);font-family:var(--font-display);
+  font-size:clamp(2.6rem,6.7vw,6.5rem);line-height:.9;letter-spacing:-.06em;font-weight:560;
+  text-wrap:balance;
+}
+.kzhs-lede{max-width:550px;margin:28px 0 0;color:var(--mut);font-size:clamp(16px,1.3vw,20px);line-height:1.56}
+.kzhs-actions{display:flex;flex-wrap:wrap;gap:11px;margin-top:33px}
+
+/* --- Stage 2: the foundation reveal, fading in past ~0.35 progress. --- */
+.kzhs-reveal{
+  position:absolute;z-index:10;right:var(--kzhs-inset);top:18%;
+  width:min(500px,42vw);
+  opacity:clamp(0,calc((var(--progress) - .34)*4.2),1);
+  transform:translate3d(calc(var(--pointer-x)*7px),calc((1 - var(--progress))*42px),0);
+  pointer-events:none;
+}
+.kzhs-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px 20px;margin-top:8px}
+.kzhs-stat{border-left:1px solid var(--line2);padding-left:16px}
+.kzhs-stat-num{
+  color:var(--ink);font-family:var(--font-display);font-weight:600;
+  font-size:clamp(1.9rem,3.3vw,2.9rem);line-height:1.05;letter-spacing:-.035em;
+  /* Class-set family bypasses the [style*="--font-display"] tabular catch-all
+     in globals.css, so tabular figures are restated here — an animated stat in
+     proportional figures visibly shoves its neighbours as it ticks. */
+  font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1,"liga" 1,"calt" 1;
+}
+.kzhs-stat-label{
+  margin-top:6px;max-width:20ch;color:var(--mut);
+  font-family:var(--font-mono);font-size:10px;font-weight:500;
+  letter-spacing:.09em;text-transform:uppercase;line-height:1.45;
+}
+
+/* --- Floating mono annotations over the lower art. --- */
+.kzhs-notes{position:absolute;z-index:7;inset:0;pointer-events:none;opacity:clamp(0,calc((var(--progress) - .42)*3.2),.78)}
+.kzhs-note{
+  position:absolute;display:inline-flex;align-items:center;min-height:29px;padding:0 10px;
+  border-left:1px solid var(--acc);color:var(--mut);
+  background:linear-gradient(90deg,color-mix(in srgb,var(--bg2) 78%,transparent),transparent);
+  font:500 9px var(--font-mono);letter-spacing:.04em;white-space:nowrap;
+  backdrop-filter:blur(6px);
+  animation:kzhsNote 4.8s ease-in-out infinite;
+}
+.kzhs-note-1{left:49%;bottom:26%}
+.kzhs-note-2{left:67%;bottom:10%;animation-delay:-1.5s}
+.kzhs-note-3{left:27%;bottom:16%;animation-delay:-2.9s}
+@keyframes kzhsNote{0%,100%{transform:translateY(-3px)}50%{transform:translateY(5px)}}
+
+/* --- Scroll meter. The fill scrubs via scaleX, never width. --- */
+.kzhs-meter{
+  position:absolute;z-index:12;left:var(--kzhs-inset);bottom:66px;
+  display:grid;grid-template-columns:auto 110px auto;align-items:center;gap:11px;
+  color:var(--dim);font:500 8px var(--font-mono);letter-spacing:.12em;
+  opacity:clamp(.25,calc(1 - var(--progress)*.75),.76);
+}
+.kzhs-meter > i{position:relative;display:block;width:110px;height:1px;background:color-mix(in srgb,var(--line2) 55%,transparent)}
+.kzhs-meter b{
+  position:absolute;left:0;top:-1px;height:3px;width:100%;border-radius:2px;
+  transform:scaleX(var(--progress));transform-origin:left;
+  background:var(--acc3);box-shadow:0 0 10px var(--acc);
+}
+.kzhs-meter strong{color:var(--mut);font-weight:500}
+
+/* --- Capability ribbon: duplicate-track infinite marquee. --- */
+.kzhs-ribbon{
+  position:absolute;z-index:15;left:0;right:0;bottom:0;overflow:hidden;height:39px;
+  border-top:1px solid var(--line);
+  background:color-mix(in srgb,var(--bg) 72%,transparent);backdrop-filter:blur(12px);
+}
+.kzhs-ribbon-track{display:flex;align-items:center;width:max-content;height:100%;animation:kzhsMarquee 36s linear infinite}
+.kzhs-ribbon-track span{
+  display:inline-flex;align-items:center;gap:10px;padding:0 28px;
+  color:var(--mut);font:500 9px var(--font-mono);letter-spacing:.13em;
+  text-transform:uppercase;white-space:nowrap;
+}
+.kzhs-ribbon-track i{width:4px;height:4px;transform:rotate(45deg);border:1px solid var(--acc3);box-shadow:0 0 7px color-mix(in srgb,var(--acc3) 65%,transparent)}
+@keyframes kzhsMarquee{to{transform:translateX(-50%)}}
+
+@media (max-width:920px){
+  .kzhs-copy{width:min(710px,calc(100vw - 48px))}
+  .kzhs-reveal{width:min(520px,calc(100vw - 48px))}
+}
+
+@media (max-width:640px){
+  .kzhs-story{height:210svh}
+  .kzhs-sticky{min-height:640px}
+  .kzhs-frame{inset:-2% -24%;transform:translate3d(calc(var(--pointer-x)*-3px),calc((var(--progress)*-7vh) + (var(--pointer-y)*-2px)),0) scale(calc(1.02 + var(--progress)*.07))}
+  .kzhs-scene{background:linear-gradient(180deg,rgba(2,6,10,.94) 0%,rgba(2,7,12,.62) 34%,rgba(2,7,12,.05) 64%,rgba(2,7,12,.83) 100%)}
+  .kzhs-vignette{box-shadow:inset 0 0 90px 20px rgba(0,0,0,.45)}
+  .kzhs-grid{inset:38% 0 0;background-size:48px 48px}
+  .kzhs-marker{top:37%;grid-template-columns:1fr;padding:0 18px}
+  .kzhs-marker span{display:none}
+  /* Copy stays vertically centred on phones: the lede runs longer than the
+     mockup's, and a fixed top offset would push the CTAs into the meter. */
+  .kzhs-copy{left:20px;width:calc(100vw - 40px);transform:translateY(calc(-50% + var(--progress)*-48px))}
+  .kzhs-eyebrow{margin-bottom:17px;font-size:8px;letter-spacing:.1em}
+  .kzhs-lede{width:min(100%,440px);margin-top:20px;font-size:15px}
+  .kzhs-actions{flex-direction:column;width:min(100%,330px);margin-top:24px}
+  .kzhs-reveal{left:20px;right:auto;top:16%;width:calc(100vw - 40px)}
+  .kzhs-note{font-size:7px}
+  .kzhs-note-1{left:41%;bottom:27%}
+  .kzhs-note-2{left:44%;bottom:11%}
+  .kzhs-note-3{left:10%;bottom:18%}
+  .kzhs-meter{left:18px;bottom:50px;grid-template-columns:auto 70px}
+  .kzhs-meter > i{width:70px}
+  .kzhs-meter strong{display:none}
+  .kzhs-ribbon{height:35px}
+  .kzhs-ribbon-track span{padding:0 19px;font-size:8px}
+}
+
+/* Reduced motion: the story flattens into ordinary flow. The art stays as a
+   static backdrop, both stages render in sequence at full opacity, and every
+   scrubbed or looping layer disappears rather than freezing mid-state. */
+@media (prefers-reduced-motion: reduce){
+  .kzhs-story{height:auto}
+  .kzhs-sticky{position:relative;height:auto;min-height:0;padding:clamp(96px,14vh,160px) 0 96px}
+  .kzhs-frame{transform:none;will-change:auto}
+  .kzhs-grid,.kzhs-particles,.kzhs-marker,.kzhs-scan,.kzhs-notes,.kzhs-meter{display:none}
+  .kzhs-copy,.kzhs-reveal{
+    position:static;width:auto;max-width:var(--container-site);
+    margin-inline:auto;padding-inline:clamp(18px,4.5vw,36px);box-sizing:border-box;
+    opacity:1;transform:none;
+  }
+  .kzhs-intro{opacity:1;visibility:visible}
+  .kzhs-reveal{margin-top:64px;pointer-events:auto}
+  .kzhs-note,.kzhs-particles i{animation:none}
+  .kzhs-ribbon{position:static;height:auto;min-height:39px;padding:8px 0}
+  .kzhs-ribbon-track{width:100%;flex-wrap:wrap;justify-content:center;animation:none}
+  .kzhs-ribbon-track span[aria-hidden]{display:none}
+}
+`;
+
+export function KzHeroStory() {
+  const storyRef = useRef<HTMLElement | null>(null);
+  const frameRef = useRef<HTMLDivElement | null>(null);
+  const [artReady, setArtReady] = useState(false);
+
+  /* onLoad can never fire for an image the browser finished before hydration,
+     so the cached-visit case is settled by checking `complete` once. */
+  useEffect(() => {
+    const img = frameRef.current?.querySelector("img");
+    if (img?.complete) setArtReady(true);
+  }, []);
+
+  /* Scroll → --progress. One passive listener, one rAF chain; frames coalesce
+     because the rAF is only queued when none is pending. Reduced motion skips
+     the lerp and writes the target directly (the CSS above has already
+     flattened the layout, so the value only steers what little remains). */
+  useEffect(() => {
+    const story = storyRef.current;
+    if (!story) return;
+
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let frame = 0;
+    let current = 0;
+    let target = 0;
+    let past = false;
+
+    const measure = () => {
+      const rect = story.getBoundingClientRect();
+      const travel = Math.max(1, story.offsetHeight - window.innerHeight);
+      target = Math.min(1, Math.max(0, -rect.top / travel));
+    };
+
+    const render = () => {
+      current = reduced ? target : current + (target - current) * 0.11;
+      story.style.setProperty("--progress", current.toFixed(4));
+      const nextPast = current > 0.5;
+      if (nextPast !== past) {
+        past = nextPast;
+        story.dataset.kzhsPast = String(nextPast);
+      }
+      if (Math.abs(target - current) > 0.001) frame = window.requestAnimationFrame(render);
+      else frame = 0;
+    };
+
+    const queueRender = () => {
+      measure();
+      if (!frame) frame = window.requestAnimationFrame(render);
+    };
+
+    measure();
+    current = target;
+    story.style.setProperty("--progress", current.toFixed(4));
+    window.addEventListener("scroll", queueRender, { passive: true });
+    window.addEventListener("resize", queueRender, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", queueRender);
+      window.removeEventListener("resize", queueRender);
+      if (frame) window.cancelAnimationFrame(frame);
+    };
+  }, []);
+
+  /* Pointer parallax. Attached only on a hovering fine pointer with motion
+     allowed; a touch device never gets the listener, and a stray touch-derived
+     pointermove is skipped besides. Custom-property writes are cheap — the
+     compositor consumes them through the transforms above. */
+  useEffect(() => {
+    const story = storyRef.current;
+    if (!story) return;
+    const fine = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!fine || reduced) return;
+
+    const move = (event: PointerEvent) => {
+      if (event.pointerType === "touch") return;
+      story.style.setProperty("--pointer-x", ((event.clientX / window.innerWidth - 0.5) * 2).toFixed(3));
+      story.style.setProperty("--pointer-y", ((event.clientY / window.innerHeight - 0.5) * 2).toFixed(3));
+    };
+
+    window.addEventListener("pointermove", move, { passive: true });
+    return () => window.removeEventListener("pointermove", move);
+  }, []);
+
+  return (
+    <section ref={storyRef} id="top" className="kzhs-story" aria-label="Kenzed Tech Lab">
+      <style href="kz-hero-story" precedence="default" dangerouslySetInnerHTML={{ __html: KZ_HERO_STORY_CSS }} />
+      <div className="kzhs-sticky">
+        {/* The art is scenery — every fact it illustrates is in the copy. */}
+        <div ref={frameRef} className={`kzhs-frame${artReady ? " is-loaded" : ""}`} aria-hidden="true">
+          <Image
+            src="/kenzed-hidden-stack.webp"
+            alt=""
+            fill
+            priority
+            sizes="100vw"
+            style={{ objectFit: "cover", objectPosition: "50% 50%" }}
+            onLoad={() => setArtReady(true)}
+          />
+        </div>
+        <div className="kzhs-scene" aria-hidden="true" />
+        <div className="kzhs-grid" aria-hidden="true" />
+        <div className="kzhs-vignette" aria-hidden="true" />
+
+        <div className="kzhs-particles" aria-hidden="true">
+          {KZ_PARTICLES.map((p, index) => (
+            <i key={index} style={{ left: p.left, top: p.top, animationDelay: p.delay }} />
+          ))}
+        </div>
+
+        <div className="kzhs-marker" aria-hidden="true">
+          <span>VISIBLE LAYER</span>
+          <i />
+          <span>FOUNDATION LAYER</span>
+        </div>
+        <div className="kzhs-scan" aria-hidden="true">
+          <i />
+        </div>
+
+        {/* STAGE 1 — painted at final position server-side; no entrance. */}
+        <div className="kzhs-copy kzhs-intro">
+          {/* The site's own name and tagline, verbatim from content/site.ts. */}
+          <p className="kzhs-eyebrow">
+            <i /> {site.name} / {site.tagline}
+          </p>
+          <h1 className="kzhs-title">
+            Engineering Intelligent Software for an{" "}
+            <span className="kz-grad-text">Agentic World</span>
+          </h1>
+          <p className="kzhs-lede">
+            Kenzed Tech Lab designs, builds, and deploys custom AI agents, machine-learning
+            systems, voice AI, and enterprise software — production-grade, secure, and running on
+            infrastructure we own and operate 24×7.
+          </p>
+          <div className="kzhs-actions">
+            <KzMagnetic strength={0.28} max={12}>
+              <KzButton href="/contact">Start Your AI Project →</KzButton>
+            </KzMagnetic>
+            <KzButton href="/services" variant="ghost">
+              Explore Our Services
+            </KzButton>
+          </div>
+        </div>
+
+        {/* STAGE 2 — the foundation reveal: the site's four stats. */}
+        <div className="kzhs-reveal">
+          {/* The third stat's own label, verbatim — no invented copy. */}
+          <p className="kzhs-eyebrow">
+            <i /> Operations &amp; in-house AI compute
+          </p>
+          <div className="kzhs-stats">
+            {kzStats.map((s) => (
+              <div key={s.label} className="kzhs-stat">
+                <div className="kzhs-stat-num">
+                  <KzCountUp
+                    to={s.target}
+                    decimals={Number.isInteger(s.target) ? 0 : 2}
+                    suffix={s.suffix}
+                  />
+                </div>
+                <div className="kzhs-stat-label">{s.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* The old hero's floating chips, recast as the design's annotations. */}
+        <div className="kzhs-notes" aria-hidden="true">
+          <span className="kzhs-note kzhs-note-1">agent.plan() → tool_call → act()</span>
+          <span className="kzhs-note kzhs-note-2">LoRA fine-tune · llama-3 · r=16</span>
+          <span className="kzhs-note kzhs-note-3">inference 42 ms · on-prem GPU · 99.98% uptime</span>
+        </div>
+
+        <div className="kzhs-meter" aria-hidden="true">
+          <span>SCROLL</span>
+          <i>
+            <b />
+          </i>
+          <strong>00 — 100</strong>
+        </div>
+
+        <div className="kzhs-ribbon">
+          <div className="kzhs-ribbon-track">
+            {KZ_RIBBON_ITEMS.map((item) => (
+              <span key={item}>
+                <i aria-hidden="true" />
+                {item}
+              </span>
+            ))}
+            {/* Second copy exists only to make the -50% loop seamless. */}
+            {KZ_RIBBON_ITEMS.map((item) => (
+              <span key={`dup-${item}`} aria-hidden="true">
+                <i />
+                {item}
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}

@@ -2,14 +2,13 @@
 
 import { KzReveal } from "@/components/kz/KzReveal";
 import { KzIcon } from "@/components/kz/KzIcon";
+import { KzScrollSpy } from "@/components/kz/KzScrollSpy";
 import { KzPageHero, KzSectionTitle, KzSphere, KzCube } from "@/components/kz/primitives";
-import { useKzPage } from "@/components/kz/useKzPage";
 import { kzInfrastructure, kzInfraWhy, kzStatusRows } from "@/content/kz";
 
 export function KzInfrastructure() {
-  useKzPage("infrastructure");
   return (
-    <div style={{ position: "relative" }}>
+    <div id="top" style={{ position: "relative" }}>
       <div
         aria-hidden="true"
         style={{
@@ -41,7 +40,15 @@ export function KzInfrastructure() {
         lead="We invested early in our own facility, compute, and utilities — so our teams build without interruption, and clients who need private, on-premise, or sovereign AI can trust exactly where their workloads run."
       />
 
-      <section style={{ padding: "0 0 clamp(50px, 7vw, 80px)", background: "var(--bg)" }}>
+      <KzScrollSpy
+        sections={[
+          { id: "top", label: "Infrastructure" },
+          { id: "facility", label: "Infrastructure we own" },
+          { id: "why", label: "Why this matters" },
+        ]}
+      />
+
+      <section id="facility" style={{ padding: "0 0 clamp(50px, 7vw, 80px)", background: "var(--bg)" }}>
         <div className="kz-wrap">
           <KzReveal delay={0}>
             <div
@@ -70,17 +77,16 @@ export function KzInfrastructure() {
                 >
                   Durgapur · Engineering centre
                 </div>
+                {/* Emphasis via the shared class so the central cyan
+                    restyle (and the light theme) both apply. */}
                 <div
+                  className="kz-grad-text"
                   style={{
                     fontFamily: "var(--font-display)",
-                    fontWeight: 700,
+                    fontWeight: 600,
                     fontSize: "clamp(1.7rem, 4.5vw, 2.9rem)",
                     lineHeight: 1.04,
-                    letterSpacing: "-0.012em",
-                    background: "var(--grt)",
-                    WebkitBackgroundClip: "text",
-                    backgroundClip: "text",
-                    WebkitTextFillColor: "transparent",
+                    letterSpacing: "-0.045em",
                   }}
                 >
                   Infrastructure we own, not rent
@@ -198,7 +204,7 @@ export function KzInfrastructure() {
         </div>
       </section>
 
-      <section style={{ padding: "0 0 clamp(70px, 10vw, 120px)", background: "var(--bg)" }}>
+      <section id="why" style={{ padding: "0 0 clamp(70px, 10vw, 120px)", background: "var(--bg)" }}>
         <div className="kz-wrap">
           <KzReveal delay={0}>
             <KzSectionTitle style={{ marginBottom: 30 }}>
@@ -236,8 +242,7 @@ export function KzInfrastructure() {
                         fontFamily: "var(--font-display)",
                         fontWeight: 600,
                         fontSize: "clamp(1rem, 1.8vw, 1.25rem)",
-                        letterSpacing: "0.01em",
-                        textTransform: "uppercase",
+                        letterSpacing: "-0.035em",
                         margin: 0,
                         lineHeight: 1.2,
                         color: "var(--ink)",

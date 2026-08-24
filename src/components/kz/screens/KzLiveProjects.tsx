@@ -8,12 +8,12 @@ import {
   type KzLifecycleStage,
 } from "@/components/kz/KzDiagrams";
 import { KzIcon, type KzIconKey } from "@/components/kz/KzIcon";
+import { KzScrollSpy } from "@/components/kz/KzScrollSpy";
 import { KzGridPattern } from "@/components/kz/motion/KzAmbient";
 import { KzFadeUp } from "@/components/kz/motion/KzEntrance";
 import { KzCountUp } from "@/components/kz/motion/KzFeedback";
 import { KZ_HOVER_GROUP, KzArrowNudge } from "@/components/kz/motion/KzPointer";
 import { KzPageHero, KzSectionTitle, KzSphere, KzOrbitDots } from "@/components/kz/primitives";
-import { useKzPage } from "@/components/kz/useKzPage";
 import { site } from "@/content/site";
 import { liveProjects, performers, trainingPrograms } from "@/content/training";
 
@@ -63,9 +63,8 @@ const registerStats = [
 ];
 
 export function KzLiveProjects() {
-  useKzPage("process");
   return (
-    <div style={{ position: "relative" }}>
+    <div id="top" style={{ position: "relative" }}>
       <div
         aria-hidden="true"
         style={{
@@ -97,7 +96,17 @@ export function KzLiveProjects() {
         lead="Our trainees do not build toy projects. They join a delivery squad on real client work, ship a reviewed contribution, and leave with a certificate and an entry in the register below — a credential someone can actually check."
       />
 
-      <section style={{ padding: "0 0 clamp(50px, 7vw, 80px)", background: "var(--bg)" }}>
+      <KzScrollSpy
+        sections={[
+          { id: "top", label: "Live projects & training" },
+          { id: "programmes", label: "Training programmes" },
+          { id: "journey", label: "The training journey" },
+          { id: "apply", label: "Apply now" },
+          { id: "register", label: "Projects & performers" },
+        ]}
+      />
+
+      <section id="programmes" style={{ padding: "0 0 clamp(50px, 7vw, 80px)", background: "var(--bg)" }}>
         <div className="kz-wrap">
           <KzFadeUp>
             <KzSectionTitle style={{ marginBottom: 10 }}>Training programmes</KzSectionTitle>
@@ -280,7 +289,7 @@ export function KzLiveProjects() {
         </div>
       </section>
 
-      <section style={{ padding: "0 0 clamp(50px, 7vw, 80px)", background: "var(--bg)" }}>
+      <section id="journey" style={{ padding: "0 0 clamp(50px, 7vw, 80px)", background: "var(--bg)" }}>
         <div
           className="kz-wrap"
           style={{
@@ -441,10 +450,10 @@ export function KzLiveProjects() {
                   <div
                     style={{
                       fontFamily: "var(--font-display)",
-                      fontWeight: 700,
+                      fontWeight: 600,
                       fontSize: "clamp(1.8rem, 5vw, 2.4rem)",
                       lineHeight: 1.04,
-                      letterSpacing: "-0.015em",
+                      letterSpacing: "-0.035em",
                       color: "var(--ink)",
                       marginBottom: 8,
                     }}
@@ -852,10 +861,9 @@ function SubHeading({ children }: { children: React.ReactNode }) {
       style={{
         fontFamily: "var(--font-display)",
         fontWeight: 600,
-        textTransform: "uppercase",
         fontSize: "clamp(1.1rem, 2.4vw, 1.5rem)",
         lineHeight: 1.22,
-        letterSpacing: "0.01em",
+        letterSpacing: "-0.035em",
         color: "var(--ink)",
         margin: "0 0 20px",
       }}

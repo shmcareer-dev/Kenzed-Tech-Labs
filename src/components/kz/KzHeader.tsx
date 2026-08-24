@@ -1,14 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { KzWordmark } from "./KzWordmark";
-
 import { useKzTheme } from "./KzThemeProvider";
-import { KzLogo } from "./KzIcon";
-import { KZ_EASE_CSS, KzHideOnScrollHeader } from "./motion/KzNav";
+import { KZ_EASE_CSS, KzCommandPalette } from "./motion/KzNav";
 
 const nav = [
   { href: "/", label: "Home", num: "01" },
@@ -22,41 +20,202 @@ const nav = [
   { href: "/contact", label: "Contact", num: "09" },
 ];
 
-/** Resting height of the bar, in px. */
-const KZ_BAR_H = 72;
-/** Fraction of that height the scrolled bar keeps. */
-const KZ_BAR_SHRINK = 0.8;
 /**
- * The shrink is a scaleY on the bar's own background layer, anchored to the top
- * edge, so the content only has to rise by half the lost height to stay
- * optically centred. Both halves are transforms: the header's layout box is
- * never resized, so no frame of the shrink costs a layout pass.
+ * The pill cannot fit nine links, so the three offer pages fold into a
+ * "Services" mega menu and the rest stay top-level. Every page remains
+ * reachable: Home via the brand, Contact via the CTA, and all nine via the
+ * mobile menu and the command palette. The `note` lines are each page's own
+ * metadata title with the "| Kenzed Tech Lab" suffix dropped — existing
+ * strings, not invented copy.
  */
-const KZ_CONTENT_RISE = (KZ_BAR_H * (1 - KZ_BAR_SHRINK)) / 2;
+const MEGA = [
+  { href: "/services", label: "Services", num: "02", note: "AI, ML & Software Development Services" },
+  { href: "/product-studio", label: "Product Studio", num: "03", note: "AI Products & Pricing" },
+  { href: "/live-projects", label: "Live Projects", num: "04", note: "Live Projects & AI Training in Durgapur" },
+];
+const TOP = ["/technology", "/infrastructure", "/process", "/about"];
+
+/** Scroll depth after which the pill compacts (design: 90px). */
+const KZ_COMPACT_AT = 90;
+/** Scroll depth after which scrolling down may hide the pill (design: 480px). */
+const KZ_HIDE_AT = 480;
+/** Scroll delta that counts as a direction change; filters trackpad jitter. */
+const KZ_JITTER = 6;
+/** Hover intent for the mega menu, both directions (design: ~170ms). */
+const KZ_MEGA_INTENT_MS = 170;
+
+const KZ_HDR_CSS = `
+.kzhdr{
+  position:fixed;z-index:50;top:18px;left:50%;
+  width:min(1180px,calc(100% - 32px));height:64px;padding:0 12px 0 17px;
+  display:grid;grid-template-columns:1fr auto 1fr;align-items:center;
+  border:1px solid var(--line);border-radius:13px;
+  background:var(--navbg);
+  box-shadow:0 22px 70px rgba(0,0,0,.34);
+  backdrop-filter:blur(20px) saturate(130%);
+  -webkit-backdrop-filter:blur(20px) saturate(130%);
+  transform:translate3d(-50%,0,0);
+  transition:height .35s ${KZ_EASE_CSS},top .35s ${KZ_EASE_CSS},
+    transform .38s ${KZ_EASE_CSS},background .3s ${KZ_EASE_CSS};
+}
+/* color-mix keeps the "more opaque when compact" step reading from --bg, so
+   the light theme gets a paler pill instead of a hardcoded dark one. */
+.kzhdr[data-compact="true"]{top:10px;height:54px;background:color-mix(in srgb,var(--bg) 91%,transparent)}
+.kzhdr[data-hidden="true"]{transform:translate3d(-50%,-130%,0)}
+[data-kz-theme="light"] .kzhdr{box-shadow:0 22px 70px rgba(12,20,36,.14)}
+
+.kzhdr-brand{display:inline-flex;align-items:center;width:max-content}
+
+.kzhdr-links{display:flex;align-items:center;gap:33px}
+.kzhdr-link{
+  font-family:var(--font-mono);font-size:11px;font-weight:500;
+  letter-spacing:.03em;white-space:nowrap;
+  color:var(--mut);transition:color .25s ${KZ_EASE_CSS};
+}
+.kzhdr-link:hover{color:var(--acc3)}
+.kzhdr-link[aria-current="page"],.kzhdr-mega>.kzhdr-link[data-active="true"]{color:var(--ink)}
+
+.kzhdr-mega{position:relative}
+.kzhdr-mega>button{
+  display:flex;align-items:center;gap:6px;
+  border:0;padding:0;background:transparent;cursor:pointer;
+}
+.kzhdr-caret{font-size:10px;transition:transform .25s ${KZ_EASE_CSS}}
+.kzhdr-mega[data-open="true"] .kzhdr-caret{transform:rotate(180deg)}
+.kzhdr-megamenu{
+  position:absolute;top:calc(100% + 22px);left:-24px;width:420px;padding:8px;
+  border:1px solid var(--line);border-radius:13px;
+  background:color-mix(in srgb,var(--bg) 96%,transparent);
+  box-shadow:0 26px 80px rgba(0,0,0,.48);
+  backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);
+  opacity:0;visibility:hidden;transform:translateY(-9px) scale(.97);
+  transform-origin:top left;
+  transition:opacity .25s ${KZ_EASE_CSS},visibility .25s,transform .25s ${KZ_EASE_CSS};
+}
+.kzhdr-mega[data-open="true"] .kzhdr-megamenu{opacity:1;visibility:visible;transform:none}
+[data-kz-theme="light"] .kzhdr-megamenu{box-shadow:0 26px 80px rgba(12,20,36,.2)}
+.kzhdr-megamenu a{
+  display:grid;grid-template-columns:30px 1fr auto;align-items:center;gap:12px;
+  min-height:64px;padding:10px 12px;border-radius:9px;
+  transition:background .24s ${KZ_EASE_CSS};
+}
+.kzhdr-megamenu a:hover{background:var(--card2)}
+.kzhdr-megamenu a b{color:var(--acc3);font:500 8px var(--font-mono);letter-spacing:.08em}
+.kzhdr-megamenu a>span{display:grid;gap:3px;color:var(--ink);font-size:13px}
+.kzhdr-megamenu a small{color:var(--mut);font-size:10px}
+.kzhdr-megamenu a i{
+  font-style:normal;color:var(--mut);
+  transition:transform .24s ${KZ_EASE_CSS};
+}
+.kzhdr-megamenu a:hover i{transform:translate(3px,-3px)}
+
+/* Compact the palette's built-in trigger to nav-furniture size inside the
+   pill; the palette itself (and its Cmd/Ctrl+K wiring) is untouched. */
+.kzhdr .kzcp-trigger{
+  min-height:24px;padding:0 8px;gap:6px;border-radius:6px;
+  background:transparent;font-size:9px;letter-spacing:.08em;
+}
+.kzhdr .kzcp-trigger .kzcp-kbd{padding:1px 5px;font-size:.55rem}
+
+.kzhdr-end{display:flex;align-items:center;justify-content:flex-end;gap:8px}
+.kzhdr-theme{
+  width:40px;height:40px;flex:0 0 auto;display:grid;place-items:center;
+  border:1px solid var(--line);border-radius:9px;background:transparent;
+  color:var(--ink);cursor:pointer;font-size:.92rem;
+  transition:border-color .25s ${KZ_EASE_CSS},color .25s ${KZ_EASE_CSS};
+}
+.kzhdr-theme:hover{border-color:var(--line2)}
+.kzhdr-cta{
+  display:inline-flex;align-items:center;gap:17px;min-height:42px;padding:0 14px;
+  border:1px solid color-mix(in srgb,var(--acc) 38%,transparent);border-radius:8px;
+  background:color-mix(in srgb,var(--acc) 8%,transparent);
+  font-family:var(--font-mono);font-size:11px;font-weight:500;
+  letter-spacing:.03em;white-space:nowrap;color:var(--ink);
+  transition:color .25s ${KZ_EASE_CSS},border-color .25s ${KZ_EASE_CSS},background .25s ${KZ_EASE_CSS};
+}
+.kzhdr-cta:hover{
+  border-color:color-mix(in srgb,var(--acc3) 76%,transparent);
+  background:color-mix(in srgb,var(--acc) 15%,transparent);
+}
+.kzhdr-menubtn{
+  display:none;width:40px;height:40px;flex:0 0 auto;padding:0;
+  border:1px solid var(--line);border-radius:9px;
+  background:color-mix(in srgb,var(--acc) 7%,transparent);
+  color:var(--ink);cursor:pointer;
+}
+.kzhdr-menubtn i{display:block;width:16px;height:1px;margin:5px auto;background:currentColor}
+
+@media (max-width:920px){
+  .kzhdr{grid-template-columns:1fr auto}
+  .kzhdr-links{display:none}
+  .kzhdr-cta{display:none}
+  .kzhdr-menubtn{display:block}
+}
+@media (max-width:640px){
+  .kzhdr{top:10px;width:calc(100% - 20px);height:58px;padding-left:12px;border-radius:11px}
+  .kzhdr[data-compact="true"]{top:7px;height:52px}
+  .kzhdr-brand .kzwm-name b{display:none}
+  .kzhdr-menubtn{width:38px;height:38px}
+}
+@media (prefers-reduced-motion:reduce){
+  .kzhdr{transition:none}
+  .kzhdr[data-hidden="true"]{transform:translate3d(-50%,0,0)}
+}
+`;
 
 export function KzHeader() {
   const pathname = usePathname();
   const { isDark, toggleTheme } = useKzTheme();
-  const [scrolled, setScrolled] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-  /** Nine nav items only clear the CTA above 1200px with the full CTA label. */
   const [compact, setCompact] = useState(false);
+  const [hidden, setHidden] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [megaOpen, setMegaOpen] = useState(false);
+  const megaTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const megaBtnRef = useRef<HTMLButtonElement | null>(null);
 
+  /* One passive scroll listener, one rAF: compact past 90px, retract past
+     480px on the way down, return on the way up. Reduced motion never hides
+     the bar — losing the nav to a transform you cannot see arrive is worse
+     than a permanently visible pill. */
   useEffect(() => {
-    const check = () => {
-      setIsMobile(window.innerWidth < 1000);
-      setCompact(window.innerWidth < 1200);
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let raf = 0;
+    let lastY = window.scrollY;
+    const apply = () => {
+      raf = 0;
+      const y = window.scrollY;
+      setCompact(y > KZ_COMPACT_AT);
+      if (reduced.matches) {
+        setHidden(false);
+        lastY = y;
+        return;
+      }
+      const delta = y - lastY;
+      if (Math.abs(delta) < KZ_JITTER) return;
+      lastY = y;
+      setHidden(delta > 0 && y > KZ_HIDE_AT);
     };
-    check();
-    const onScroll = () => setScrolled(window.scrollY > 24);
-    window.addEventListener("resize", check);
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(apply);
+    };
+    // Scroll restoration can land mid-page; paint the matching state now.
+    onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => {
-      window.removeEventListener("resize", check);
       window.removeEventListener("scroll", onScroll);
+      if (raf) cancelAnimationFrame(raf);
     };
   }, []);
+
+  // Route changes close both overlays; a nav that follows you is a bug.
+  // Adjusted during render (not in an effect) so the stale open state never
+  // paints on the new page — the pattern react.dev prescribes for this.
+  const [prevPath, setPrevPath] = useState(pathname);
+  if (prevPath !== pathname) {
+    setPrevPath(pathname);
+    setMenuOpen(false);
+    setMegaOpen(false);
+  }
 
   useEffect(() => {
     if (menuOpen) {
@@ -69,231 +228,139 @@ export function KzHeader() {
     };
   }, [menuOpen]);
 
-  const active =
-    nav.find((n) =>
-      n.href === "/" ? pathname === "/" : pathname.startsWith(n.href)
-    )?.href || "/";
-
-  /* Sliding indicator: one hairline measured against the active link and moved
-     with translate + scaleX. Animating its left and width instead would relay
-     out the whole nav row on every frame of the slide. */
-  const navRef = useRef<HTMLElement | null>(null);
-  const [marker, setMarker] = useState<{ x: number; w: number } | null>(null);
-
-  const measureMarker = useCallback(() => {
-    const list = navRef.current;
-    if (!list) return;
-    const link = list.querySelector<HTMLAnchorElement>(`[data-kznav="${active}"]`);
-    if (!link) {
-      setMarker(null);
-      return;
-    }
-    setMarker({ x: link.offsetLeft, w: link.offsetWidth });
-  }, [active]);
-
   useEffect(() => {
-    const list = navRef.current;
-    if (isMobile || !list) {
-      setMarker(null);
-      return;
-    }
-
-    measureMarker();
-
-    let cancelled = false;
-    if ("fonts" in document) {
-      // The nav is set in a web font: every link changes width when it lands.
-      void document.fonts.ready.then(() => {
-        if (!cancelled) measureMarker();
-      });
-    }
-
-    const observer = new ResizeObserver(() => measureMarker());
-    observer.observe(list);
-
-    return () => {
-      cancelled = true;
-      observer.disconnect();
+    if (!menuOpen && !megaOpen) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      if (megaOpen) {
+        setMegaOpen(false);
+        // Escape hands focus back to the control that opened the panel.
+        megaBtnRef.current?.focus();
+      }
+      if (menuOpen) setMenuOpen(false);
     };
-  }, [isMobile, measureMarker]);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [menuOpen, megaOpen]);
+
+  // Clear a pending hover-intent timer if the header unmounts mid-flight.
+  useEffect(() => {
+    return () => {
+      if (megaTimerRef.current) clearTimeout(megaTimerRef.current);
+    };
+  }, []);
+
+  const setMegaIntent = (open: boolean) => {
+    if (megaTimerRef.current) clearTimeout(megaTimerRef.current);
+    megaTimerRef.current = setTimeout(() => setMegaOpen(open), KZ_MEGA_INTENT_MS);
+  };
+
+  const active =
+    nav.find((n) => (n.href === "/" ? pathname === "/" : pathname.startsWith(n.href)))?.href || "/";
+  const megaActive = MEGA.some((item) => pathname.startsWith(item.href));
 
   return (
     <>
-      <KzHideOnScrollHeader offset={KZ_BAR_H}>
-        <header
-          style={{
-            position: "relative",
-            height: KZ_BAR_H,
-            display: "flex",
-            alignItems: "center",
-            /* Once scrolled, the visible bar is only 80% of this box, so the box
-               itself must not swallow taps aimed at the page beneath it. */
-            pointerEvents: "none",
-          }}
-        >
-          <div
-            aria-hidden="true"
-            style={{
-              position: "absolute",
-              inset: 0,
-              transformOrigin: "center top",
-              transform: scrolled ? `scaleY(${KZ_BAR_SHRINK})` : "scaleY(1)",
-              background: scrolled || menuOpen ? "var(--navbg)" : "transparent",
-              backdropFilter: scrolled ? "blur(14px)" : "none",
-              WebkitBackdropFilter: scrolled ? "blur(14px)" : "none",
-              borderBottom: `1px solid ${scrolled ? "var(--line)" : "transparent"}`,
-              transition: `transform .42s ${KZ_EASE_CSS}, background .3s, backdrop-filter .3s, border-color .3s`,
-            }}
-          />
+      <style href="kz-header" precedence="default" dangerouslySetInnerHTML={{ __html: KZ_HDR_CSS }} />
 
+      <header className="kzhdr" data-compact={compact} data-hidden={hidden}>
+        <Link href="/" className="kzhdr-brand" aria-label="KENZED TECHLAB home">
+          <KzWordmark />
+        </Link>
+
+        <nav className="kzhdr-links" aria-label="Primary">
           <div
-            className="kz-wrap"
-            style={{
-              width: "100%",
-              pointerEvents: "auto",
-              transform: scrolled
-                ? `translate3d(0, ${-KZ_CONTENT_RISE}px, 0)`
-                : "translate3d(0, 0, 0)",
-              transition: `transform .42s ${KZ_EASE_CSS}`,
+            className="kzhdr-mega"
+            data-open={megaOpen}
+            onPointerEnter={() => setMegaIntent(true)}
+            onPointerLeave={() => setMegaIntent(false)}
+            onBlur={(event) => {
+              // Tabbing out of the whole cluster closes the panel; moving
+              // focus between trigger and entries keeps it open.
+              if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+                setMegaOpen(false);
+              }
             }}
           >
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                gap: 12,
-              }}
+            <button
+              ref={megaBtnRef}
+              type="button"
+              className="kzhdr-link"
+              data-active={megaActive}
+              aria-expanded={megaOpen}
+              aria-haspopup="true"
+              aria-controls="kzhdr-megamenu"
+              onClick={() => setMegaOpen((open) => !open)}
             >
-              <Link
-                href="/"
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 11,
-                  flex: "0 0 auto",
-                }}
-              >
-                <KzLogo size={28} />
-                <KzWordmark />
-              </Link>
-
-              {!isMobile && (
-                <nav
-                  ref={navRef}
-                  style={{
-                    position: "relative",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 2,
-                  }}
+              Services{" "}
+              <span className="kzhdr-caret" aria-hidden="true">
+                ⌄
+              </span>
+            </button>
+            <div className="kzhdr-megamenu" id="kzhdr-megamenu">
+              {MEGA.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  aria-current={active === item.href ? "page" : undefined}
+                  tabIndex={megaOpen ? undefined : -1}
+                  onClick={() => setMegaOpen(false)}
                 >
-                  {nav.map((item) => {
-                    const isActive = active === item.href;
-                    return (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        data-kznav={item.href}
-                        aria-current={isActive ? "page" : undefined}
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          padding: "10px clamp(6px, 0.72vw, 11px) 12px",
-                          fontFamily: "var(--font-mono)",
-                          fontSize: "clamp(0.58rem, 0.3rem + 0.44vw, 0.66rem)",
-                          letterSpacing: "0.05em",
-                          textTransform: "uppercase",
-                          whiteSpace: "nowrap",
-                          color: isActive ? "var(--ink)" : "var(--mut)",
-                          transition: "color .2s",
-                        }}
-                      >
-                        {item.label}
-                      </Link>
-                    );
-                  })}
-                  <span
-                    aria-hidden="true"
-                    style={{
-                      position: "absolute",
-                      left: 0,
-                      bottom: 0,
-                      width: 1,
-                      height: 2,
-                      borderRadius: 2,
-                      background: "var(--acc)",
-                      transformOrigin: "left center",
-                      transform: marker
-                        ? `translate3d(${marker.x}px, 0, 0) scaleX(${marker.w})`
-                        : "translate3d(0, 0, 0) scaleX(0)",
-                      opacity: marker ? 1 : 0,
-                      pointerEvents: "none",
-                      transition: `transform .42s ${KZ_EASE_CSS}, opacity .3s ${KZ_EASE_CSS}`,
-                    }}
-                  />
-                </nav>
-              )}
-
-              <div style={{ display: "flex", alignItems: "center", gap: 8, flex: "0 0 auto" }}>
-                <button
-                  onClick={toggleTheme}
-                  aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
-                  style={{
-                    width: 44,
-                    height: 44,
-                    borderRadius: 12,
-                    border: "1px solid var(--line)",
-                    background: "var(--card)",
-                    color: "var(--ink)",
-                    cursor: "pointer",
-                    display: "grid",
-                    placeItems: "center",
-                    fontSize: "1rem",
-                  }}
-                >
-                  {isDark ? "☀" : "☾"}
-                </button>
-
-                {isMobile ? (
-                  <button
-                    onClick={() => setMenuOpen(true)}
-                    aria-label="Open menu"
-                    aria-expanded={menuOpen}
-                    style={{
-                      width: 44,
-                      height: 44,
-                      borderRadius: 12,
-                      border: "1px solid var(--line)",
-                      background: "var(--card)",
-                      color: "var(--ink)",
-                      cursor: "pointer",
-                      display: "grid",
-                      placeItems: "center",
-                      fontFamily: "var(--font-mono)",
-                      fontSize: "1.15rem",
-                    }}
-                  >
-                    ☰
-                  </button>
-                ) : (
-                  <Link
-                    href="/contact"
-                    className="kz-btn kz-btn-primary"
-                    style={{
-                      padding: compact ? "13px 18px" : "13px 22px",
-                      fontSize: "0.74rem",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {compact ? "Start →" : "Start a project →"}
-                  </Link>
-                )}
-              </div>
+                  <b>{item.num}</b>
+                  <span>
+                    {item.label}
+                    <small>{item.note}</small>
+                  </span>
+                  <i aria-hidden="true">↗</i>
+                </Link>
+              ))}
             </div>
           </div>
-        </header>
-      </KzHideOnScrollHeader>
+
+          {nav
+            .filter((item) => TOP.includes(item.href))
+            .map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="kzhdr-link"
+                aria-current={active === item.href ? "page" : undefined}
+              >
+                {item.label}
+              </Link>
+            ))}
+
+          {/* Second palette instance for the pill; the layout's instance owns
+              the Cmd/Ctrl+K hotkey, so this one must not also bind it. */}
+          <KzCommandPalette hotkey={false} triggerLabel="Search" />
+        </nav>
+
+        <div className="kzhdr-end">
+          <button
+            type="button"
+            className="kzhdr-theme"
+            onClick={toggleTheme}
+            aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+          >
+            {isDark ? "☀" : "☾"}
+          </button>
+
+          <Link href="/contact" className="kzhdr-cta">
+            Start a project <span aria-hidden="true">→</span>
+          </Link>
+
+          <button
+            type="button"
+            className="kzhdr-menubtn"
+            onClick={() => setMenuOpen(true)}
+            aria-label="Open menu"
+            aria-expanded={menuOpen}
+          >
+            <i />
+            <i />
+          </button>
+        </div>
+      </header>
 
       {menuOpen && (
         <div
@@ -308,7 +375,8 @@ export function KzHeader() {
             background: "var(--bg)",
             display: "flex",
             flexDirection: "column",
-            padding: "max(env(safe-area-inset-top, 0px), 0px) clamp(20px, 6vw, 48px) max(env(safe-area-inset-bottom, 0px), 24px)",
+            padding:
+              "max(env(safe-area-inset-top, 0px), 0px) clamp(20px, 6vw, 48px) max(env(safe-area-inset-bottom, 0px), 24px)",
             overflowY: "auto",
             overscrollBehavior: "contain",
             WebkitOverflowScrolling: "touch",
@@ -316,15 +384,19 @@ export function KzHeader() {
         >
           <div
             style={{
-              height: KZ_BAR_H,
+              height: 72,
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
               flex: "none",
             }}
           >
-            <Link href="/" onClick={() => setMenuOpen(false)} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <KzLogo size={28} />
+            <Link
+              href="/"
+              onClick={() => setMenuOpen(false)}
+              aria-label="KENZED TECHLAB home"
+              style={{ display: "inline-flex", alignItems: "center" }}
+            >
               <KzWordmark />
             </Link>
             <button
@@ -333,9 +405,9 @@ export function KzHeader() {
               style={{
                 width: 44,
                 height: 44,
-                borderRadius: 12,
+                borderRadius: 9,
                 border: "1px solid var(--line)",
-                background: "var(--card)",
+                background: "transparent",
                 color: "var(--ink)",
                 cursor: "pointer",
                 fontSize: "1.15rem",
@@ -373,7 +445,7 @@ export function KzHeader() {
                     style={{
                       fontFamily: "var(--font-mono)",
                       fontSize: "0.74rem",
-                      color: isActive ? "var(--acc)" : "var(--dim)",
+                      color: isActive ? "var(--acc3)" : "var(--dim)",
                     }}
                   >
                     {item.num}
@@ -381,12 +453,14 @@ export function KzHeader() {
                   <span
                     style={{
                       fontFamily: "var(--font-display)",
-                      fontWeight: 700,
+                      /* Sentence case display type per the design: weight and
+                         negative tracking carry the hierarchy that the old
+                         uppercase transform used to. */
+                      fontWeight: 560,
                       fontSize: "clamp(1.4rem, 6.2vw, 2rem)",
-                      letterSpacing: "-0.004em",
-                      textTransform: "uppercase",
-                      lineHeight: 1.1,
-                      color: isActive ? "var(--acc)" : "var(--ink)",
+                      letterSpacing: "-0.035em",
+                      lineHeight: 1.05,
+                      color: isActive ? "var(--acc3)" : "var(--ink)",
                     }}
                   >
                     {item.label}

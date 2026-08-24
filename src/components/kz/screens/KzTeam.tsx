@@ -1,21 +1,29 @@
 "use client";
 
 import { KzReveal } from "@/components/kz/KzReveal";
+import { KzScrollSpy } from "@/components/kz/KzScrollSpy";
 import { KzPageHero, KzSectionTitle } from "@/components/kz/primitives";
-import { useKzPage } from "@/components/kz/useKzPage";
 import { kzTeam } from "@/content/kz";
 
 export function KzTeam() {
-  useKzPage("about");
   return (
     <>
-      <KzPageHero
-        eyebrow="Our team"
-        title="Every discipline your project needs — under one roof"
-        lead="We are a multidisciplinary team of 25 professionals structured to take a product from concept to delivery, maintenance, and beyond — without handoffs to third parties."
-      />
+      <div id="top">
+        <KzPageHero
+          eyebrow="Our team"
+          title="Every discipline your project needs — under one roof"
+          lead="We are a multidisciplinary team of 25 professionals structured to take a product from concept to delivery, maintenance, and beyond — without handoffs to third parties."
+        />
 
-      <section style={{ padding: "0 0 clamp(70px, 10vw, 120px)", background: "var(--bg)" }}>
+        <KzScrollSpy
+          sections={[
+            { id: "top", label: "Team" },
+            { id: "disciplines", label: "Every discipline" },
+          ]}
+        />
+      </div>
+
+      <section id="disciplines" style={{ padding: "0 0 clamp(70px, 10vw, 120px)", background: "var(--bg)" }}>
         <div className="kz-wrap">
           <KzReveal delay={0}>
             <KzSectionTitle style={{ marginBottom: 10 }}>

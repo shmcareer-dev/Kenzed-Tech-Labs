@@ -1,29 +1,26 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
 
 import { KzTerminal } from "@/components/kz/KzTerminal";
-import { KzMarquee } from "@/components/kz/KzMarquee";
+import { KzHeroStory } from "@/components/kz/KzHeroStory";
+import { KzScrollSpy } from "@/components/kz/KzScrollSpy";
 import { KzIcon } from "@/components/kz/KzIcon";
 import { KzLifecycleRing } from "@/components/kz/KzLifecycleRing";
 import { KzParticleField } from "@/components/kz/KzParticleField";
 import { KzGraphCards, KzStoryCarousel } from "@/components/kz/KzShowcase";
-import { KzEyebrow, KzSectionTitle, KzButton, KzSphere, KzTorus } from "@/components/kz/primitives";
+import { KzEyebrow, KzSectionTitle, KzButton } from "@/components/kz/primitives";
 import { KzFadeUp, KzStagger } from "@/components/kz/motion/KzEntrance";
 import { KzMaskedLines } from "@/components/kz/motion/KzText";
 import { KzParallax, KzScrollFillText, KzStickyStack } from "@/components/kz/motion/KzScrollFx";
-import { KzAurora, KzSpotlight } from "@/components/kz/motion/KzAmbient";
+import { KzSpotlight } from "@/components/kz/motion/KzAmbient";
 import { KzArrowNudge, KzMagnetic } from "@/components/kz/motion/KzPointer";
-import { KzCountUp } from "@/components/kz/motion/KzFeedback";
-import { useKzPage } from "@/components/kz/useKzPage";
 import {
   kzBuildSection,
   kzHomeCta,
   kzLifecycleSection,
   kzOutcomesSection,
   kzServices,
-  kzStats,
   kzWhy,
 } from "@/content/kz";
 
@@ -41,202 +38,32 @@ const KZ_STATEMENT =
 const KZ_TRAILING_ARROW = /\s*→\s*$/;
 
 export function KzHome() {
-  useKzPage("home");
-  const [wide, setWide] = useState(false);
-
-  useEffect(() => {
-    const check = () => setWide(window.innerWidth >= 1200);
-    check();
-    window.addEventListener("resize", check);
-    return () => window.removeEventListener("resize", check);
-  }, []);
 
   return (
     <>
-      {/* HERO — nothing here animates on first paint. The h1 is the LCP element
-          and it is painted at its final position, at full opacity, with no
-          observer attached to it. The only motion in this viewport is the
-          aurora, which starts paused and is composited behind the copy. */}
-      <section
-        style={{
-          minHeight: "100svh",
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          /* The bottom padding is the scroll cue's clearance, not decoration.
-             The cue is absolutely positioned 22px off the section's bottom edge
-             and stands 58px tall; on compact mobile viewports clamp keeps it clear. */
-          padding: "clamp(88px, 12vh, 120px) 0 clamp(44px, 6vh, 80px)",
-          position: "relative",
-        }}
-      >
-        <KzAurora count={2} blur={90} opacity={0.26} speed={34} size="68%" style={{ zIndex: 0 }} />
+      {/* HERO — the scroll-story stage. The hero copy, stats, floating chips
+          (now the annotations) and the capability ribbon (formerly the
+          standalone marquee below) all live inside KzHeroStory. The h1 still
+          paints at its final position and opacity on first paint. */}
+      <KzHeroStory />
 
-        <div
-          className="kz-wrap"
-          style={{ width: "100%", boxSizing: "border-box", position: "relative", zIndex: 2 }}
-        >
-          <h1
-            style={{
-              fontFamily: "var(--font-display)",
-              /* 700, not 400. Archivo Black shipped one cut so the weight here
-                 was inert; Space Grotesk would resolve 400 to its 500 and the
-                 hero would read as body copy set large. */
-              fontWeight: 700,
-              fontSize: "clamp(2.1rem, 7.2vw, 5.4rem)",
-              lineHeight: 1.02,
-              /* Uppercase. -0.015em was fitted to Archivo Black, which is 26%
-                 wider per cap; the same value on Space Grotesk closes the
-                 counters and the LED bloom then fills them in. */
-              letterSpacing: "-0.012em",
-              textTransform: "uppercase",
-              margin: "0 0 24px",
-              maxWidth: "17ch",
-              position: "relative",
-              wordBreak: "break-word",
-            }}
-          >
-            Engineering intelligent software for an{" "}
-            <span className="kz-grad-text">agentic world</span>
-            {wide && (
-              <>
-                <span
-                  aria-hidden="true"
-                  style={{
-                    position: "absolute",
-                    right: "min(8%, 120px)",
-                    top: "20%",
-                    pointerEvents: "none",
-                    zIndex: 1,
-                  }}
-                >
-                  <KzTorus size={72} opacity={0.45} />
-                </span>
-                <span
-                  aria-hidden="true"
-                  style={{
-                    position: "absolute",
-                    left: "min(4%, 60px)",
-                    bottom: "18%",
-                    pointerEvents: "none",
-                    zIndex: 1,
-                  }}
-                >
-                  <KzSphere size={56} opacity={0.4} />
-                </span>
-              </>
-            )}
-          </h1>
+      {/* The design's left-edge rail. Labels are the sections' own eyebrows,
+          so the rail never introduces copy of its own. Desktop-only chrome —
+          the component hides itself below 920px. */}
+      <KzScrollSpy
+        sections={[
+          { id: "top", label: "Home" },
+          { id: "agentic", label: "The agentic era" },
+          { id: "lifecycle", label: kzLifecycleSection.eyebrow },
+          { id: "build", label: kzBuildSection.eyebrow },
+          { id: "services", label: "What we build" },
+          { id: "why", label: "Why Kenzed" },
+          { id: "outcomes", label: kzOutcomesSection.eyebrow },
+          { id: "cta", label: kzHomeCta.eyebrow },
+        ]}
+      />
 
-          <p
-            style={{
-              fontSize: "clamp(0.96rem, 1.5vw, 1.22rem)",
-              color: "var(--mut)",
-              maxWidth: "56ch",
-              margin: "0 0 32px",
-              lineHeight: 1.6,
-            }}
-          >
-            Kenzed Tech Lab designs, builds, and deploys custom AI agents, machine-learning
-            systems, voice AI, and enterprise software — production-grade, secure, and running on
-            infrastructure we own and operate 24×7.
-          </p>
-
-          <div className="kz-hero-actions">
-            <KzButton href="/contact">Start your AI project →</KzButton>
-            <KzButton href="/services" variant="ghost">
-              Explore our services
-            </KzButton>
-          </div>
-
-          {/* The counters render their finished value in the server HTML and
-              only run if the visitor has to scroll to reach them, so a stat
-              that is already on screen costs nothing at first paint. */}
-          <div className="kz-hero-stats">
-            {kzStats.map((s) => (
-              <div key={s.label} style={{ borderLeft: "2px solid var(--line)", paddingLeft: 16 }}>
-                <div
-                  style={{
-                    fontFamily: "var(--font-display)",
-                    fontWeight: 700,
-                    fontSize: "clamp(1.45rem, 3vw, 2.25rem)",
-                    lineHeight: 1.06,
-                    letterSpacing: "-0.015em",
-                    color: "var(--ink)",
-                  }}
-                >
-                  <KzCountUp
-                    to={s.target}
-                    decimals={Number.isInteger(s.target) ? 0 : 2}
-                    suffix={s.suffix}
-                  />
-                </div>
-                <div
-                  style={{
-                    fontFamily: "var(--font-mono)",
-                    fontSize: "0.64rem",
-                    fontWeight: 500,
-                    letterSpacing: "0.09em",
-                    textTransform: "uppercase",
-                    color: "var(--mut)",
-                    maxWidth: "17ch",
-                    marginTop: 4,
-                    lineHeight: 1.45,
-                  }}
-                >
-                  {s.label}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {wide && (
-          <div style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 1 }}>
-            <FloatingChip right="5%" top="24%" delay="0s" color="var(--acc3)" symbol="»">
-              agent.plan() → tool_call → act()
-            </FloatingChip>
-            <FloatingChip right="23%" top="50%" delay="0.8s" color="var(--acc)" symbol="◇">
-              LoRA fine-tune · llama-3 · r=16
-            </FloatingChip>
-            <FloatingChip right="4%" top="66%" delay="1.6s" color="var(--acc2)" symbol="●">
-              inference 42 ms · on-prem GPU · 99.98% uptime
-            </FloatingChip>
-          </div>
-        )}
-
-        <div
-          style={{
-            position: "absolute",
-            bottom: 22,
-            left: "50%",
-            transform: "translateX(-50%)",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: 8,
-            zIndex: 2,
-          }}
-        >
-          <span
-            style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: "0.6rem",
-              letterSpacing: "0.24em",
-              color: "var(--dim)",
-            }}
-          >
-            SCROLL
-          </span>
-          <span
-            style={{ width: 1, height: 34, background: "linear-gradient(var(--acc), transparent)" }}
-          />
-        </div>
-      </section>
-
-      <KzMarquee />
-
-      <section style={{ padding: KZ_SECTION_PAD, background: "var(--bg)" }}>
+      <section id="agentic" style={{ padding: KZ_SECTION_PAD, background: "var(--bg)" }}>
         {/* Two columns, staggered: the heading lands, then the argument. */}
         <KzStagger
           className="kz-wrap"
@@ -271,13 +98,15 @@ export function KzHome() {
         </div>
       </section>
 
-      <KzLifecycleRing
-        eyebrow={kzLifecycleSection.eyebrow}
-        title={kzLifecycleSection.title}
-        stages={kzLifecycleSection.stages}
-      />
+      <section id="lifecycle" style={{ background: "var(--bg)" }}>
+        <KzLifecycleRing
+          eyebrow={kzLifecycleSection.eyebrow}
+          title={kzLifecycleSection.title}
+          stages={kzLifecycleSection.stages}
+        />
+      </section>
 
-      <section style={{ padding: KZ_SECTION_PAD, background: "var(--bg)" }}>
+      <section id="build" style={{ padding: KZ_SECTION_PAD, background: "var(--bg)" }}>
         <div className="kz-wrap">
           <KzFadeUp>
             <KzEyebrow>{kzBuildSection.eyebrow}</KzEyebrow>
@@ -295,7 +124,7 @@ export function KzHome() {
         </div>
       </section>
 
-      <section style={{ padding: "0 0 clamp(72px, 10vw, 128px)", background: "var(--bg)" }}>
+      <section id="services" style={{ padding: "0 0 clamp(72px, 10vw, 128px)", background: "var(--bg)" }}>
         <div className="kz-wrap">
           <KzFadeUp>
             <KzEyebrow index="04">What we build</KzEyebrow>
@@ -372,7 +201,7 @@ export function KzHome() {
         </div>
       </section>
 
-      <section style={{ padding: "0 0 clamp(72px, 10vw, 128px)", background: "var(--bg)" }}>
+      <section id="why" style={{ padding: "0 0 clamp(72px, 10vw, 128px)", background: "var(--bg)" }}>
         <div className="kz-wrap">
           <KzFadeUp>
             <KzEyebrow index="05">Why Kenzed</KzEyebrow>
@@ -416,8 +245,7 @@ export function KzHome() {
                       fontFamily: "var(--font-display)",
                       fontWeight: 600,
                       fontSize: "clamp(1.05rem, 2vw, 1.35rem)",
-                      letterSpacing: "0.01em",
-                      textTransform: "uppercase",
+                      letterSpacing: "-0.035em",
                       margin: 0,
                       lineHeight: 1.2,
                       color: "var(--ink)",
@@ -433,7 +261,7 @@ export function KzHome() {
         </div>
       </section>
 
-      <section style={{ padding: "0 0 clamp(72px, 10vw, 128px)", background: "var(--bg)" }}>
+      <section id="outcomes" style={{ padding: "0 0 clamp(72px, 10vw, 128px)", background: "var(--bg)" }}>
         <div className="kz-wrap">
           <KzFadeUp>
             <KzEyebrow>{kzOutcomesSection.eyebrow}</KzEyebrow>
@@ -461,6 +289,7 @@ export function KzHome() {
       </section>
 
       <section
+        id="cta"
         style={{
           position: "relative",
           overflow: "hidden",
@@ -501,10 +330,9 @@ export function KzHome() {
             style={{
               fontFamily: "var(--font-display)",
               fontWeight: 700,
-              textTransform: "uppercase",
               fontSize: "clamp(2.1rem, 6.4vw, 4.1rem)",
               lineHeight: 1.03,
-              letterSpacing: "-0.012em",
+              letterSpacing: "-0.05em",
               margin: "0 0 22px",
               maxWidth: "16ch",
               color: "var(--ink)",
@@ -532,43 +360,5 @@ export function KzHome() {
         </div>
       </section>
     </>
-  );
-}
-
-function FloatingChip({
-  right,
-  top,
-  delay,
-  color,
-  symbol,
-  children,
-}: {
-  right: string;
-  top: string;
-  delay: string;
-  color: string;
-  symbol: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div
-      style={{
-        position: "absolute",
-        right,
-        top,
-        animation: `kzFloat 6s ease-in-out ${delay} infinite alternate`,
-        fontFamily: "var(--font-mono)",
-        fontSize: "0.68rem",
-        letterSpacing: "0.04em",
-        color: "var(--mut)",
-        padding: "10px 14px",
-        border: "1px solid var(--line2)",
-        borderRadius: 10,
-        background: "color-mix(in srgb, var(--bg) 74%, transparent)",
-        backdropFilter: "blur(8px)",
-      }}
-    >
-      <span style={{ color }}>{symbol}</span> {children}
-    </div>
   );
 }

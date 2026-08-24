@@ -19,41 +19,49 @@
   --color-acc3: var(--acc3);
   --color-navbg: var(--navbg);
 
-  --font-sans: var(--font-inter), system-ui, sans-serif;
-  --font-display: var(--font-space-grotesk), var(--font-inter), system-ui, sans-serif;
-  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+  /* Display and sans deliberately resolve to the same face: the design keys
+     hierarchy off Geist's variable weight axis and tracking, not a second
+     family, so every existing --font-display call site keeps working. */
+  --font-sans: var(--font-geist-sans), system-ui, sans-serif;
+  --font-display: var(--font-geist-sans), system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 
   --container-site: 1280px;
 }
 
 /* ==========================================================================
    Type scale tokens
-   Space Grotesk is a much narrower face than the Archivo Black it replaced, and
-   almost every display string on this site is uppercase. Uppercase wants LESS
-   negative tracking than mixed case at the same size, so the scale tapers from
-   a genuine optical correction at hero sizes to neutral at label sizes instead
-   of applying one flat value. Tokenised so the taper can be retuned in one
-   place rather than across two dozen inline styles.
+   Display text is sentence-case Geist now, not uppercase Space Grotesk, and
+   mixed case both tolerates and needs a far stronger negative correction than
+   caps did: the design tracks -0.055em at page-title scale and relaxes toward
+   -0.035em at card scale. Tokenised so the taper can be retuned in one place
+   rather than across two dozen inline styles.
    ========================================================================== */
 :root {
-  /* Display tracking, largest to smallest. */
-  --tr-display-xl: -0.02em;   /* hero h1, 2.4rem -> 5.4rem */
-  --tr-display-lg: -0.018em;  /* section h2, 1.7rem -> 4.1rem */
-  --tr-display-md: -0.012em;  /* h3/h4, 1.35rem -> 2.2rem */
-  /* Uppercase display gets no negative correction at all — see the reset in
-     the base layer. Card headings in caps sit at 0 to +0.01em instead. */
+  /* Display tracking, largest to smallest — mixed-case Geist values. These
+     numbers would clot uppercase runs, which is exactly why the uppercase
+     reset in the base layer survives the redesign: any heading still set in
+     caps opts back out to neutral tracking. */
+  --tr-display-xl: -0.055em;  /* hero h1 / page titles */
+  --tr-display-lg: -0.045em;  /* section h2 */
+  --tr-display-md: -0.035em;  /* h3/h4 and card-sized headings */
 
-  /* Body tracking. Inter is drawn a touch wide for screen at text sizes. */
+  /* Body tracking. Geist is drawn a touch wide for screen at text sizes. */
   --tr-body: -0.009em;
   --tr-lead: -0.011em;
 
-  /* Uppercase mono tracking. JetBrains Mono sets a 0.6em fixed advance against
-     IBM Plex Mono's 0.6em but on a taller cap (730 vs 698 units), so it reads
-     wider at the same size; the tracked label steps come down accordingly. */
+  /* Uppercase mono tracking. The mono furniture — eyebrows, buttons, pills,
+     labels, nav — is the one place uppercase survives, and Geist Mono sits on
+     a near-identical advance to the JetBrains Mono these steps were tuned
+     for, so they carry over unchanged. */
   --tr-mono-xl: 0.2em;
   --tr-mono-lg: 0.16em;
   --tr-mono-md: 0.12em;
   --tr-mono-sm: 0.09em;
+
+  /* The single easing curve of the motion system; every transition the
+     redesign touches reads from this rather than restating a bezier. */
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 /* Dark is the product default: :root matches <html> whatever the theme
@@ -83,17 +91,22 @@
     0 24px 60px -22px rgba(0, 0, 0, 0.9),
     0 0 30px -14px rgba(77, 163, 255, 0.45);
   --gr: linear-gradient(120deg, #4da3ff, #9ecbff);
-  --grt: linear-gradient(115deg, #7cc4ff 0%, #9ecbff 55%, #5ecfe3 115%);
-  --head: #7cc4ff;
   --accglow: rgba(77, 163, 255, 0.42);
   --tile: linear-gradient(135deg, rgba(77, 163, 255, 0.2), rgba(94, 207, 227, 0.14));
   --tile2: linear-gradient(135deg, rgba(94, 207, 227, 0.18), rgba(77, 163, 255, 0.16));
-  /* Backlight for the LED headings, tokenised so a future theme can retint
-     the glow without reopening the heading rules: --led0 is the tight filament
-     core, --led1 and --led2 the two bloom tiers. */
-  --led0: rgba(255, 255, 255, 0.34);
-  --led1: rgba(124, 196, 255, 0.34);
-  --led2: rgba(77, 163, 255, 0.17);
+  /* Soft backlight behind emphasised (cyan) words in display headings — the
+     replacement for the old LED filament glow. Tokenised because the light
+     theme must collapse it to none: a glow over a pale canvas reads as a
+     rendering fault. */
+  --accent-glow-text: 0 0 42px rgba(77, 163, 255, 0.13);
+  /* Primary button: an ice-white chip over the dark canvas. Tokenised because
+     the light theme has to flip it to ink-on-paper to keep contrast. */
+  --btn-bg: #d8f2ff;
+  --btn-bg-hover: #ffffff;
+  --btn-ink: #020c14;
+  --btn-glow: 0 15px 34px -22px rgba(129, 219, 255, 0.9);
+  --btn-ghost-bg: rgba(3, 11, 19, 0.54);
+  --btn-ghost-bg-hover: rgba(11, 25, 38, 0.78);
   /* Status green. Tokenised because the same "healthy / passed" mark appears on
      the near-black canvas and on the light theme's white cards, where the dark
      theme's brighter green drops under 3:1. */
@@ -119,16 +132,19 @@
   --navbg: rgba(244, 245, 248, 0.82);
   --shadow: 0 26px 48px -28px rgba(12, 20, 36, 0.28);
   --gr: linear-gradient(120deg, #1c50e0, #5a35e6);
-  --grt: linear-gradient(115deg, #1546c9 0%, #5a35e6 70%, #008f86 130%);
-  --head: var(--ink);
   --accglow: rgba(28, 80, 224, 0.5);
   --tile: linear-gradient(135deg, rgba(28, 80, 224, 0.16), rgba(90, 53, 230, 0.16));
   --tile2: linear-gradient(135deg, rgba(0, 143, 134, 0.15), rgba(28, 80, 224, 0.15));
-  /* The LED treatment is gated off in light mode; the tokens stay defined so
-     nothing inherits a dark-theme glow colour through a stray reference. */
-  --led0: transparent;
-  --led1: transparent;
-  --led2: transparent;
+  /* No text bloom on the pale canvas; accent words stay flat --acc3. */
+  --accent-glow-text: none;
+  /* Primary button flips to ink-on-paper so the ice-white chip does not
+     vanish into the light background. */
+  --btn-bg: var(--ink);
+  --btn-bg-hover: #000000;
+  --btn-ink: var(--bg);
+  --btn-glow: 0 15px 34px -22px rgba(12, 20, 36, 0.55);
+  --btn-ghost-bg: rgba(255, 255, 255, 0.6);
+  --btn-ghost-bg-hover: #ffffff;
   --ok: #1a7f37;
   --err: #b42318;
 }
@@ -165,21 +181,21 @@
     background: var(--bg);
     color: var(--ink);
     font-family: var(--font-sans);
-    /* Inter runs a large x-height, so it needs more leading than Archivo did to
-       stop paragraphs looking packed. */
+    /* Geist runs a large x-height, so it needs more leading than a display
+       face would to stop paragraphs looking packed. */
     line-height: 1.65;
     letter-spacing: var(--tr-body);
     max-width: 100%;
     /* See the html rule above: clip, never hidden, or sticky pinning dies. */
     overflow-x: clip;
-    /* Both smoothing hints, not just the WebKit one: Inter's thin stems bloom
+    /* Both smoothing hints, not just the WebKit one: Geist's thin stems bloom
        badly under subpixel rendering on the near-black canvas, and Firefox on
        macOS needs its own property to opt out. */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
     /* Explicit rather than inherited-by-default so a UA that ships them off
-       still gets Inter's kerning pairs and JetBrains Mono's arrow ligatures. */
+       still gets Geist's kerning pairs and Geist Mono's arrow ligatures. */
     font-feature-settings: "liga" 1, "calt" 1;
     /* Justification is scoped to real prose (see the `p` rule below) rather than
        inherited from the root. Inheriting it reached the uppercase mono stat
@@ -224,42 +240,46 @@
     overflow-wrap: break-word;
   }
 
-  /* Weight has to be stated now that the display face carries real cuts. The
-     old Archivo Black shipped only a 400, so every heading inherited one fixed
-     mass and `font-weight` was decorative; under Space Grotesk an unstated
-     weight would resolve to the lightest loaded cut (500) and headings would
-     go limp. h1/h2 take 700, h3 and below take 600. */
-  h1,
+  /* Geist's variable axis lets the design's off-grid masses be stated
+     exactly. Display headings sit at 550-560 — far lighter than the old 700 —
+     because sentence-case Geist at hero sizes reads heavy well before a caps
+     grotesque would; card-sized headings keep the same 560 so hierarchy comes
+     from size and tracking, not a weight jump. */
+  h1 {
+    font-weight: 560;
+  }
+
   h2 {
-    font-weight: 700;
+    font-weight: 550;
   }
 
   h3,
   h4,
   h5,
   h6 {
-    font-weight: 600;
+    font-weight: 560;
   }
 
   /* Leading and tracking taper with size: display sizes get a real optical
-     correction, label-sized headings get almost none. */
+     correction, label-sized headings get almost none. Sub-1 leading is safe
+     here because display strings are short sentence-case lines, not prose. */
   h1 {
-    line-height: 1.04;
+    line-height: 0.94;
     letter-spacing: var(--tr-display-xl);
   }
 
   h2 {
-    line-height: 1.08;
+    line-height: 0.96;
     letter-spacing: var(--tr-display-lg);
   }
 
   h3 {
-    line-height: 1.25;
+    line-height: 1.1;
     letter-spacing: var(--tr-display-md);
   }
 
   h4 {
-    line-height: 1.28;
+    line-height: 1.15;
     letter-spacing: var(--tr-display-md);
   }
 
@@ -270,7 +290,7 @@
   }
 
   /* Uppercase needs its tracking back. The negative values above are tuned for
-     mixed-case Inter/Space Grotesk; the same numbers on caps close the counters
+     mixed-case Geist; the same numbers on caps close the counters
      up and the word starts to clot. Any heading that opts into uppercase — via
      the utility class or an inline style, which is how the kz components do it
      — is reset to neutral and lets its own rule re-track from there. */
@@ -361,10 +381,6 @@
 /* ==========================================================================
    Keyframe animations — ported from the HTML design
    ========================================================================== */
-@keyframes kzMarq {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
-}
 
 @keyframes kzUp {
   from { opacity: 0; transform: translateY(30px); }
@@ -443,36 +459,40 @@
     padding-inline: clamp(18px, 4.5vw, 36px);
   }
 
+  /* Historically a gradient clip. The design replaces gradient text with a
+     flat cyan and a soft backlight; the class name survives so none of the
+     component call sites need editing — only the treatment behind it. */
   .kz-grad-text {
-    background: var(--grt);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
+    color: var(--acc3);
+    font-style: normal;
+    text-shadow: var(--accent-glow-text);
   }
 
   .kz-eyebrow {
     display: inline-flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     max-width: 100%;
     font-family: var(--font-mono);
-    font-size: 0.7rem;
-    font-weight: 500;
-    /* Was 0.24em under IBM Plex Mono. JetBrains Mono draws on a taller cap for
-       the same fixed advance, so caps sit closer to the tracking gap and 0.24em
-       started to read as separated letters rather than a tracked label. */
-    letter-spacing: var(--tr-mono-xl);
+    font-size: 0.625rem;
+    font-weight: 520;
+    /* Literal rather than a --tr-mono step: the design pins its eyebrows at
+       .13em, between the -md and -lg label steps. */
+    letter-spacing: 0.13em;
     text-transform: uppercase;
     text-align: left;
-    color: var(--acc);
+    color: var(--mut);
   }
 
+  /* The old 26px dash becomes the design's glowing cyan dot. */
   .kz-eyebrow::before {
     content: "";
-    width: 26px;
-    height: 1px;
-    background: var(--acc);
-    opacity: 0.7;
+    width: 7px;
+    height: 7px;
+    flex: none;
+    border-radius: 50%;
+    background: var(--acc3);
+    box-shadow: 0 0 16px var(--acc3);
   }
 
   .kz-btn {
@@ -481,35 +501,52 @@
     justify-content: center;
     gap: 10px;
     max-width: 100%;
-    padding: 17px clamp(20px, 5vw, 28px);
-    border-radius: 12px;
+    /* Height is fixed by min-height, not vertical padding, so both variants
+       share one 50px hit target regardless of label length. */
+    min-height: 50px;
+    padding: 0 clamp(18px, 5vw, 24px);
+    border-radius: 8px;
     font-family: var(--font-mono);
-    font-size: 0.78rem;
-    font-weight: 600;
+    font-size: 0.6875rem; /* 11px mono label */
+    font-weight: 520;
     letter-spacing: var(--tr-mono-md);
     text-transform: uppercase;
     text-align: center;
     cursor: pointer;
-    border: 0;
-    transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s, color 0.25s;
+    /* A real (transparent) border, not border: 0, so primary and ghost keep
+       identical box metrics when the ghost paints its hairline. */
+    border: 1px solid transparent;
+    transition:
+      transform 0.26s var(--ease),
+      background 0.26s var(--ease),
+      box-shadow 0.26s var(--ease),
+      border-color 0.26s var(--ease),
+      color 0.26s var(--ease);
   }
 
   .kz-btn-primary {
-    background: var(--ink);
-    color: var(--bg);
+    background: var(--btn-bg);
+    border-color: var(--btn-bg);
+    color: var(--btn-ink);
+    box-shadow: var(--btn-glow);
   }
 
   .kz-btn-ghost {
-    background: transparent;
+    background: var(--btn-ghost-bg);
     color: var(--ink);
-    border: 1px solid var(--line2);
+    border-color: var(--line2);
+    backdrop-filter: blur(12px);
   }
 
   .kz-card {
     background: var(--card);
     border: 1px solid var(--line);
     border-radius: 16px;
-    transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s, background 0.3s;
+    transition:
+      transform 0.3s var(--ease),
+      border-color 0.3s var(--ease),
+      box-shadow 0.3s var(--ease),
+      background 0.3s var(--ease);
   }
 
   .kz-pill {
@@ -525,39 +562,31 @@
     border: 1px solid var(--line2);
     border-radius: 999px;
     color: var(--mut);
-    transition: border-color 0.25s, color 0.25s;
+    transition: border-color 0.25s var(--ease), color 0.25s var(--ease);
   }
 
   .kz-section-title {
     font-family: var(--font-display);
-    /* 700, not the inherited 400 the single-cut Archivo Black used to stand in
-       for. Space Grotesk at 400 falls back to its 500 and the section titles
-       lose the weight step that separates them from card headings. */
-    font-weight: 700;
-    text-transform: uppercase;
-    font-size: clamp(1.35rem, 3.2vw, 2.2rem);
-    line-height: 1.04;
-    /* Uppercase and only 2.2rem at its largest — no optical correction earned
-       at this size, and the mixed-case token would visibly clot the caps. */
-    letter-spacing: 0;
+    /* Sentence case, not the old uppercase: the case now lives in the source
+       copy, and CSS no longer overrides it. 550 rather than 700 because
+       mixed-case Geist at this scale reads heavy fast. */
+    font-weight: 550;
+    font-size: clamp(1.9rem, 4.6vw, 3.4rem);
+    line-height: 0.96;
+    letter-spacing: var(--tr-display-lg);
+    text-wrap: balance;
     margin: 0;
   }
 
   .kz-page-title {
     font-family: var(--font-display);
-    font-weight: 700;
-    font-size: clamp(1.75rem, 5.6vw, 4rem);
-    /* 1.06, not 1, so the LED halo clears the cap height of the line below.
-       Space Grotesk sets a 700-unit cap against Archivo Black's 688, so this
-       stays at 1.06 rather than tightening with the rest of the scale. */
-    line-height: 1.06;
-    /* Uppercase Space Grotesk is already narrow; -0.015em was tuned for the far
-       wider Archivo Black and closes the caps up here. Scaling that correction
-       by the ratio of the two faces' mean cap advance (0.608 / 0.768) lands at
-       about -0.012em, and the LED bloom on these titles wants a hair more air
-       than that, so -0.01em. */
-    letter-spacing: -0.01em;
-    text-transform: uppercase;
+    font-weight: 560;
+    font-size: clamp(2.6rem, 6.4vw, 5.5rem);
+    /* Sub-1 leading is the design's signature at hero scale; safe now that the
+       LED halo (which needed clearance above the line below) is gone. */
+    line-height: 0.94;
+    letter-spacing: var(--tr-display-xl);
+    text-wrap: balance;
     margin: 0 0 clamp(14px, 3vw, 20px);
   }
 
@@ -623,8 +652,8 @@
     opacity: 0;
     transform: translateY(24px);
     transition:
-      opacity 0.7s cubic-bezier(0.2, 0.7, 0.2, 1),
-      transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
+      opacity 0.7s var(--ease),
+      transform 0.7s var(--ease);
   }
 
   .kz-reveal.is-visible {
@@ -634,13 +663,12 @@
 
   /* ------------------------------------------------------------------------
      Figures.
-     Archivo Black drew all ten digits on a single 0.667em advance, so every
+     The old Archivo Black drew all ten digits on a single advance, so every
      counter and stat on this site was tabular for free and nothing ever
-     reflowed mid-count. Space Grotesk and Inter both ship PROPORTIONAL
-     figures — Space Grotesk sets "1" at 0.452em against "0" at 0.648em, a 30%
-     swing — so an animated stat would now visibly jitter and shove its
-     neighbours as it ticks. Tabular figures are a correctness requirement
-     under the new families, not a refinement.
+     reflowed mid-count. Geist ships PROPORTIONAL figures by default, so an
+     animated stat would visibly jitter and shove its neighbours as it ticks.
+     Tabular figures stay a correctness requirement under the new family, not
+     a refinement.
 
      The attribute selector is how the kz components are reached: they set
      font-family inline, so the literal string "--font-display" is present in
@@ -666,12 +694,14 @@
   @media (hover: hover) {
     .kz-btn-primary:hover {
       transform: translateY(-2px);
-      box-shadow: var(--shadow);
+      background: var(--btn-bg-hover);
+      border-color: var(--btn-bg-hover);
     }
 
     .kz-btn-ghost:hover {
       transform: translateY(-2px);
-      border-color: var(--acc);
+      background: var(--btn-ghost-bg-hover);
+      border-color: var(--acc3);
     }
 
     .kz-card:hover {
@@ -713,11 +743,11 @@
   padding-inline: clamp(18px, 4.5vw, 36px);
 }
 
+/* Same flat-cyan treatment as .kz-grad-text; the gradient clip is retired. */
 .grad-text {
-  background: var(--grt);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--acc3);
+  font-style: normal;
+  text-shadow: var(--accent-glow-text);
 }
 
 .btn {
@@ -726,26 +756,32 @@
   justify-content: center;
   gap: 8px;
   max-width: 100%;
-  padding: 12px clamp(16px, 4vw, 22px);
-  border-radius: 10px;
-  font-weight: 600;
-  font-size: 0.92rem;
+  min-height: 50px;
+  padding: 0 clamp(16px, 4vw, 22px);
+  border-radius: 8px;
+  font-family: var(--font-mono);
+  font-weight: 520;
+  font-size: 0.6875rem;
+  letter-spacing: var(--tr-mono-md);
+  text-transform: uppercase;
   text-align: center;
   cursor: pointer;
-  border: 0;
-  transition: 0.25s;
+  border: 1px solid transparent;
+  transition: 0.25s var(--ease);
 }
 
 .btn-primary {
-  background: var(--gr);
-  color: var(--bg);
-  box-shadow: 0 10px 30px -8px var(--accglow);
+  background: var(--btn-bg);
+  border-color: var(--btn-bg);
+  color: var(--btn-ink);
+  box-shadow: var(--btn-glow);
 }
 
 .btn-ghost {
-  background: var(--card);
+  background: var(--btn-ghost-bg);
   color: var(--ink);
-  border: 1px solid var(--line2);
+  border-color: var(--line2);
+  backdrop-filter: blur(12px);
 }
 
 .btn:disabled {
@@ -758,7 +794,7 @@
   border: 1px solid var(--line);
   border-radius: 18px;
   padding: clamp(20px, 5vw, 30px);
-  transition: 0.3s;
+  transition: 0.3s var(--ease);
   position: relative;
   overflow: hidden;
 }
@@ -772,7 +808,7 @@
   height: 1px;
   background: linear-gradient(90deg, transparent, var(--line2), transparent);
   opacity: 0;
-  transition: 0.3s;
+  transition: 0.3s var(--ease);
 }
 
 .eyebrow {
@@ -781,20 +817,23 @@
   gap: 10px;
   max-width: 100%;
   font-family: var(--font-mono);
-  font-size: 0.78rem;
-  font-weight: 600;
-  letter-spacing: var(--tr-mono-lg);
+  font-size: 0.625rem;
+  font-weight: 520;
+  /* Pinned at the design's .13em like .kz-eyebrow, not a --tr-mono step. */
+  letter-spacing: 0.13em;
   text-transform: uppercase;
   text-align: left;
-  color: var(--acc);
+  color: var(--mut);
 }
 
 .eyebrow::before {
   content: "";
-  width: 26px;
-  height: 1px;
-  background: var(--acc);
-  opacity: 0.6;
+  width: 7px;
+  height: 7px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--acc3);
+  box-shadow: 0 0 16px var(--acc3);
 }
 
 .chip {
@@ -806,7 +845,7 @@
   text-align: left;
   color: var(--mut);
   font-weight: 500;
-  transition: 0.2s;
+  transition: 0.2s var(--ease);
 }
 
 .icon-tile {
@@ -839,7 +878,7 @@
   color: var(--ink);
   font-family: inherit;
   font-size: 0.94rem;
-  transition: 0.2s;
+  transition: 0.2s var(--ease);
 }
 
 .field-input:focus {
@@ -866,8 +905,8 @@
   opacity: 0;
   transform: translateY(28px);
   transition:
-    opacity 0.7s cubic-bezier(0.2, 0.7, 0.2, 1),
-    transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
+    opacity 0.7s var(--ease),
+    transform 0.7s var(--ease);
 }
 
 .reveal.is-visible {
@@ -878,12 +917,14 @@
 @media (hover: hover) {
   .btn-primary:hover:not(:disabled) {
     transform: translateY(-2px);
-    box-shadow: 0 16px 40px -6px var(--accglow);
+    background: var(--btn-bg-hover);
+    border-color: var(--btn-bg-hover);
   }
 
   .btn-ghost:hover {
-    background: var(--card2);
     transform: translateY(-2px);
+    background: var(--btn-ghost-bg-hover);
+    border-color: var(--acc3);
   }
 
   .card:hover {
@@ -904,44 +945,23 @@
 }
 
 /* ==========================================================================
-   LED headings — dark theme only
-   A backlit glow over a pale canvas reads as a rendering fault, so every rule
-   here is gated on the theme attribute being anything other than "light";
-   that also covers the unstamped first paint, which resolves to dark.
-   The glow is deliberately static. text-shadow is paint-bound, so pulsing it
-   would repaint the largest type on the page every frame — exactly the effect
-   the performance budget rules out.
-   Blur radii are in em so the halo scales with the clamp()ed heading sizes
-   instead of swamping the 2.4rem type on a 360px screen.
+   Display accents — the LED filament glow's replacement
+   Headings now paint in plain --ink; emphasis inside them is a flat cyan word
+   with a soft, STATIC backlight. text-shadow rather than a filter so the
+   biggest type on the page never gets forced onto its own compositing layer,
+   and the bloom is a token (--accent-glow-text) that the light theme
+   collapses to none — a glow over a pale canvas reads as a rendering fault.
    ========================================================================== */
 @layer components {
-  html:not([data-kz-theme="light"]) :is(h1, .kz-page-title, .kz-section-title) {
-    color: var(--head);
-  }
-
-  html:not([data-kz-theme="light"]) :is(h1, .kz-page-title) {
-    /* Tight white core = the filament; two soft blue tiers = the bloom. */
-    text-shadow:
-      0 0 0.02em var(--led0),
-      0 0 0.16em var(--led1),
-      0 0 0.42em var(--led2);
-  }
-
-  /* Gradient-clipped runs paint with a transparent fill and the shadow lands
-     between the clipped background and the glyph, so an inherited glow would
-     smear over the gradient. It is cancelled rather than swapped for a
-     drop-shadow filter, which WebKit still mishandles alongside
-     background-clip: text. The gradient is bright enough to hold its own next
-     to the glowing plain runs. */
-  html:not([data-kz-theme="light"]) :is(h1, .kz-page-title) :is(.kz-grad-text, .grad-text),
-  html:not([data-kz-theme="light"]) :is(h1, .kz-page-title):is(.kz-grad-text, .grad-text) {
-    text-shadow: none;
-  }
-
-  /* Section headings get the tint but only a hairline of bloom, so the page
-     keeps one focal point per screen. */
-  html:not([data-kz-theme="light"]) .kz-section-title {
-    text-shadow: 0 0 0.3em var(--led2);
+  /* <em> inside display headings is covered alongside the utility class so
+     semantic emphasis and .kz-accent-word render identically, matching the
+     design source's `h1 em` treatment. */
+  .kz-accent-word,
+  :is(h1, h2, .kz-page-title, .kz-section-title) em {
+    color: var(--acc3);
+    font-style: normal;
+    font-weight: inherit;
+    text-shadow: var(--accent-glow-text);
   }
 }
 
@@ -988,19 +1008,6 @@
   }
 }
 
-.kz-hero-stats {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 20px 16px;
-}
-@media (min-width: 768px) {
-  .kz-hero-stats {
-    display: flex;
-    flex-wrap: wrap;
-    gap: clamp(20px, 4vw, 44px);
-  }
-}
-
 .kz-hero-actions {
   display: flex;
   flex-direction: column;
@@ -1038,3 +1045,12 @@
 }
 
 
+
+/* The command palette's floating dock trigger duplicates the header pill's
+   trigger on desktop; the pill wins there. 921px matches the breakpoint where
+   the pill collapses its link row (including its trigger) into the menu. */
+@media (min-width: 921px) {
+  .kz-palette-dock {
+    display: none;
+  }
+}

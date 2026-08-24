@@ -1,12 +1,12 @@
 "use client";
 
 import { KzIcon } from "@/components/kz/KzIcon";
+import { KzScrollSpy } from "@/components/kz/KzScrollSpy";
 import { KzGridPattern } from "@/components/kz/motion/KzAmbient";
 import { KzFadeUp, KzStagger } from "@/components/kz/motion/KzEntrance";
 import { KzHoverLift } from "@/components/kz/motion/KzPointer";
 import { KzPageHero, KzCube, KzOrbitDots } from "@/components/kz/primitives";
 import { KzContactForm } from "@/components/kz/KzContactForm";
-import { useKzPage } from "@/components/kz/useKzPage";
 import { kzLocations } from "@/content/kz";
 
 const contactLinks: [string, string, string?][] = [
@@ -16,9 +16,8 @@ const contactLinks: [string, string, string?][] = [
 ];
 
 export function KzContact() {
-  useKzPage("contact");
   return (
-    <div style={{ position: "relative" }}>
+    <div id="top" style={{ position: "relative" }}>
       <div
         aria-hidden="true"
         style={{
@@ -50,7 +49,15 @@ export function KzContact() {
         lead="Tell us about your project and our team will reply within one business day — whether you need a custom AI agent, a fine-tuned model, or an enterprise platform."
       />
 
+      <KzScrollSpy
+        sections={[
+          { id: "top", label: "Contact" },
+          { id: "contact", label: "Get in touch" },
+        ]}
+      />
+
       <section
+        id="contact"
         style={{
           padding: "0 0 clamp(70px, 10vw, 120px)",
           background: "var(--bg)",

@@ -1,12 +1,12 @@
 import type { Metadata, Viewport } from "next";
-import { Space_Grotesk, Inter, JetBrains_Mono } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 
 import { KzThemeProvider } from "@/components/kz/KzThemeProvider";
 import { KzHeader } from "@/components/kz/KzHeader";
 import { KzFooter } from "@/components/kz/KzFooter";
 import { KzChatbot } from "@/components/kz/KzChatbot";
+import { KzBackTop } from "@/components/kz/KzBackTop";
 import { JsonLd } from "@/components/ui/JsonLd";
-import { Kz3DProvider } from "@/components/kz/Kz3DProvider";
 import { KzSmoothScroll } from "@/components/kz/motion/KzSmoothScroll";
 import { KzScrollProgress } from "@/components/kz/motion/KzScrollFx";
 import { KzCustomCursor } from "@/components/kz/motion/KzPointer";
@@ -27,31 +27,22 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-/* Display. Space Grotesk replaces Archivo Black, which shipped a single 400
-   cut and forced every heading through one very heavy weight. Space Grotesk
-   carries real 500/600/700 cuts, so the heading scale can express hierarchy
-   through weight instead of size alone. It is also ~21% narrower than Archivo
-   Black at the same size (KENZED measures 3.65em against 4.61em), which is why
-   the wordmark and the heading tracking are retuned rather than carried over. */
-const spaceGrotesk = Space_Grotesk({
+/* One family for display AND body: Geist is a variable font, so requesting no
+   explicit weights ships the whole 100-900 axis in a single file and the CSS
+   can dial in the design's off-grid weights (520, 550, 560) directly. Display
+   and body roles are separated by weight and tracking, not by family — which is
+   why --font-display and --font-sans both resolve to this one variable in
+   globals.css. */
+const geistSans = Geist({
   subsets: ["latin"],
-  variable: "--font-space-grotesk",
+  variable: "--font-geist-sans",
   display: "swap",
-  weight: ["500", "600", "700"],
 });
 
-const inter = Inter({
+const geistMono = Geist_Mono({
   subsets: ["latin"],
-  variable: "--font-inter",
+  variable: "--font-geist-mono",
   display: "swap",
-  weight: ["400", "500", "600", "700"],
-});
-
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ["latin"],
-  variable: "--font-jetbrains-mono",
-  display: "swap",
-  weight: ["400", "500", "600"],
 });
 
 export const metadata: Metadata = {
@@ -77,7 +68,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable}`}
+      className={`${geistSans.variable} ${geistMono.variable}`}
       suppressHydrationWarning
     >
       <body>
@@ -87,39 +78,42 @@ export default function RootLayout({
 
         <JsonLd data={organizationSchema()} />
         <KzThemeProvider>
-          <Kz3DProvider>
-            {/* Damped scrolling and the scroll read-out are installed before any
-                content mounts, so the first ScrollTrigger refresh measures a
-                page that already has its final scroller. Both no-op entirely
-                under prefers-reduced-motion. */}
-            <KzSmoothScroll />
-            <KzScrollProgress />
-            <KzCustomCursor />
+          {/* Damped scrolling and the scroll read-out are installed before any
+              content mounts, so the first ScrollTrigger refresh measures a
+              page that already has its final scroller. Both no-op entirely
+              under prefers-reduced-motion. */}
+          <KzSmoothScroll />
+          <KzScrollProgress />
+          <KzCustomCursor />
 
-            <KzHeader />
-            {/* Fixed chrome stays OUTSIDE the transition wrapper: the wrapper
-                carries a transform mid-route-change, which would otherwise
-                become the containing block for everything fixed inside it. */}
-            <main style={{ position: "relative", zIndex: 1 }}>
-              <KzPageTransition>{children}</KzPageTransition>
-            </main>
-            <KzFooter />
-            <KzChatbot />
+          <KzHeader />
+          {/* Fixed chrome stays OUTSIDE the transition wrapper: the wrapper
+              carries a transform mid-route-change, which would otherwise
+              become the containing block for everything fixed inside it. */}
+          <main style={{ position: "relative", zIndex: 1 }}>
+            <KzPageTransition>{children}</KzPageTransition>
+          </main>
+          <KzFooter />
+          <KzChatbot />
+          <KzBackTop />
 
-            {/* The palette owns Cmd/Ctrl+K, but a keyboard hint is useless on a
-                phone — so the built-in trigger is parked opposite the chatbot
-                where a thumb can actually reach it. */}
-            <div
-              style={{
-                position: "fixed",
-                left: "clamp(14px, 4vw, 26px)",
-                bottom: "calc(clamp(14px, 4vw, 26px) + env(safe-area-inset-bottom, 0px))",
-                zIndex: 40,
-              }}
-            >
-              <KzCommandPalette triggerLabel="Search" />
-            </div>
-          </Kz3DProvider>
+          {/* The palette owns Cmd/Ctrl+K. Its visible trigger is parked
+              opposite the chatbot where a thumb can reach it — but only on
+              viewports where the header pill's own trigger is collapsed;
+              above 920px the pill carries the visible trigger and this dock
+              hides (display:none keeps the component mounted, so the hotkey
+              binding survives). */}
+          <div
+            className="kz-palette-dock"
+            style={{
+              position: "fixed",
+              left: "clamp(14px, 4vw, 26px)",
+              bottom: "calc(clamp(14px, 4vw, 26px) + env(safe-area-inset-bottom, 0px))",
+              zIndex: 40,
+            }}
+          >
+            <KzCommandPalette triggerLabel="Search" />
+          </div>
         </KzThemeProvider>
       </body>
     </html>

@@ -693,9 +693,12 @@ const KZSD_CSS = `
 .kzsd-hub-count{color:var(--acc)}
 .kzsd-hub-name{
   font-family:var(--font-display);
-  font-weight:600;
+  /* 580: Geist's 600 reads a step heavier than the face it replaced inside
+     the hub disc, and mixed case wants a touch of negative tracking. */
+  font-weight:580;
   font-size:clamp(12px,4.3cqw,23px);
   line-height:1.04;
+  letter-spacing:-.03em;
   color:var(--ink);
   overflow-wrap:anywhere;
 }
@@ -734,9 +737,10 @@ const KZSD_CSS = `
 }
 .kzsd-head-cat{
   font-family:var(--font-display);
-  font-weight:600;
+  font-weight:580;
   font-size:clamp(1.02rem,3.4vw,1.32rem);
   line-height:1.1;
+  letter-spacing:-.03em;
   color:var(--ink);
   overflow-wrap:anywhere;
 }

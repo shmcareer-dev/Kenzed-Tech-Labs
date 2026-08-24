@@ -1,14 +1,13 @@
 "use client";
 
 import { KzReveal } from "@/components/kz/KzReveal";
+import { KzScrollSpy } from "@/components/kz/KzScrollSpy";
 import { KzPageHero, KzTorus, KzOrbitDots } from "@/components/kz/primitives";
-import { useKzPage } from "@/components/kz/useKzPage";
 import { kzProcess } from "@/content/kz";
 
 export function KzProcess() {
-  useKzPage("process");
   return (
-    <div style={{ position: "relative" }}>
+    <div id="top" style={{ position: "relative" }}>
       <div
         aria-hidden="true"
         style={{
@@ -40,7 +39,14 @@ export function KzProcess() {
         lead="Agile delivery that de-risks your project and keeps you in control at every step."
       />
 
-      <section style={{ padding: "0 0 clamp(70px, 10vw, 120px)", background: "var(--bg)" }}>
+      <KzScrollSpy
+        sections={[
+          { id: "top", label: "How we work" },
+          { id: "process", label: "Our process" },
+        ]}
+      />
+
+      <section id="process" style={{ padding: "0 0 clamp(70px, 10vw, 120px)", background: "var(--bg)" }}>
         <div className="kz-wrap">
           {/* The rail is a clipping window; the ramp inside it is twice as wide
               and carries the gradient twice, so sliding it half its width loops
@@ -83,10 +89,10 @@ export function KzProcess() {
                 <div
                   style={{
                     fontFamily: "var(--font-display)",
-                    fontWeight: 700,
+                    fontWeight: 600,
                     fontSize: "clamp(1.8rem, 4.5vw, 3rem)",
                     lineHeight: 1.02,
-                    letterSpacing: "-0.02em",
+                    letterSpacing: "-0.035em",
                     color: "var(--dim)",
                     transition: "color .3s",
                   }}
@@ -107,8 +113,7 @@ export function KzProcess() {
                       fontFamily: "var(--font-display)",
                       fontWeight: 600,
                       fontSize: "clamp(1.15rem, 2.4vw, 1.6rem)",
-                      letterSpacing: "0.01em",
-                      textTransform: "uppercase",
+                      letterSpacing: "-0.035em",
                       margin: 0,
                       lineHeight: 1.22,
                       color: "var(--ink)",

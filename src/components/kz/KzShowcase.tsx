@@ -373,8 +373,7 @@ export function KzStoryCarousel({
                 fontFamily: "var(--font-display)",
                 fontWeight: 600,
                 fontSize: "1.05rem",
-                letterSpacing: "0.05em",
-                textTransform: "uppercase",
+                letterSpacing: "-0.035em",
                 lineHeight: 1.15,
                 color: "var(--ink)",
               }}
@@ -701,8 +700,7 @@ export function KzGraphCards({ cards, title, lead }: KzGraphCardsProps): ReactEl
                   fontWeight: 600,
                   fontSize: "clamp(1rem, 2.4vw, 1.15rem)",
                   lineHeight: 1.25,
-                  letterSpacing: "-0.006em",
-                  textTransform: "uppercase",
+                  letterSpacing: "-0.035em",
                   color: "var(--ink)",
                 }}
               >

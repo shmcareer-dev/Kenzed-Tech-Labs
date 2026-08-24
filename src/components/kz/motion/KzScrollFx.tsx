@@ -777,7 +777,7 @@ export function KzScrollFillText({
             data-kz-fill-word=""
             style={{
               display: "inline-block",
-              backgroundImage: "var(--grt)",
+              backgroundImage: "var(--gr)",
               WebkitBackgroundClip: "text",
               backgroundClip: "text",
               color: "transparent",

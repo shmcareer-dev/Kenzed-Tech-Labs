@@ -3,11 +3,11 @@
 import { useState } from "react";
 
 import { KzIcon } from "@/components/kz/KzIcon";
+import { KzScrollSpy } from "@/components/kz/KzScrollSpy";
 import { KzGridPattern } from "@/components/kz/motion/KzAmbient";
 import { KZ_EASE, KzFadeUp } from "@/components/kz/motion/KzEntrance";
 import { KzTilt3D } from "@/components/kz/motion/KzPointer";
 import { KzPageHero, KzTorus, KzSphere } from "@/components/kz/primitives";
-import { useKzPage } from "@/components/kz/useKzPage";
 import { kzServices } from "@/content/kz";
 
 /* The house curve, spelled for a CSS transition. Derived from the kit constant
@@ -15,11 +15,10 @@ import { kzServices } from "@/content/kz";
 const KZ_EASE_CSS = `cubic-bezier(${KZ_EASE.join(", ")})`;
 
 export function KzServices() {
-  useKzPage("services");
   const [expanded, setExpanded] = useState<number | null>(null);
 
   return (
-    <div style={{ position: "relative" }}>
+    <div id="top" style={{ position: "relative" }}>
       <div
         aria-hidden="true"
         style={{
@@ -51,7 +50,15 @@ export function KzServices() {
         lead="Every service ships with the technical depth, security, and observability real systems demand. Tap a service to see exactly what we deliver — and the stack behind it."
       />
 
+      <KzScrollSpy
+        sections={[
+          { id: "top", label: "Services" },
+          { id: "catalog", label: "Service catalog" },
+        ]}
+      />
+
       <section
+        id="catalog"
         style={{
           padding: "0 0 clamp(70px, 10vw, 120px)",
           background: "var(--bg)",

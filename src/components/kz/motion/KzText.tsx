@@ -863,7 +863,7 @@ export function KzScramble({
 
 export interface KzGradientTextProps extends KzTextBaseProps {
   children: ReactNode;
-  /** Any CSS gradient. Pass a token: var(--grt), var(--gr), var(--tile). */
+  /** Any CSS gradient. Pass a token: var(--gr) or var(--tile). */
   gradient?: string;
 }
 

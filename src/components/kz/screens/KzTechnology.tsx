@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 
 import { KzStackDial } from "@/components/kz/KzStackDial";
+import { KzScrollSpy } from "@/components/kz/KzScrollSpy";
 import { KzGridPattern } from "@/components/kz/motion/KzAmbient";
 import { KzFadeUp, KzStagger } from "@/components/kz/motion/KzEntrance";
 import {
@@ -12,11 +13,9 @@ import {
   KzEyebrow,
   KzSectionTitle,
 } from "@/components/kz/primitives";
-import { useKzPage } from "@/components/kz/useKzPage";
 import { kzStack, kzArchFlow } from "@/content/kz";
 
 export function KzTechnology() {
-  useKzPage("technology");
   const [desk, setDesk] = useState(false);
 
   useEffect(() => {
@@ -28,7 +27,7 @@ export function KzTechnology() {
 
   return (
     <>
-      <div style={{ position: "relative" }}>
+      <div id="top" style={{ position: "relative" }}>
         {desk && (
           <>
             <div
@@ -62,7 +61,15 @@ export function KzTechnology() {
         />
       </div>
 
+      <KzScrollSpy
+        sections={[
+          { id: "top", label: "Technology" },
+          { id: "stack", label: "Technology stack" },
+        ]}
+      />
+
       <section
+        id="stack"
         style={{
           padding: "0 0 clamp(70px, 10vw, 120px)",
           background: "var(--bg)",
