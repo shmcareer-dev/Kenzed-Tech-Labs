@@ -138,8 +138,15 @@
    enhancement expressed through clamp() or a min-width query.
    ========================================================================== */
 @layer base {
+  *,
+  *::before,
+  *::after {
+    -webkit-tap-highlight-color: transparent;
+  }
+
   html {
     scroll-behavior: smooth;
+    touch-action: manipulation;
     /* Belt-and-braces against horizontal scroll: a single overflowing child
        anywhere in the tree must never widen the document. */
     max-width: 100%;
@@ -939,30 +946,72 @@
 }
 
 /* ==========================================================================
-   Touch ergonomics — scoped to coarse pointers so desktop metrics are
-   untouched. Buttons and navigation links clear the 44px minimum target.
+   Touch ergonomics — scoped to coarse pointers and mobile viewports so desktop
+   metrics are untouched. Buttons, inputs and navigation links clear 44-48px.
    ========================================================================== */
-@media (pointer: coarse) {
+@media (pointer: coarse), (max-width: 900px) {
   .kz-btn,
   .btn {
-    min-height: 44px;
+    min-height: 48px;
+    touch-action: manipulation;
+  }
+
+  .kz-btn:active,
+  .btn:active,
+  .kz-pill:active,
+  .kz-tab:active {
+    transform: scale(0.97);
+    opacity: 0.92;
   }
 
   nav a,
   footer a,
   header button {
     min-height: 44px;
-    align-content: center;
-  }
-
-  header button {
     min-width: 44px;
+    align-content: center;
   }
 
   /* 16px is the threshold below which iOS Safari zooms the page on focus. */
   .kz-field,
-  .field-input {
-    font-size: 16px;
+  .field-input,
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+    min-height: 46px;
+  }
+
+  textarea.kz-field,
+  textarea.field-input {
+    min-height: 110px;
+  }
+}
+
+.kz-hero-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px 16px;
+}
+@media (min-width: 768px) {
+  .kz-hero-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: clamp(20px, 4vw, 44px);
+  }
+}
+
+.kz-hero-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: clamp(36px, 5vh, 64px);
+}
+@media (min-width: 520px) {
+  .kz-hero-actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 14px;
   }
 }
 

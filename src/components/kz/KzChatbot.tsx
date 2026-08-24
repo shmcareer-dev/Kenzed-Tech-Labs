@@ -133,8 +133,17 @@ export function KzChatbot() {
         handle = null;
       }
       if (!handle) {
-        setError("Could not open WhatsApp. Allow pop-ups for this site, or call us instead.");
-        return;
+        // Mobile Safari / Chrome popup blocker fallback: direct navigation
+        try {
+          window.location.href = url;
+          setError("");
+          setQuery("");
+          closePanel();
+          return;
+        } catch {
+          setError("Could not open WhatsApp. Allow pop-ups for this site, or call us instead.");
+          return;
+        }
       }
       setError("");
       setQuery("");
@@ -155,7 +164,7 @@ export function KzChatbot() {
       style={{
         position: "fixed",
         right: "clamp(14px, 4vw, 26px)",
-        bottom: "clamp(14px, 4vw, 26px)",
+        bottom: "calc(clamp(14px, 4vw, 26px) + env(safe-area-inset-bottom, 0px))",
         zIndex: 40,
         display: "flex",
         flexDirection: "column",

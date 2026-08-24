@@ -118,9 +118,16 @@ export function KzContactForm() {
     }
 
     if (!handed) {
-      setStatus("error");
-      setServerMessage("Could not open WhatsApp. Please try again or email us directly.");
-      return;
+      try {
+        window.location.href = url;
+        setStatus("success");
+        setForm(EMPTY_FORM);
+        return;
+      } catch {
+        setStatus("error");
+        setServerMessage("Could not open WhatsApp. Please try again or email us directly.");
+        return;
+      }
     }
 
     setStatus("success");

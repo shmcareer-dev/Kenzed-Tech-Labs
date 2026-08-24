@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Space_Grotesk, Inter, JetBrains_Mono } from "next/font/google";
 
 import { KzThemeProvider } from "@/components/kz/KzThemeProvider";
@@ -16,6 +16,17 @@ import { site } from "@/content/site";
 import { organizationSchema } from "@/lib/seo";
 
 import "./globals.css";
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f4f5f8" },
+    { media: "(prefers-color-scheme: dark)", color: "#05080d" },
+  ],
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  viewportFit: "cover",
+};
 
 /* Display. Space Grotesk replaces Archivo Black, which shipped a single 400
    cut and forced every heading through one very heavy weight. Space Grotesk

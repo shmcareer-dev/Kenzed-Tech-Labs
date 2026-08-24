@@ -38,13 +38,13 @@ export function KzPageHero({
   return (
     <section
       style={{
-        padding: "clamp(130px, 18vh, 180px) 0 clamp(40px, 6vw, 70px)",
+        padding: "clamp(96px, 14vh, 160px) 0 clamp(32px, 5vw, 64px)",
         position: "relative",
       }}
     >
       <div className="kz-wrap">
         <KzEyebrow>{eyebrow}</KzEyebrow>
-        <h1 className="kz-page-title" style={{ maxWidth: "18ch" }}>
+        <h1 className="kz-page-title" style={{ maxWidth: "18ch", wordBreak: "break-word" }}>
           {title}
         </h1>
         {lead && <p className="kz-page-lead">{lead}</p>}

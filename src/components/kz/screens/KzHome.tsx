@@ -29,7 +29,7 @@ import {
 
 /* Every section below the hero shares one vertical rhythm so the page reads as
    a sequence of rooms rather than a scroll of stacked widgets. */
-const KZ_SECTION_PAD = "clamp(72px, 10vw, 128px) 0";
+const KZ_SECTION_PAD = "clamp(56px, 8vw, 128px) 0";
 
 /* The one statement on the page that lights up word by word as it is read. It
    is pulled out of the intro column so the effect owns an element of its own
@@ -65,9 +65,8 @@ export function KzHome() {
           justifyContent: "center",
           /* The bottom padding is the scroll cue's clearance, not decoration.
              The cue is absolutely positioned 22px off the section's bottom edge
-             and stands 58px tall; at 40px the stat block ran straight through
-             it on any viewport short enough to close the gap. */
-          padding: "110px 0 104px",
+             and stands 58px tall; on compact mobile viewports clamp keeps it clear. */
+          padding: "clamp(88px, 12vh, 120px) 0 clamp(44px, 6vh, 80px)",
           position: "relative",
         }}
       >
@@ -84,52 +83,58 @@ export function KzHome() {
                  was inert; Space Grotesk would resolve 400 to its 500 and the
                  hero would read as body copy set large. */
               fontWeight: 700,
-              fontSize: "clamp(2.45rem, 7.4vw, 5.4rem)",
-              lineHeight: 1,
+              fontSize: "clamp(2.1rem, 7.2vw, 5.4rem)",
+              lineHeight: 1.02,
               /* Uppercase. -0.015em was fitted to Archivo Black, which is 26%
                  wider per cap; the same value on Space Grotesk closes the
                  counters and the LED bloom then fills them in. */
               letterSpacing: "-0.012em",
               textTransform: "uppercase",
-              margin: "0 0 26px",
+              margin: "0 0 24px",
               maxWidth: "17ch",
               position: "relative",
+              wordBreak: "break-word",
             }}
           >
             Engineering intelligent software for an{" "}
             <span className="kz-grad-text">agentic world</span>
-            <span
-              aria-hidden="true"
-              style={{
-                position: "absolute",
-                right: "min(8%, 120px)",
-                top: "20%",
-                pointerEvents: "none",
-                zIndex: 1,
-              }}
-            >
-              <KzTorus size={72} opacity={0.45} />
-            </span>
-            <span
-              aria-hidden="true"
-              style={{
-                position: "absolute",
-                left: "min(4%, 60px)",
-                bottom: "18%",
-                pointerEvents: "none",
-                zIndex: 1,
-              }}
-            >
-              <KzSphere size={56} opacity={0.4} />
-            </span>
+            {wide && (
+              <>
+                <span
+                  aria-hidden="true"
+                  style={{
+                    position: "absolute",
+                    right: "min(8%, 120px)",
+                    top: "20%",
+                    pointerEvents: "none",
+                    zIndex: 1,
+                  }}
+                >
+                  <KzTorus size={72} opacity={0.45} />
+                </span>
+                <span
+                  aria-hidden="true"
+                  style={{
+                    position: "absolute",
+                    left: "min(4%, 60px)",
+                    bottom: "18%",
+                    pointerEvents: "none",
+                    zIndex: 1,
+                  }}
+                >
+                  <KzSphere size={56} opacity={0.4} />
+                </span>
+              </>
+            )}
           </h1>
 
           <p
             style={{
-              fontSize: "clamp(1rem, 1.6vw, 1.22rem)",
+              fontSize: "clamp(0.96rem, 1.5vw, 1.22rem)",
               color: "var(--mut)",
               maxWidth: "56ch",
-              margin: "0 0 36px",
+              margin: "0 0 32px",
+              lineHeight: 1.6,
             }}
           >
             Kenzed Tech Lab designs, builds, and deploys custom AI agents, machine-learning
@@ -137,7 +142,7 @@ export function KzHome() {
             infrastructure we own and operate 24×7.
           </p>
 
-          <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginBottom: "clamp(44px, 6vh, 64px)" }}>
+          <div className="kz-hero-actions">
             <KzButton href="/contact">Start your AI project →</KzButton>
             <KzButton href="/services" variant="ghost">
               Explore our services
@@ -147,14 +152,14 @@ export function KzHome() {
           {/* The counters render their finished value in the server HTML and
               only run if the visitor has to scroll to reach them, so a stat
               that is already on screen costs nothing at first paint. */}
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "clamp(20px, 4vw, 44px)" }}>
+          <div className="kz-hero-stats">
             {kzStats.map((s) => (
-              <div key={s.label} style={{ borderLeft: "2px solid var(--line)", paddingLeft: 18 }}>
+              <div key={s.label} style={{ borderLeft: "2px solid var(--line)", paddingLeft: 16 }}>
                 <div
                   style={{
                     fontFamily: "var(--font-display)",
                     fontWeight: 700,
-                    fontSize: "clamp(1.55rem, 3vw, 2.25rem)",
+                    fontSize: "clamp(1.45rem, 3vw, 2.25rem)",
                     lineHeight: 1.06,
                     letterSpacing: "-0.015em",
                     color: "var(--ink)",
@@ -176,7 +181,7 @@ export function KzHome() {
                     color: "var(--mut)",
                     maxWidth: "17ch",
                     marginTop: 4,
-                    lineHeight: 1.5,
+                    lineHeight: 1.45,
                   }}
                 >
                   {s.label}
@@ -512,7 +517,7 @@ export function KzHome() {
             <p className="kz-page-lead" style={{ marginBottom: 34 }}>
               {kzHomeCta.lead}
             </p>
-            <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
+            <div className="kz-hero-actions">
               <KzMagnetic strength={0.28} max={12}>
                 <KzButton href={kzHomeCta.primary.href}>
                   {kzHomeCta.primary.label.replace(KZ_TRAILING_ARROW, "")}{" "}

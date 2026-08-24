@@ -295,8 +295,12 @@ export function KzHeader() {
         </header>
       </KzHideOnScrollHeader>
 
-      {menuOpen && isMobile && (
+      {menuOpen && (
         <div
+          id="kz-mobile-menu"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Site navigation"
           style={{
             position: "fixed",
             inset: 0,
@@ -304,8 +308,10 @@ export function KzHeader() {
             background: "var(--bg)",
             display: "flex",
             flexDirection: "column",
-            padding: "0 clamp(20px, 6vw, 48px)",
-            overflow: "auto",
+            padding: "max(env(safe-area-inset-top, 0px), 0px) clamp(20px, 6vw, 48px) max(env(safe-area-inset-bottom, 0px), 24px)",
+            overflowY: "auto",
+            overscrollBehavior: "contain",
+            WebkitOverflowScrolling: "touch",
           }}
         >
           <div
@@ -317,7 +323,7 @@ export function KzHeader() {
               flex: "none",
             }}
           >
-            <Link href="/" style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <Link href="/" onClick={() => setMenuOpen(false)} style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <KzLogo size={28} />
               <KzWordmark />
             </Link>
@@ -334,13 +340,15 @@ export function KzHeader() {
                 cursor: "pointer",
                 fontSize: "1.15rem",
                 fontFamily: "var(--font-mono)",
+                display: "grid",
+                placeItems: "center",
               }}
             >
               ✕
             </button>
           </div>
 
-          <nav style={{ display: "flex", flexDirection: "column", marginTop: 24 }}>
+          <nav style={{ display: "flex", flexDirection: "column", marginTop: 18, marginBottom: 24 }}>
             {nav.map((item, i) => {
               const isActive = active === item.href;
               return (
@@ -351,19 +359,20 @@ export function KzHeader() {
                   onClick={() => setMenuOpen(false)}
                   style={{
                     display: "flex",
-                    alignItems: "baseline",
+                    alignItems: "center",
                     gap: 16,
-                    padding: "14px 0",
-                    minHeight: 44,
+                    padding: "16px 0",
+                    minHeight: 52,
                     borderBottom: "1px solid var(--line)",
                     animation: `kzUp .55s ${KZ_EASE_CSS} both`,
-                    animationDelay: `${0.04 + i * 0.05}s`,
+                    animationDelay: `${0.04 + i * 0.04}s`,
+                    touchAction: "manipulation",
                   }}
                 >
                   <span
                     style={{
                       fontFamily: "var(--font-mono)",
-                      fontSize: "0.72rem",
+                      fontSize: "0.74rem",
                       color: isActive ? "var(--acc)" : "var(--dim)",
                     }}
                   >
@@ -373,11 +382,11 @@ export function KzHeader() {
                     style={{
                       fontFamily: "var(--font-display)",
                       fontWeight: 700,
-                      fontSize: "clamp(1.45rem, 6.4vw, 2.1rem)",
+                      fontSize: "clamp(1.4rem, 6.2vw, 2rem)",
                       letterSpacing: "-0.004em",
                       textTransform: "uppercase",
-                      lineHeight: 1.08,
-                      color: isActive ? "var(--ink)" : "var(--mut)",
+                      lineHeight: 1.1,
+                      color: isActive ? "var(--acc)" : "var(--ink)",
                     }}
                   >
                     {item.label}
@@ -390,41 +399,42 @@ export function KzHeader() {
           <div
             style={{
               marginTop: "auto",
-              padding: "30px 0 26px",
+              padding: "24px 0 12px",
               display: "flex",
-              flexWrap: "wrap",
-              gap: 14,
-              justifyContent: "space-between",
-              alignItems: "center",
+              flexDirection: "column",
+              gap: 16,
             }}
           >
             <div
               style={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: "8px 18px",
                 fontFamily: "var(--font-mono)",
                 fontSize: "0.72rem",
                 color: "var(--mut)",
-                letterSpacing: "0.06em",
+                letterSpacing: "0.05em",
               }}
             >
-              +91 76990 02237 · kenzedtechlab@gmail.com
+              <a href="tel:+917699002237" style={{ color: "var(--ink)", padding: "4px 0" }}>
+                +91 76990 02237
+              </a>
+              <span>·</span>
+              <a href="mailto:kenzedtechlab@gmail.com" style={{ color: "var(--ink)", padding: "4px 0" }}>
+                kenzedtechlab@gmail.com
+              </a>
             </div>
             <Link
               href="/contact"
               onClick={() => setMenuOpen(false)}
+              className="kz-btn kz-btn-primary"
               style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 8,
-                padding: "15px 24px",
-                background: "var(--ink)",
-                color: "var(--bg)",
-                fontFamily: "var(--font-mono)",
-                fontSize: "0.74rem",
-                letterSpacing: "0.12em",
+                width: "100%",
+                minHeight: 50,
+                fontSize: "0.82rem",
+                letterSpacing: "0.1em",
                 textTransform: "uppercase",
                 fontWeight: 600,
-                border: 0,
-                borderRadius: 12,
               }}
             >
               Start a project →
