@@ -16,17 +16,6 @@ export const site = {
   foundedTeamSize: 25,
 } as const;
 
-export type NavLink = { href: string; label: string };
-
-/** Primary header navigation. */
-export const navLinks: NavLink[] = [
-  { href: "/services", label: "Services" },
-  { href: "/technology", label: "Technology" },
-  { href: "/infrastructure", label: "Infrastructure" },
-  { href: "/process", label: "Process" },
-  { href: "/about", label: "About" },
-];
-
 export type Location = {
   kind: string;
   city: string;
@@ -45,7 +34,7 @@ export const locations: Location[] = [
     postalCode: "713212",
     region: "West Bengal",
     country: "IN",
-    note: "15,000 sq ft facility",
+    note: "Development & studio facility",
   },
   {
     kind: "Liaison Office",
@@ -56,22 +45,3 @@ export const locations: Location[] = [
     country: "IN",
   },
 ];
-
-export type HeroStat = { value: number; suffix: string; label: string };
-
-/** Animated counters over the 3D hero. */
-export const heroStats: HeroStat[] = [
-  { value: 25, suffix: "+", label: "AI, software & design specialists" },
-  { value: 15000, suffix: " sq ft", label: "Dedicated development facility" },
-  { value: 24, suffix: "×7", label: "Operations & in-house AI compute" },
-  { value: 2, suffix: "", label: "Locations — Durgapur & Kolkata" },
-];
-
-/** Icon keys map to <TrustIcon /> in components/ui/icons.tsx */
-export const trustSignals = [
-  { icon: "shield", label: "Enterprise-grade & secure" },
-  { icon: "layers", label: "Full-stack under one roof" },
-  { icon: "cpu", label: "Owned GPU compute" },
-  { icon: "bolt", label: "24×7 uninterrupted power" },
-  { icon: "globe", label: "Delivered worldwide" },
-] as const;

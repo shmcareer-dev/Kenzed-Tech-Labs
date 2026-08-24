@@ -8,7 +8,7 @@ import { kzTeam } from "@/content/kz";
 export function KzTeam() {
   useKzPage("about");
   return (
-    <div className="kz-page-enter">
+    <>
       <KzPageHero
         eyebrow="Our team"
         title="Every discipline your project needs — under one roof"
@@ -80,6 +80,6 @@ export function KzTeam() {
           </div>
         </div>
       </section>
-    </div>
+    </>
   );
 }

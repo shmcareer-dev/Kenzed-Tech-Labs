@@ -42,7 +42,7 @@ export function KzMarquee() {
                 style={{
                   fontFamily: "var(--font-mono)",
                   fontSize: "0.76rem",
-                  letterSpacing: "0.22em",
+                  letterSpacing: "0.18em",
                   textTransform: "uppercase",
                   color: "var(--mut)",
                   display: "inline-flex",

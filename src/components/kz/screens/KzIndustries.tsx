@@ -8,7 +8,7 @@ import { kzIndustries } from "@/content/kz";
 export function KzIndustries() {
   useKzPage("about");
   return (
-    <div className="kz-page-enter">
+    <>
       <KzPageHero
         eyebrow="Industries we serve"
         title="Solutions that adapt to your sector"
@@ -77,6 +77,6 @@ export function KzIndustries() {
           </div>
         </div>
       </section>
-    </div>
+    </>
   );
 }

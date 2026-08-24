@@ -2,7 +2,7 @@
 
 /* ==========================================================================
    Kenzed Tech Lab design tokens — ported from Kenzed Tech Lab.dc.html
-   Light mode by default; dark mode toggled via data-kz-theme="dark".
+   Dark by default; light mode opts in via data-kz-theme="light".
    ========================================================================== */
 @theme {
   --color-bg: var(--bg);
@@ -19,14 +19,90 @@
   --color-acc3: var(--acc3);
   --color-navbg: var(--navbg);
 
-  --font-sans: var(--font-archivo), system-ui, sans-serif;
-  --font-display: var(--font-archivo-black), var(--font-archivo), system-ui, sans-serif;
-  --font-mono: var(--font-ibm-plex-mono), ui-monospace, monospace;
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --font-display: var(--font-space-grotesk), var(--font-inter), system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
 
   --container-site: 1280px;
 }
 
+/* ==========================================================================
+   Type scale tokens
+   Space Grotesk is a much narrower face than the Archivo Black it replaced, and
+   almost every display string on this site is uppercase. Uppercase wants LESS
+   negative tracking than mixed case at the same size, so the scale tapers from
+   a genuine optical correction at hero sizes to neutral at label sizes instead
+   of applying one flat value. Tokenised so the taper can be retuned in one
+   place rather than across two dozen inline styles.
+   ========================================================================== */
+:root {
+  /* Display tracking, largest to smallest. */
+  --tr-display-xl: -0.02em;   /* hero h1, 2.4rem -> 5.4rem */
+  --tr-display-lg: -0.018em;  /* section h2, 1.7rem -> 4.1rem */
+  --tr-display-md: -0.012em;  /* h3/h4, 1.35rem -> 2.2rem */
+  /* Uppercase display gets no negative correction at all — see the reset in
+     the base layer. Card headings in caps sit at 0 to +0.01em instead. */
+
+  /* Body tracking. Inter is drawn a touch wide for screen at text sizes. */
+  --tr-body: -0.009em;
+  --tr-lead: -0.011em;
+
+  /* Uppercase mono tracking. JetBrains Mono sets a 0.6em fixed advance against
+     IBM Plex Mono's 0.6em but on a taller cap (730 vs 698 units), so it reads
+     wider at the same size; the tracked label steps come down accordingly. */
+  --tr-mono-xl: 0.2em;
+  --tr-mono-lg: 0.16em;
+  --tr-mono-md: 0.12em;
+  --tr-mono-sm: 0.09em;
+}
+
+/* Dark is the product default: :root matches <html> whatever the theme
+   attribute says, so an unstamped first paint is already dark and no boot
+   script has to win a race against it. The light block sits after this one and
+   overrides on equal specificity when the attribute is present. */
 :root,
+[data-kz-theme="dark"] {
+  --bg: #05080d;
+  --bg2: #0b1119;
+  --ink: #ffffff;
+  --mut: #a8b3c4;
+  --dim: #7d8a9e;
+  --line: #1b2534;
+  --line2: #556d8f;
+  /* Panels stay translucent rather than the flat #0e1520 of the reference
+     stills, because the isometric scene sits behind main and has to keep
+     showing through. Over --bg this composites to #0e161f — the reference
+     card colour — and it still reads correctly over --bg2. */
+  --card: rgba(124, 196, 255, 0.075);
+  --card2: rgba(124, 196, 255, 0.13);
+  --acc: #4da3ff;
+  --acc2: #9ecbff;
+  --acc3: #5ecfe3;
+  --navbg: rgba(5, 8, 13, 0.82);
+  --shadow:
+    0 24px 60px -22px rgba(0, 0, 0, 0.9),
+    0 0 30px -14px rgba(77, 163, 255, 0.45);
+  --gr: linear-gradient(120deg, #4da3ff, #9ecbff);
+  --grt: linear-gradient(115deg, #7cc4ff 0%, #9ecbff 55%, #5ecfe3 115%);
+  --head: #7cc4ff;
+  --accglow: rgba(77, 163, 255, 0.42);
+  --tile: linear-gradient(135deg, rgba(77, 163, 255, 0.2), rgba(94, 207, 227, 0.14));
+  --tile2: linear-gradient(135deg, rgba(94, 207, 227, 0.18), rgba(77, 163, 255, 0.16));
+  /* Backlight for the LED headings, tokenised so a future theme can retint
+     the glow without reopening the heading rules: --led0 is the tight filament
+     core, --led1 and --led2 the two bloom tiers. */
+  --led0: rgba(255, 255, 255, 0.34);
+  --led1: rgba(124, 196, 255, 0.34);
+  --led2: rgba(77, 163, 255, 0.17);
+  /* Status green. Tokenised because the same "healthy / passed" mark appears on
+     the near-black canvas and on the light theme's white cards, where the dark
+     theme's brighter green drops under 3:1. */
+  --ok: #34c759;
+  /* Validation red. Same reasoning as --ok: the bright tint that carries the
+     near-black canvas is too weak behind role="alert" text on the light card. */
+  --err: #ff6b6b;
+}
+
 [data-kz-theme="light"] {
   --bg: #f4f5f8;
   --bg2: #ffffff;
@@ -44,53 +120,178 @@
   --shadow: 0 26px 48px -28px rgba(12, 20, 36, 0.28);
   --gr: linear-gradient(120deg, #1c50e0, #5a35e6);
   --grt: linear-gradient(115deg, #1546c9 0%, #5a35e6 70%, #008f86 130%);
-}
-
-[data-kz-theme="dark"] {
-  --bg: #070a12;
-  --bg2: #0b1120;
-  --ink: #f0f4fb;
-  --mut: #c2cde2;
-  --dim: #a3afc7;
-  --line: rgba(233, 238, 248, 0.16);
-  --line2: rgba(233, 238, 248, 0.38);
-  --card: rgba(255, 255, 255, 0.07);
-  --card2: rgba(255, 255, 255, 0.13);
-  --acc: #66b0ff;
-  --acc2: #a38bff;
-  --acc3: #4ce8dd;
-  --navbg: rgba(7, 10, 18, 0.82);
-  --shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.7);
-  --gr: linear-gradient(120deg, #66b0ff, #a38bff);
-  --grt: linear-gradient(115deg, #a3d5ff 0%, #c2b3ff 55%, #8ff5ec 110%);
+  --head: var(--ink);
+  --accglow: rgba(28, 80, 224, 0.5);
+  --tile: linear-gradient(135deg, rgba(28, 80, 224, 0.16), rgba(90, 53, 230, 0.16));
+  --tile2: linear-gradient(135deg, rgba(0, 143, 134, 0.15), rgba(28, 80, 224, 0.15));
+  /* The LED treatment is gated off in light mode; the tokens stay defined so
+     nothing inherits a dark-theme glow colour through a stray reference. */
+  --led0: transparent;
+  --led1: transparent;
+  --led2: transparent;
+  --ok: #1a7f37;
+  --err: #b42318;
 }
 
 /* ==========================================================================
-   Base
+   Base — authored for a 360px viewport first; everything above that is an
+   enhancement expressed through clamp() or a min-width query.
    ========================================================================== */
 @layer base {
   html {
     scroll-behavior: smooth;
+    /* Belt-and-braces against horizontal scroll: a single overflowing child
+       anywhere in the tree must never widen the document. */
+    max-width: 100%;
+    /* `clip`, NOT `hidden`. overflow-x:hidden computes overflow-y:auto, which
+       turns html/body into a scroll container — and position:sticky then sticks
+       to that container instead of the viewport, silently breaking every pinned
+       section on the site. `clip` blocks the same horizontal overflow without
+       establishing a scroll container. */
+    overflow-x: clip;
+    /* Stop mobile Safari/Chrome inflating type when the device rotates. */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
   }
 
   body {
     background: var(--bg);
     color: var(--ink);
     font-family: var(--font-sans);
-    line-height: 1.6;
-    overflow-x: hidden;
+    /* Inter runs a large x-height, so it needs more leading than Archivo did to
+       stop paragraphs looking packed. */
+    line-height: 1.65;
+    letter-spacing: var(--tr-body);
+    max-width: 100%;
+    /* See the html rule above: clip, never hidden, or sticky pinning dies. */
+    overflow-x: clip;
+    /* Both smoothing hints, not just the WebKit one: Inter's thin stems bloom
+       badly under subpixel rendering on the near-black canvas, and Firefox on
+       macOS needs its own property to opt out. */
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    /* Explicit rather than inherited-by-default so a UA that ships them off
+       still gets Inter's kerning pairs and JetBrains Mono's arrow ligatures. */
+    font-feature-settings: "liga" 1, "calt" 1;
+    /* Justification is scoped to real prose (see the `p` rule below) rather than
+       inherited from the root. Inheriting it reached the uppercase mono stat
+       labels and eyebrows, where justifying 3-4 short words tore visible rivers
+       through them. */
+    text-align: left;
+    text-wrap: pretty;
+    overflow-wrap: break-word;
   }
 
-  ::selection {
-    background: var(--acc);
-    color: #fff;
+  /* Prose only. hyphens + overflow-wrap keep narrow 360px columns river-free. */
+  p {
+    text-align: justify;
+    -webkit-hyphens: auto;
+    hyphens: auto;
+    overflow-wrap: break-word;
+  }
+
+  /* Short prose does not have enough words per line to justify cleanly. */
+  p:has(> :only-child:is(a, button)),
+  figcaption,
+  caption,
+  label,
+  th,
+  td {
+    text-align: left;
+    -webkit-hyphens: manual;
+    hyphens: manual;
+  }
+
+  /* Headings are structural, not prose: left, balanced, never hyphenated. */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    text-align: left;
+    text-wrap: balance;
+    -webkit-hyphens: manual;
+    hyphens: manual;
+    overflow-wrap: break-word;
+  }
+
+  /* Weight has to be stated now that the display face carries real cuts. The
+     old Archivo Black shipped only a 400, so every heading inherited one fixed
+     mass and `font-weight` was decorative; under Space Grotesk an unstated
+     weight would resolve to the lightest loaded cut (500) and headings would
+     go limp. h1/h2 take 700, h3 and below take 600. */
+  h1,
+  h2 {
+    font-weight: 700;
+  }
+
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-weight: 600;
+  }
+
+  /* Leading and tracking taper with size: display sizes get a real optical
+     correction, label-sized headings get almost none. */
+  h1 {
+    line-height: 1.04;
+    letter-spacing: var(--tr-display-xl);
+  }
+
+  h2 {
+    line-height: 1.08;
+    letter-spacing: var(--tr-display-lg);
+  }
+
+  h3 {
+    line-height: 1.25;
+    letter-spacing: var(--tr-display-md);
+  }
+
+  h4 {
+    line-height: 1.28;
+    letter-spacing: var(--tr-display-md);
+  }
+
+  h5,
+  h6 {
+    line-height: 1.35;
+    letter-spacing: 0;
+  }
+
+  /* Uppercase needs its tracking back. The negative values above are tuned for
+     mixed-case Inter/Space Grotesk; the same numbers on caps close the counters
+     up and the word starts to clot. Any heading that opts into uppercase — via
+     the utility class or an inline style, which is how the kz components do it
+     — is reset to neutral and lets its own rule re-track from there. */
+  :is(h1, h2, h3, h4, h5, h6):is(.uppercase, [style*="uppercase"]) {
+    letter-spacing: 0;
+  }
+
+  /* A container that states its own alignment owns its headings too. */
+  :is([style*="text-align"], .text-center, .text-right) :is(h1, h2, h3, h4, h5, h6) {
+    text-align: inherit;
+  }
+
+  /* Tabular headers and captions are read as labels, not as copy. */
+  th,
+  legend,
+  figcaption {
+    text-align: left;
+    -webkit-hyphens: manual;
+    hyphens: manual;
   }
 
   input,
   select,
   textarea {
     font-family: var(--font-sans);
+    text-align: left;
+    -webkit-hyphens: manual;
+    hyphens: manual;
   }
 
   input:focus,
@@ -105,8 +306,48 @@
     text-decoration: none;
   }
 
-  a:hover {
-    color: var(--acc);
+  a:focus-visible,
+  button:focus-visible,
+  [role="button"]:focus-visible {
+    outline: 2px solid var(--acc);
+    outline-offset: 3px;
+  }
+
+  /* Embedded media shrinks to the column instead of setting the page width. */
+  img,
+  svg,
+  video,
+  canvas,
+  iframe {
+    max-width: 100%;
+  }
+
+  img,
+  video {
+    height: auto;
+  }
+
+  /* Anything intrinsically wider than a phone scrolls inside itself. */
+  pre,
+  table {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  table {
+    display: block;
+  }
+
+  ::selection {
+    background: var(--acc);
+    color: var(--bg);
+  }
+
+  /* Pointer-only affordances: on touch, :hover sticks after a tap. */
+  @media (hover: hover) {
+    a:hover {
+      color: var(--acc);
+    }
   }
 }
 
@@ -116,16 +357,6 @@
 @keyframes kzMarq {
   from { transform: translateX(0); }
   to { transform: translateX(-50%); }
-}
-
-@keyframes kzPgA {
-  from { opacity: 0; transform: translateY(22px); }
-  to { opacity: 1; transform: none; }
-}
-
-@keyframes kzPgB {
-  from { opacity: 0; transform: translateY(22px); }
-  to { opacity: 1; transform: none; }
 }
 
 @keyframes kzUp {
@@ -188,9 +419,11 @@
   to { transform: rotate(360deg); }
 }
 
+/* Translating a doubled gradient beats animating background-position: the
+   latter repaints the strip every frame, this one only composites. */
 @keyframes kzFlow {
-  from { background-position: 0 0; }
-  to { background-position: 200px 0; }
+  from { transform: translateX(-50%); }
+  to { transform: translateX(0); }
 }
 
 /* ==========================================================================
@@ -214,11 +447,16 @@
     display: inline-flex;
     align-items: center;
     gap: 12px;
+    max-width: 100%;
     font-family: var(--font-mono);
     font-size: 0.7rem;
     font-weight: 500;
-    letter-spacing: 0.24em;
+    /* Was 0.24em under IBM Plex Mono. JetBrains Mono draws on a taller cap for
+       the same fixed advance, so caps sit closer to the tracking gap and 0.24em
+       started to read as separated letters rather than a tracked label. */
+    letter-spacing: var(--tr-mono-xl);
     text-transform: uppercase;
+    text-align: left;
     color: var(--acc);
   }
 
@@ -235,13 +473,15 @@
     align-items: center;
     justify-content: center;
     gap: 10px;
-    padding: 17px 28px;
+    max-width: 100%;
+    padding: 17px clamp(20px, 5vw, 28px);
     border-radius: 12px;
     font-family: var(--font-mono);
     font-size: 0.78rem;
     font-weight: 600;
-    letter-spacing: 0.12em;
+    letter-spacing: var(--tr-mono-md);
     text-transform: uppercase;
+    text-align: center;
     cursor: pointer;
     border: 0;
     transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s, color 0.25s;
@@ -252,20 +492,10 @@
     color: var(--bg);
   }
 
-  .kz-btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow);
-  }
-
   .kz-btn-ghost {
     background: transparent;
     color: var(--ink);
     border: 1px solid var(--line2);
-  }
-
-  .kz-btn-ghost:hover {
-    transform: translateY(-2px);
-    border-color: var(--acc);
   }
 
   .kz-card {
@@ -275,19 +505,15 @@
     transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s, background 0.3s;
   }
 
-  .kz-card:hover {
-    transform: translateY(-4px);
-    border-color: var(--line2);
-    box-shadow: var(--shadow);
-  }
-
   .kz-pill {
     display: inline-flex;
     align-items: center;
     gap: 8px;
+    max-width: 100%;
     font-family: var(--font-mono);
     font-size: 0.66rem;
-    letter-spacing: 0.1em;
+    letter-spacing: var(--tr-mono-sm);
+    text-align: left;
     padding: 9px 14px;
     border: 1px solid var(--line2);
     border-radius: 999px;
@@ -295,36 +521,48 @@
     transition: border-color 0.25s, color 0.25s;
   }
 
-  .kz-pill:hover {
-    border-color: var(--acc);
-    color: var(--acc);
-  }
-
   .kz-section-title {
     font-family: var(--font-display);
-    font-weight: 400;
+    /* 700, not the inherited 400 the single-cut Archivo Black used to stand in
+       for. Space Grotesk at 400 falls back to its 500 and the section titles
+       lose the weight step that separates them from card headings. */
+    font-weight: 700;
     text-transform: uppercase;
-    font-size: clamp(1.5rem, 3.2vw, 2.2rem);
-    line-height: 1.06;
-    letter-spacing: -0.01em;
+    font-size: clamp(1.35rem, 3.2vw, 2.2rem);
+    line-height: 1.04;
+    /* Uppercase and only 2.2rem at its largest — no optical correction earned
+       at this size, and the mixed-case token would visibly clot the caps. */
+    letter-spacing: 0;
     margin: 0;
   }
 
   .kz-page-title {
     font-family: var(--font-display);
-    font-weight: 400;
-    font-size: clamp(2.1rem, 5.6vw, 4rem);
-    line-height: 1;
-    letter-spacing: -0.015em;
+    font-weight: 700;
+    font-size: clamp(1.75rem, 5.6vw, 4rem);
+    /* 1.06, not 1, so the LED halo clears the cap height of the line below.
+       Space Grotesk sets a 700-unit cap against Archivo Black's 688, so this
+       stays at 1.06 rather than tightening with the rest of the scale. */
+    line-height: 1.06;
+    /* Uppercase Space Grotesk is already narrow; -0.015em was tuned for the far
+       wider Archivo Black and closes the caps up here. Scaling that correction
+       by the ratio of the two faces' mean cap advance (0.608 / 0.768) lands at
+       about -0.012em, and the LED bloom on these titles wants a hair more air
+       than that, so -0.01em. */
+    letter-spacing: -0.01em;
     text-transform: uppercase;
-    margin: 0 0 20px;
+    margin: 0 0 clamp(14px, 3vw, 20px);
   }
 
   .kz-page-lead {
-    font-size: clamp(0.98rem, 1.5vw, 1.15rem);
+    font-size: clamp(1rem, 1.5vw, 1.15rem);
+    font-weight: 400;
+    line-height: 1.62;
+    letter-spacing: var(--tr-lead);
     color: var(--mut);
     max-width: 62ch;
     margin: 0;
+    text-align: justify;
   }
 
   .kz-icon-tile {
@@ -358,8 +596,10 @@
     display: block;
     font-family: var(--font-mono);
     font-size: 0.64rem;
-    letter-spacing: 0.14em;
+    font-weight: 500;
+    letter-spacing: var(--tr-mono-md);
     text-transform: uppercase;
+    text-align: left;
     color: var(--mut);
     margin-bottom: 7px;
   }
@@ -368,21 +608,8 @@
     transition: background .3s;
   }
 
-  .kz-hover-row:hover {
-    background: var(--card);
-  }
-
   .kz-tag {
     transition: color .2s, border-color .2s;
-  }
-
-  .kz-tag:hover {
-    color: var(--ink);
-    border-color: var(--line2);
-  }
-
-  .kz-hover-row:hover .process-num {
-    color: var(--acc);
   }
 
   .kz-reveal {
@@ -397,19 +624,78 @@
     opacity: 1;
     transform: none;
   }
+
+  /* ------------------------------------------------------------------------
+     Figures.
+     Archivo Black drew all ten digits on a single 0.667em advance, so every
+     counter and stat on this site was tabular for free and nothing ever
+     reflowed mid-count. Space Grotesk and Inter both ship PROPORTIONAL
+     figures — Space Grotesk sets "1" at 0.452em against "0" at 0.648em, a 30%
+     swing — so an animated stat would now visibly jitter and shove its
+     neighbours as it ticks. Tabular figures are a correctness requirement
+     under the new families, not a refinement.
+
+     The attribute selector is how the kz components are reached: they set
+     font-family inline, so the literal string "--font-display" is present in
+     the style attribute of every display-face element and this catches all of
+     them without editing two dozen call sites.
+     ------------------------------------------------------------------------ */
+  :is(h1, h2, h3, h4, h5, h6),
+  [style*="--font-display"],
+  [style*="--font-mono"],
+  .kz-page-title,
+  .kz-section-title,
+  .kz-num,
+  .process-num,
+  time {
+    font-variant-numeric: tabular-nums;
+    /* font-feature-settings replaces rather than merges, so the body's liga and
+       calt have to be restated alongside tnum or they are dropped here. */
+    font-feature-settings: "tnum" 1, "liga" 1, "calt" 1;
+  }
+
+  /* Lift, glow and colour shifts are pointer-only — a tap would leave them
+     latched on until the next touch elsewhere. */
+  @media (hover: hover) {
+    .kz-btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow);
+    }
+
+    .kz-btn-ghost:hover {
+      transform: translateY(-2px);
+      border-color: var(--acc);
+    }
+
+    .kz-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--line2);
+      box-shadow: var(--shadow);
+    }
+
+    .kz-pill:hover {
+      border-color: var(--acc);
+      color: var(--acc);
+    }
+
+    .kz-hover-row:hover {
+      background: var(--card);
+    }
+
+    .kz-hover-row:hover .process-num {
+      color: var(--acc);
+    }
+
+    .kz-tag:hover {
+      color: var(--ink);
+      border-color: var(--line2);
+    }
+  }
 }
 
 /* ==========================================================================
    Utility / page layout helpers
    ========================================================================== */
-.kz-page-enter {
-  animation: kzPgA 0.65s cubic-bezier(0.2, 0.7, 0.2, 1) both;
-}
-
-.kz-page-enter-alt {
-  animation: kzPgB 0.65s cubic-bezier(0.2, 0.7, 0.2, 1) both;
-}
-
 /* ==========================================================================
    Legacy component classes — keep existing admin / utility pages working
    These reuse the new design tokens so the admin area adapts to the redesign.
@@ -432,10 +718,12 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 12px 22px;
+  max-width: 100%;
+  padding: 12px clamp(16px, 4vw, 22px);
   border-radius: 10px;
   font-weight: 600;
   font-size: 0.92rem;
+  text-align: center;
   cursor: pointer;
   border: 0;
   transition: 0.25s;
@@ -443,24 +731,14 @@
 
 .btn-primary {
   background: var(--gr);
-  color: #fff;
-  box-shadow: 0 10px 30px -8px rgba(28, 80, 224, 0.55);
-}
-
-.btn-primary:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 16px 40px -8px rgba(90, 53, 230, 0.6);
+  color: var(--bg);
+  box-shadow: 0 10px 30px -8px var(--accglow);
 }
 
 .btn-ghost {
   background: var(--card);
   color: var(--ink);
   border: 1px solid var(--line2);
-}
-
-.btn-ghost:hover {
-  background: var(--card2);
-  transform: translateY(-2px);
 }
 
 .btn:disabled {
@@ -472,7 +750,7 @@
   background: var(--card);
   border: 1px solid var(--line);
   border-radius: 18px;
-  padding: 30px;
+  padding: clamp(20px, 5vw, 30px);
   transition: 0.3s;
   position: relative;
   overflow: hidden;
@@ -490,26 +768,17 @@
   transition: 0.3s;
 }
 
-.card:hover {
-  transform: translateY(-6px);
-  border-color: var(--line2);
-  background: var(--card2);
-  box-shadow: var(--shadow);
-}
-
-.card:hover::before {
-  opacity: 1;
-}
-
 .eyebrow {
   display: inline-flex;
   align-items: center;
   gap: 10px;
+  max-width: 100%;
   font-family: var(--font-mono);
   font-size: 0.78rem;
   font-weight: 600;
-  letter-spacing: 0.22em;
+  letter-spacing: var(--tr-mono-lg);
   text-transform: uppercase;
+  text-align: left;
   color: var(--acc);
 }
 
@@ -527,14 +796,10 @@
   background: var(--card);
   border: 1px solid var(--line);
   font-size: 0.86rem;
+  text-align: left;
   color: var(--mut);
   font-weight: 500;
   transition: 0.2s;
-}
-
-.chip:hover {
-  color: var(--ink);
-  border-color: var(--line2);
 }
 
 .icon-tile {
@@ -543,7 +808,7 @@
   border-radius: 13px;
   display: grid;
   place-items: center;
-  background: linear-gradient(135deg, rgba(28, 80, 224, 0.16), rgba(90, 53, 230, 0.16));
+  background: var(--tile);
   border: 1px solid var(--line2);
 }
 
@@ -553,7 +818,7 @@
   border-radius: 11px;
   display: grid;
   place-items: center;
-  background: linear-gradient(135deg, rgba(0, 143, 134, 0.15), rgba(28, 80, 224, 0.15));
+  background: var(--tile2);
   border: 1px solid var(--line2);
   flex: none;
 }
@@ -603,13 +868,112 @@
   transform: none;
 }
 
+@media (hover: hover) {
+  .btn-primary:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 40px -6px var(--accglow);
+  }
+
+  .btn-ghost:hover {
+    background: var(--card2);
+    transform: translateY(-2px);
+  }
+
+  .card:hover {
+    transform: translateY(-6px);
+    border-color: var(--line2);
+    background: var(--card2);
+    box-shadow: var(--shadow);
+  }
+
+  .card:hover::before {
+    opacity: 1;
+  }
+
+  .chip:hover {
+    color: var(--ink);
+    border-color: var(--line2);
+  }
+}
+
+/* ==========================================================================
+   LED headings — dark theme only
+   A backlit glow over a pale canvas reads as a rendering fault, so every rule
+   here is gated on the theme attribute being anything other than "light";
+   that also covers the unstamped first paint, which resolves to dark.
+   The glow is deliberately static. text-shadow is paint-bound, so pulsing it
+   would repaint the largest type on the page every frame — exactly the effect
+   the performance budget rules out.
+   Blur radii are in em so the halo scales with the clamp()ed heading sizes
+   instead of swamping the 2.4rem type on a 360px screen.
+   ========================================================================== */
+@layer components {
+  html:not([data-kz-theme="light"]) :is(h1, .kz-page-title, .kz-section-title) {
+    color: var(--head);
+  }
+
+  html:not([data-kz-theme="light"]) :is(h1, .kz-page-title) {
+    /* Tight white core = the filament; two soft blue tiers = the bloom. */
+    text-shadow:
+      0 0 0.02em var(--led0),
+      0 0 0.16em var(--led1),
+      0 0 0.42em var(--led2);
+  }
+
+  /* Gradient-clipped runs paint with a transparent fill and the shadow lands
+     between the clipped background and the glyph, so an inherited glow would
+     smear over the gradient. It is cancelled rather than swapped for a
+     drop-shadow filter, which WebKit still mishandles alongside
+     background-clip: text. The gradient is bright enough to hold its own next
+     to the glowing plain runs. */
+  html:not([data-kz-theme="light"]) :is(h1, .kz-page-title) :is(.kz-grad-text, .grad-text),
+  html:not([data-kz-theme="light"]) :is(h1, .kz-page-title):is(.kz-grad-text, .grad-text) {
+    text-shadow: none;
+  }
+
+  /* Section headings get the tint but only a hairline of bloom, so the page
+     keeps one focal point per screen. */
+  html:not([data-kz-theme="light"]) .kz-section-title {
+    text-shadow: 0 0 0.3em var(--led2);
+  }
+}
+
+/* ==========================================================================
+   Touch ergonomics — scoped to coarse pointers so desktop metrics are
+   untouched. Buttons and navigation links clear the 44px minimum target.
+   ========================================================================== */
+@media (pointer: coarse) {
+  .kz-btn,
+  .btn {
+    min-height: 44px;
+  }
+
+  nav a,
+  footer a,
+  header button {
+    min-height: 44px;
+    align-content: center;
+  }
+
+  header button {
+    min-width: 44px;
+  }
+
+  /* 16px is the threshold below which iOS Safari zooms the page on focus. */
+  .kz-field,
+  .field-input {
+    font-size: 16px;
+  }
+}
+
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
   }
 
-  .reveal {
+  .reveal,
+  .kz-reveal {
     opacity: 1;
     transform: none;
     transition: none;
@@ -622,4 +986,14 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* ==========================================================================
+   Isometric 3D scene (Kz3DBackground)
+   Opacity and the mask are set inline by the component (see its VEIL map) so
+   that they can switch on the desktop/mobile composition. Declaring them here
+   too would be dead CSS — inline styles always win. Only layout lives here.
+   ========================================================================== */
+.kz-scene {
+  will-change: transform;
 }

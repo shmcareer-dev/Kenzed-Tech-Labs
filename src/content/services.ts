@@ -6,12 +6,14 @@
  * Add a service by appending an object here — no component changes needed.
  */
 
+import type { KzIconKey } from "@/components/kz/KzIcon";
+
 export type StackGroup = { label: string; items: string };
 
 export type Service = {
   slug: string;
-  /** Key into the ICONS map in components/ui/icons.tsx */
-  icon: string;
+  /** Key into the ICONS map in components/kz/KzIcon.tsx */
+  icon: KzIconKey;
   title: string;
   /** One-line stack summary shown on the card footer. */
   techLine: string;

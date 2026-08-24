@@ -355,7 +355,7 @@ export function KzMascot({ size = 64 }: { size?: number }) {
           height: 28,
           borderRadius: 11,
           background: "var(--gr)",
-          boxShadow: "0 10px 20px -8px rgba(28,80,224,.55)",
+          boxShadow: "0 10px 20px -8px var(--accglow)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",

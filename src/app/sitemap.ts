@@ -9,6 +9,8 @@ export const dynamic = "force-static";
 const routes: { path: string; priority: number; changeFrequency: "weekly" | "monthly" }[] = [
   { path: "/", priority: 1, changeFrequency: "weekly" },
   { path: "/services", priority: 0.9, changeFrequency: "monthly" },
+  { path: "/product-studio", priority: 0.8, changeFrequency: "monthly" },
+  { path: "/live-projects", priority: 0.8, changeFrequency: "weekly" },
   { path: "/about", priority: 0.8, changeFrequency: "monthly" },
   { path: "/technology", priority: 0.7, changeFrequency: "monthly" },
   { path: "/infrastructure", priority: 0.7, changeFrequency: "monthly" },

@@ -1,0 +1,93 @@
+# ----------------------------------------------------------------------
+# kenzed.in — static Next.js export
+#
+# Served by OpenLiteSpeed, which implements Apache's .htaccess syntax but is
+# NOT Apache. Two consequences drive the whole shape of this file:
+#
+#  1. `<IfModule>` blocks are evaluated against modules LiteSpeed actually
+#     reports. It reports mod_rewrite (it has its own rewrite engine) but NOT
+#     mod_dir, mod_headers, mod_deflate or mod_mime — so anything wrapped in
+#     those guards is silently skipped. Wrapping `DirectorySlash Off` in
+#     `<IfModule mod_dir.c>` meant it never applied, and every `Header set`
+#     inside `<IfModule mod_headers.c>` meant the site shipped with no
+#     security headers and no asset caching at all. Directives that LiteSpeed
+#     supports natively are therefore declared bare, unguarded.
+#
+#  2. Next 16 emits an RSC-payload DIRECTORY next to each page file
+#     (`live-projects/` alongside `live-projects.html`). LiteSpeed's built-in
+#     directory handler wants to 301 `/live-projects` to `/live-projects/`,
+#     while the rewrite below wants to serve `live-projects.html`. Those two
+#     race per request: the observed result was `/live-projects` ->
+#     `/live-projects/` -> `/live-projects` -> ..., an intermittent infinite
+#     redirect loop on every page of the site. The rewrite is ordered ahead of
+#     any slash handling and terminated with [END] rather than [L] so the
+#     ruleset is never re-entered, and BOTH URL forms resolve straight to the
+#     exported page instead of one bouncing to the other.
+# ----------------------------------------------------------------------
+
+Options -MultiViews -Indexes
+DirectoryIndex index.html
+
+# Bare, not inside <IfModule mod_dir.c> — see note 1.
+DirectorySlash Off
+
+RewriteEngine On
+
+# Canonical host: strip www.
+RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
+RewriteRule ^ https://%1%{REQUEST_URI} [L,R=301]
+
+# Build assets are served verbatim.
+RewriteRule ^_next/ - [END]
+
+# An exact file on disk wins (index.html, favicon.ico, sitemap.xml, ...).
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteRule ^ - [END]
+
+# Clean URL -> exported page. This MUST come before any directory handling,
+# and [END] is load-bearing: [L] only ends the current pass, and the directory
+# handler gets another chance on the next one.
+RewriteCond %{REQUEST_FILENAME}.html -f
+RewriteRule ^(.*)$ /$1.html [END]
+
+# Trailing slash -> canonical bare URL, one hop. This is safe now only because
+# the rule above terminates the bare form with [END]: the loop existed because
+# the bare form was itself being 301'd back to the slash form by the directory
+# handler, so the two redirects chased each other. `%{DOCUMENT_ROOT}/$1.html`
+# was tried here instead and does not resolve under LiteSpeed — it sent every
+# slash URL to the 404 page — so the redirect is the correct mechanism.
+# KNOWN LIMITATION, deliberately left as-is.
+# `/about/` returns 404. This rule does not fire and cannot: with
+# DirectorySlash Off, LiteSpeed resolves the request to the RSC payload
+# directory, finds no index.html and returns 404 WITHOUT ever consulting the
+# document-root rewrite rules. Both rule-pattern (`^(.+)/$`) and REQUEST_URI
+# (`^/(.+)/$`) forms were tested; neither is reached.
+#
+# Moving the redirect to a context-scope `rewrite { rules }` in the vhost DOES
+# reach it, but doing so stops the .htaccess rules applying to that context —
+# the .html rewrite then loses its race with the directory handler and the
+# original infinite loop returns. That was tried and rolled back.
+#
+# Nothing on the site links to the slash form: every href, the sitemap and every
+# canonical tag use the bare URL. The durable fix is `trailingSlash: true` in
+# next.config.ts, which makes Next emit `about/index.html` so there is no
+# name collision at all — but it changes every public URL to `/about/`, which
+# is an SEO decision rather than a bug fix.
+RewriteCond %{REQUEST_URI} ^/(.+)/$
+RewriteRule ^ /%1 [R=301,END]
+
+ErrorDocument 404 /404.html
+
+# ---------- response headers ----------
+# NOT set here. `Header` is a mod_headers directive and OpenLiteSpeed does not
+# implement it in .htaccess at all — guarded or bare, it is ignored, which is
+# why this site shipped with no security headers and no asset caching. They are
+# declared in the vhost's `extraHeaders` block instead
+# (/usr/local/lsws/conf/vhosts/kenzed.in/vhost.conf), which is the only place
+# LiteSpeed honours them. Keep the two in step: if this file moves to a real
+# Apache host, the headers have to come back here.
+
+# ---------- mime ----------
+AddType application/javascript .js
+AddType image/svg+xml .svg
+AddType font/woff2 .woff2

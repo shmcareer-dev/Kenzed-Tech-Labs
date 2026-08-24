@@ -1,73 +1,125 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
+/* Colours are token references rather than literals so the panel re-tints with
+   the theme: the console sits on --card, which is a translucent blue over the
+   near-black canvas in dark and a white card in light. */
 const termLines: [string, string, string][] = [
-  ["$", 'kenzed init --project "your-idea"', "#6ff0e2"],
-  ["✓", "scope defined · architecture approved", "#34c759"],
-  ["$", "kenzed build --agents --rag --guardrails", "#6ff0e2"],
-  ["✓", "evals passed 98.6% · tracing enabled", "#34c759"],
-  ["$", "kenzed deploy --target on-prem-gpu", "#6ff0e2"],
-  ["●", "live in production — monitored 24×7", "#4da3ff"],
+  ["$", 'kenzed init --project "your-idea"', "var(--acc3)"],
+  ["✓", "scope defined · architecture approved", "var(--ok)"],
+  ["$", "kenzed build --agents --rag --guardrails", "var(--acc3)"],
+  ["✓", "evals passed 98.6% · tracing enabled", "var(--ok)"],
+  ["$", "kenzed deploy --target on-prem-gpu", "var(--acc3)"],
+  ["●", "live in production — monitored 24×7", "var(--acc)"],
 ];
+
+const REDUCED_MOTION = "(prefers-reduced-motion: reduce)";
+
+/* Per-character cadence and the pauses that punctuate it. */
+const CHAR_MIN = 16;
+const CHAR_JITTER = 26;
+const LINE_PAUSE = 460;
+const REPLAY_PAUSE = 4600;
+
+function renderLine(container: HTMLElement, index: number): HTMLSpanElement {
+  const existing = container.children[index] as HTMLDivElement | undefined;
+  if (existing) return existing.lastChild as HTMLSpanElement;
+
+  const [glyph, , colour] = termLines[index];
+  const line = document.createElement("div");
+  const mark = document.createElement("span");
+  mark.style.marginRight = "9px";
+  mark.style.color = colour;
+  mark.textContent = glyph;
+  const text = document.createElement("span");
+  line.append(mark, text);
+  container.appendChild(line);
+  return text;
+}
 
 export function KzTerminal() {
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /* Reduced motion renders the finished transcript from markup instead, so the
+     effect never mounts a timer and the panel still says what it is for. */
+  const [reduced, setReduced] = useState(false);
+
+  useEffect(() => {
+    const query = window.matchMedia(REDUCED_MOTION);
+    const sync = () => setReduced(query.matches);
+    sync();
+    query.addEventListener("change", sync);
+    return () => query.removeEventListener("change", sync);
+  }, []);
 
   useEffect(() => {
     const container = containerRef.current;
-    if (!container) return;
+    if (!container || reduced) return;
 
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    let onscreen = false;
     let li = 0;
     let ci = 0;
 
+    const wait = (fn: () => void, ms: number) => {
+      timer = setTimeout(fn, ms);
+    };
+
     const step = () => {
-      if (!containerRef.current) {
-        timeoutRef.current = setTimeout(step, 700);
+      // Offscreen the loop parks itself rather than typing into a panel nobody
+      // can see; the observer restarts it on the way back in.
+      if (!onscreen) {
+        timer = null;
         return;
       }
       if (li >= termLines.length) {
-        timeoutRef.current = setTimeout(() => {
-          if (containerRef.current) containerRef.current.innerHTML = "";
+        wait(() => {
+          container.replaceChildren();
           li = 0;
           ci = 0;
           step();
-        }, 4600);
+        }, REPLAY_PAUSE);
         return;
       }
-      const L = termLines[li];
-      let line = container.children[li] as HTMLDivElement | undefined;
-      if (!line) {
-        line = document.createElement("div");
-        line.innerHTML = `<span style="margin-right:9px;color:${L[2]}">${L[0]}</span><span></span>`;
-        container.appendChild(line);
-      }
+
+      const [, body] = termLines[li];
+      const text = renderLine(container, li);
       ci++;
-      const textSpan = line.lastChild as HTMLSpanElement;
-      textSpan.textContent = L[1].slice(0, ci);
-      if (ci >= L[1].length) {
+      text.textContent = body.slice(0, ci);
+
+      if (ci >= body.length) {
         li++;
         ci = 0;
-        timeoutRef.current = setTimeout(step, 460);
+        wait(step, LINE_PAUSE);
       } else {
-        timeoutRef.current = setTimeout(step, 16 + Math.random() * 26);
+        wait(step, CHAR_MIN + Math.random() * CHAR_JITTER);
       }
     };
 
-    step();
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          onscreen = entry.isIntersecting;
+          if (onscreen && timer === null) step();
+        });
+      },
+      { threshold: 0.15 }
+    );
+    io.observe(container);
 
     return () => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      io.disconnect();
+      onscreen = false;
+      if (timer !== null) clearTimeout(timer);
     };
-  }, []);
+  }, [reduced]);
 
   return (
     <div
       style={{
         marginTop: 28,
-        background: "#0a0f1a",
-        border: "1px solid rgba(255,255,255,.14)",
+        background: "var(--card)",
+        border: "1px solid var(--line)",
         borderRadius: 14,
         overflow: "hidden",
         boxShadow: "var(--shadow)",
@@ -79,9 +131,11 @@ export function KzTerminal() {
           alignItems: "center",
           gap: 7,
           padding: "12px 16px",
-          borderBottom: "1px solid rgba(255,255,255,.09)",
+          borderBottom: "1px solid var(--line)",
         }}
       >
+        {/* Fixed window-chrome hues, not theme surfaces: the three dots are only
+            legible as a title bar if they keep their familiar colours. */}
         <span style={{ width: 11, height: 11, borderRadius: "50%", background: "#ff5f57" }} />
         <span style={{ width: 11, height: 11, borderRadius: "50%", background: "#febc2e" }} />
         <span style={{ width: 11, height: 11, borderRadius: "50%", background: "#28c840" }} />
@@ -90,8 +144,8 @@ export function KzTerminal() {
             marginLeft: "auto",
             fontFamily: "var(--font-mono)",
             fontSize: "0.62rem",
-            letterSpacing: "0.14em",
-            color: "#5d6a83",
+            letterSpacing: "0.11em",
+            color: "var(--dim)",
             textTransform: "uppercase",
           }}
         >
@@ -104,12 +158,31 @@ export function KzTerminal() {
           fontFamily: "var(--font-mono)",
           fontSize: "0.76rem",
           lineHeight: 2,
-          color: "#9fb4d8",
+          color: "var(--mut)",
           minHeight: 158,
         }}
       >
-        <div ref={containerRef} />
-        <span style={{ color: "#4da3ff", animation: "kzBlink 1.1s steps(1) infinite" }}>▌</span>
+        {/* Two separate elements rather than one shared container: the typed
+            panel is owned imperatively by the effect, so letting React render
+            children into that same node would leave the two fighting over it
+            if the motion preference flipped at runtime. */}
+        {reduced ? (
+          <div>
+            {termLines.map(([glyph, body, colour]) => (
+              <div key={body}>
+                <span style={{ marginRight: 9, color: colour }}>{glyph}</span>
+                <span>{body}</span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <>
+            <div ref={containerRef} />
+            <span style={{ color: "var(--acc)", animation: "kzBlink 1.1s steps(1) infinite" }}>
+              ▌
+            </span>
+          </>
+        )}
       </div>
     </div>
   );

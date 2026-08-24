@@ -5,6 +5,8 @@
  */
 
 import type { KzIconKey } from "@/components/kz/KzIcon";
+import type { KzLifecycleStageDetail } from "@/components/kz/KzLifecycleRing";
+import type { KzGraphCardSpec, KzStoryCard } from "@/components/kz/KzShowcase";
 
 export type KzService = {
   icon: KzIconKey;
@@ -272,7 +274,7 @@ export const kzLocations: [KzIconKey, string, string][] = [
   [
     "pin",
     "Engineering Centre — Durgapur",
-    "Rajbandh, Durgapur – 713212, West Bengal · 15,000 sq ft facility",
+    "Rajbandh, Durgapur – 713212, West Bengal",
   ],
   [
     "bld",
@@ -287,12 +289,12 @@ export const kzLocations: [KzIconKey, string, string][] = [
 ];
 
 export const kzStatusRows: [string, string, string][] = [
-  ["GPU cluster", "ONLINE", "#34c759"],
-  ["Power", "N+1 REDUNDANT", "#34c759"],
-  ["Network", "FAILOVER ARMED", "#4da3ff"],
-  ["Security", "BIOMETRIC · CCTV", "#4da3ff"],
-  ["Backups", "DAILY · OFFSITE", "#34c759"],
-  ["Uptime target", "99.98%", "#34c759"],
+  ["GPU cluster", "ONLINE", "var(--ok)"],
+  ["Power", "N+1 REDUNDANT", "var(--ok)"],
+  ["Network", "FAILOVER ARMED", "var(--acc)"],
+  ["Security", "BIOMETRIC · CCTV", "var(--acc)"],
+  ["Backups", "DAILY · OFFSITE", "var(--ok)"],
+  ["Uptime target", "99.98%", "var(--ok)"],
 ];
 
 export const kzArchFlow = [
@@ -305,23 +307,272 @@ export const kzArchFlow = [
 ];
 
 export const kzStats: { target: number; val: string; suffix: string; label: string }[] = [
-  { target: 25, val: "25", suffix: "+", label: "AI, software & design specialists" },
-  { target: 15000, val: "15,000", suffix: " sq ft", label: "Dedicated development facility" },
+  { target: 99.98, val: "99.98", suffix: "%", label: "Uptime target on production systems" },
+  { target: 8, val: "8", suffix: "+", label: "Industries served end to end" },
   { target: 24, val: "24", suffix: "×7", label: "Operations & in-house AI compute" },
   { target: 2, val: "2", suffix: "", label: "Locations — Durgapur & Kolkata" },
 ];
 
-export const kzMarquee = [
-  "Agentic AI",
-  "RAG Pipelines",
-  "LLM Fine-Tuning",
-  "Voice AI",
-  "MCP Integrations",
-  "Computer Vision",
-  "3D Web / WebGL",
-  "On-Prem GPU Compute",
-  "Enterprise Software",
-  "Adaptive UI/UX",
-  "MLOps · CI/CD",
-  "Multi-Agent Systems",
-];
+/* ==========================================================================
+   Home page — the dark, LangChain-style recomposition.
+   The prop types are imported from the components that consume this data, so
+   a component-side change surfaces here as a type error instead of as a
+   silent mismatch at runtime.
+   ========================================================================== */
+
+export const kzLifecycleSection: {
+  eyebrow: string;
+  title: string;
+  stages: KzLifecycleStageDetail[];
+} = {
+  eyebrow: "02 / The delivery lifecycle",
+  title: "How an idea becomes a system you can depend on",
+  stages: [
+    {
+      key: "scope",
+      label: "Scope",
+      icon: "studio",
+      title: "Frame the problem before the first line of code",
+      lead: "A short, paid discovery that turns an ambition into a scoped system with a measurable definition of done.",
+      points: [
+        {
+          lead: "Workflow mapping.",
+          rest: "We follow the real process end to end and mark where judgement actually happens, separating what a model should decide from what a rule already handles perfectly well.",
+        },
+        {
+          lead: "Feasibility spike.",
+          rest: "A throwaway prototype on your own data answers the question that decides the budget — is the accuracy you need reachable at all?",
+        },
+        {
+          lead: "Success metric.",
+          rest: "One number your business already trusts, baselined before we build, so every later trade-off has something concrete to argue against.",
+        },
+      ],
+      links: [
+        { label: "Our process", href: "/process" },
+        { label: "Talk to us", href: "/contact" },
+      ],
+    },
+    {
+      key: "architect",
+      label: "Architect",
+      icon: "sw",
+      title: "Design the system and decide where it runs",
+      lead: "Architecture, data flow and hosting are settled together, because running on our own GPUs changes the design and not just the invoice.",
+      points: [
+        {
+          lead: "Data contracts.",
+          rest: "Sources, retention windows, personal-data boundaries and the retrieval strategy are fixed before a single pipeline is written.",
+        },
+        {
+          lead: "Model strategy.",
+          rest: "A hosted frontier model, an open-weight model on our own hardware, or both behind one gateway — chosen against latency, cost and data residency rather than fashion.",
+        },
+        {
+          lead: "Guardrails by design.",
+          rest: "Permissions, approval checkpoints and failure behaviour are part of the architecture, never a patch bolted on after the first security review.",
+        },
+      ],
+      links: [
+        { label: "Technology", href: "/technology" },
+        { label: "Infrastructure", href: "/infrastructure" },
+      ],
+    },
+    {
+      key: "build",
+      label: "Build",
+      icon: "agent",
+      title: "Ship working software every single sprint",
+      lead: "Agents, models and interfaces are built in parallel by one team and demonstrated on real data at the end of every sprint.",
+      points: [
+        {
+          lead: "Agents and tools.",
+          rest: "Orchestration, memory and tool calls are wired into the systems you already run, so what you see in the demo is what goes to production.",
+        },
+        {
+          lead: "Interfaces people keep.",
+          rest: "The UI is engineered alongside the model, so confidence, sources and an undo path are visible exactly where the decision is being made.",
+        },
+        {
+          lead: "One team, one standup.",
+          rest: "Data, ML, backend and design work in the same cadence, which makes integration continuous instead of a phase everyone dreads.",
+        },
+      ],
+      links: [
+        { label: "What we build", href: "/services" },
+        { label: "Product studio", href: "/product-studio" },
+      ],
+    },
+    {
+      key: "evaluate",
+      label: "Evaluate",
+      icon: "ml",
+      title: "Prove it before anyone depends on it",
+      lead: "An evaluation harness is a deliverable in its own right — a regression should fail a build, not a customer.",
+      points: [
+        {
+          lead: "Golden sets.",
+          rest: "Your domain experts label the cases that matter, deliberately including the ones the system is expected to refuse or escalate.",
+        },
+        {
+          lead: "Automated scoring.",
+          rest: "Accuracy, grounding, latency and cost per task run on every change and gate the release, so quality is a number rather than an impression.",
+        },
+        {
+          lead: "Red teaming.",
+          rest: "Prompt injection, data leakage and permission escape are tested on purpose, and every finding is written up with the fix that closed it.",
+        },
+      ],
+      links: [{ label: "How we work", href: "/process" }],
+    },
+    {
+      key: "deploy",
+      label: "Deploy",
+      icon: "cont",
+      title: "Release to your cloud or to hardware we own",
+      lead: "The same containerised build runs in your cloud account or on our Durgapur GPU cluster, with a rollback measured in seconds.",
+      points: [
+        {
+          lead: "Staged rollout.",
+          rest: "Shadow mode first, then a limited cohort, then full traffic — each step carrying an explicit criterion for going forward or backing out.",
+        },
+        {
+          lead: "Infrastructure we operate.",
+          rest: "Where residency or cost rules out public cloud, workloads run on redundant power and network in our own facility, staffed and monitored around the clock.",
+        },
+        {
+          lead: "Handover that holds.",
+          rest: "Runbooks, dashboards and an on-call path your own team can use confidently from the first day they own it.",
+        },
+      ],
+      links: [
+        { label: "Infrastructure", href: "/infrastructure" },
+        { label: "Live projects", href: "/live-projects" },
+      ],
+    },
+    {
+      key: "improve",
+      label: "Improve",
+      icon: "net",
+      title: "Watch it in production, then make it better",
+      lead: "Traces, drift alerts and a standing backlog keep the system earning its place long after the launch announcement.",
+      points: [
+        {
+          lead: "Full tracing.",
+          rest: "Every agent decision is logged with its inputs, its tool calls and its cost, so a bad answer can be explained instead of guessed at.",
+        },
+        {
+          lead: "Drift and quality.",
+          rest: "Input distribution, refusal rate and evaluation scores are monitored continuously, and a regression opens a ticket before a user has to report it.",
+        },
+        {
+          lead: "A compounding roadmap.",
+          rest: "Quarterly reviews turn production evidence into the next increment, which is how a system improves rather than accumulating a rewrite.",
+        },
+      ],
+      links: [
+        { label: "Industries we serve", href: "/industries" },
+        { label: "Start a project", href: "/contact" },
+      ],
+    },
+  ],
+};
+
+export const kzBuildSection: {
+  eyebrow: string;
+  title: string;
+  lead: string;
+  cards: KzGraphCardSpec[];
+} = {
+  eyebrow: "03 / How we build",
+  title: "Three system shapes behind most of our work",
+  lead: "Almost every engagement resolves into one of three architectures, or a composition of them. Knowing which one you are in from the very start is what keeps a build predictable: it decides the data contracts, the evaluation strategy and the hardware long before it decides the code.",
+  cards: [
+    {
+      kind: "agents",
+      name: "Agent systems",
+      title: "Agents that act inside your stack",
+      body: "An orchestrator decomposes the task and delegates to specialised agents that retrieve, reason and act through your real APIs — with shared memory, bounded permissions and human approval on anything consequential.",
+      href: "/services/ai-agent-development",
+      linkLabel: "Agent development",
+    },
+    {
+      kind: "pipeline",
+      name: "Data & RAG",
+      title: "Pipelines that keep answers grounded",
+      body: "Ingestion, enrichment, inference and serving as one versioned pipeline, with a feature and vector store every model reads from. Retraining is scheduled, and drift is a monitored signal rather than a surprise.",
+      href: "/services/machine-learning-development",
+      linkLabel: "ML engineering",
+    },
+    {
+      kind: "graph",
+      name: "Orchestration",
+      title: "Graphs that route work to the right model",
+      body: "A router sends each query down the cheapest path that can answer it — vector search, a knowledge graph, or a frontier model — and one graph definition holds the fallbacks, retries and cost ceilings.",
+      href: "/technology",
+      linkLabel: "Our stack",
+    },
+  ],
+};
+
+/* Kenzed has no named public references cleared for the site, so these cards
+   describe the shape of the work by sector and stay deliberately
+   unattributed: no invented brand names and no invented numbers. */
+export const kzOutcomesSection: {
+  eyebrow: string;
+  title: string;
+  note: string;
+  action: { label: string; href: string };
+  stories: KzStoryCard[];
+} = {
+  eyebrow: "06 / Where the work lands",
+  title: "The shape of a Kenzed engagement",
+  note: "Engagement patterns described by sector rather than by name. We publish client specifics only where we have written permission to do so.",
+  action: { label: "See live projects", href: "/live-projects" },
+  stories: [
+    {
+      client: "A regional hospital network",
+      quote:
+        "Clinical documentation agents draft notes from dictation and route every draft to a clinician for approval before anything reaches the patient record.",
+      metric: "Healthcare · on-premise deployment",
+    },
+    {
+      client: "A state university group",
+      quote:
+        "Course-aware tutoring agents grounded in the institution's own material, with a teaching dashboard that shows which sources each answer was built from.",
+      metric: "Education · retrieval-augmented",
+    },
+    {
+      client: "A multi-city logistics operator",
+      quote:
+        "Demand and routing forecasts served behind an internal API, retrained on a schedule and monitored for the drift that quietly degrades a model.",
+      metric: "Logistics · ML in production",
+    },
+    {
+      client: "A banking operations team",
+      quote:
+        "Document intelligence extracts and cross-checks fields from scanned forms, escalating anything under a confidence threshold to a human reviewer.",
+      metric: "Finance · human in the loop",
+    },
+    {
+      client: "A manufacturing plant",
+      quote:
+        "Computer-vision inspection running at the line on hardware we specified, flagging defects without a single frame leaving the site.",
+      metric: "Manufacturing · edge inference",
+    },
+  ],
+};
+
+export const kzHomeCta: {
+  eyebrow: string;
+  title: string;
+  lead: string;
+  primary: { label: string; href: string };
+  secondary: { label: string; href: string };
+} = {
+  eyebrow: "07 / Start here",
+  title: "Ready to build something that reasons?",
+  lead: "Bring us the workflow that is costing you the most, and we will tell you honestly whether an agent, a model, or plain well-built software is the right answer. Either way you leave the first conversation with a scope, a metric and a number.",
+  primary: { label: "Start your AI project →", href: "/contact" },
+  secondary: { label: "Explore our services", href: "/services" },
+};

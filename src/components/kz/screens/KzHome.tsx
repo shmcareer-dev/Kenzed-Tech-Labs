@@ -3,14 +3,42 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
-import { KzReveal } from "@/components/kz/KzReveal";
-import { KzCount } from "@/components/kz/KzCount";
 import { KzTerminal } from "@/components/kz/KzTerminal";
 import { KzMarquee } from "@/components/kz/KzMarquee";
 import { KzIcon } from "@/components/kz/KzIcon";
-import { KzEyebrow, KzSectionTitle, KzButton, KzMascot, KzCube, KzSphere, KzTorus, KzOrbitDots } from "@/components/kz/primitives";
+import { KzLifecycleRing } from "@/components/kz/KzLifecycleRing";
+import { KzParticleField } from "@/components/kz/KzParticleField";
+import { KzGraphCards, KzStoryCarousel } from "@/components/kz/KzShowcase";
+import { KzEyebrow, KzSectionTitle, KzButton, KzSphere, KzTorus } from "@/components/kz/primitives";
+import { KzFadeUp, KzStagger } from "@/components/kz/motion/KzEntrance";
+import { KzMaskedLines } from "@/components/kz/motion/KzText";
+import { KzParallax, KzScrollFillText, KzStickyStack } from "@/components/kz/motion/KzScrollFx";
+import { KzAurora, KzSpotlight } from "@/components/kz/motion/KzAmbient";
+import { KzArrowNudge, KzMagnetic } from "@/components/kz/motion/KzPointer";
+import { KzCountUp } from "@/components/kz/motion/KzFeedback";
 import { useKzPage } from "@/components/kz/useKzPage";
-import { kzServices, kzWhy, kzStats } from "@/content/kz";
+import {
+  kzBuildSection,
+  kzHomeCta,
+  kzLifecycleSection,
+  kzOutcomesSection,
+  kzServices,
+  kzStats,
+  kzWhy,
+} from "@/content/kz";
+
+/* Every section below the hero shares one vertical rhythm so the page reads as
+   a sequence of rooms rather than a scroll of stacked widgets. */
+const KZ_SECTION_PAD = "clamp(72px, 10vw, 128px) 0";
+
+/* The one statement on the page that lights up word by word as it is read. It
+   is pulled out of the intro column so the effect owns an element of its own
+   rather than being layered on top of an entrance. */
+const KZ_STATEMENT =
+  "Whether you are an enterprise modernizing operations, an institution reimagining education, or a startup racing to launch — we are the technical partner that takes you from idea to production, and keeps you there.";
+
+/** The closing CTA labels ship with their own arrow; the nudge needs it split off. */
+const KZ_TRAILING_ARROW = /\s*→\s*$/;
 
 export function KzHome() {
   useKzPage("home");
@@ -24,32 +52,50 @@ export function KzHome() {
   }, []);
 
   return (
-    <div className="kz-page-enter">
+    <>
+      {/* HERO — nothing here animates on first paint. The h1 is the LCP element
+          and it is painted at its final position, at full opacity, with no
+          observer attached to it. The only motion in this viewport is the
+          aurora, which starts paused and is composited behind the copy. */}
       <section
         style={{
           minHeight: "100svh",
           display: "flex",
           flexDirection: "column",
           justifyContent: "center",
-          padding: "110px 0 40px",
+          /* The bottom padding is the scroll cue's clearance, not decoration.
+             The cue is absolutely positioned 22px off the section's bottom edge
+             and stands 58px tall; at 40px the stat block ran straight through
+             it on any viewport short enough to close the gap. */
+          padding: "110px 0 104px",
           position: "relative",
         }}
       >
-        <div className="kz-wrap" style={{ width: "100%", boxSizing: "border-box" }}>
+        <KzAurora count={2} blur={90} opacity={0.26} speed={34} size="68%" style={{ zIndex: 0 }} />
+
+        <div
+          className="kz-wrap"
+          style={{ width: "100%", boxSizing: "border-box", position: "relative", zIndex: 2 }}
+        >
           <h1
             style={{
               fontFamily: "var(--font-display)",
-              fontWeight: 400,
+              /* 700, not 400. Archivo Black shipped one cut so the weight here
+                 was inert; Space Grotesk would resolve 400 to its 500 and the
+                 hero would read as body copy set large. */
+              fontWeight: 700,
               fontSize: "clamp(2.45rem, 7.4vw, 5.4rem)",
-              lineHeight: 0.99,
-              letterSpacing: "-0.015em",
+              lineHeight: 1,
+              /* Uppercase. -0.015em was fitted to Archivo Black, which is 26%
+                 wider per cap; the same value on Space Grotesk closes the
+                 counters and the LED bloom then fills them in. */
+              letterSpacing: "-0.012em",
               textTransform: "uppercase",
               margin: "0 0 26px",
               maxWidth: "17ch",
               position: "relative",
             }}
           >
-            <KzMascot />
             Engineering intelligent software for an{" "}
             <span className="kz-grad-text">agentic world</span>
             <span
@@ -98,24 +144,34 @@ export function KzHome() {
             </KzButton>
           </div>
 
+          {/* The counters render their finished value in the server HTML and
+              only run if the visitor has to scroll to reach them, so a stat
+              that is already on screen costs nothing at first paint. */}
           <div style={{ display: "flex", flexWrap: "wrap", gap: "clamp(20px, 4vw, 44px)" }}>
             {kzStats.map((s) => (
               <div key={s.label} style={{ borderLeft: "2px solid var(--line)", paddingLeft: 18 }}>
                 <div
                   style={{
                     fontFamily: "var(--font-display)",
+                    fontWeight: 700,
                     fontSize: "clamp(1.55rem, 3vw, 2.25rem)",
-                    lineHeight: 1.1,
+                    lineHeight: 1.06,
+                    letterSpacing: "-0.015em",
                     color: "var(--ink)",
                   }}
                 >
-                  <KzCount target={s.target} suffix={s.suffix} />
+                  <KzCountUp
+                    to={s.target}
+                    decimals={Number.isInteger(s.target) ? 0 : 2}
+                    suffix={s.suffix}
+                  />
                 </div>
                 <div
                   style={{
                     fontFamily: "var(--font-mono)",
                     fontSize: "0.64rem",
-                    letterSpacing: "0.1em",
+                    fontWeight: 500,
+                    letterSpacing: "0.09em",
                     textTransform: "uppercase",
                     color: "var(--mut)",
                     maxWidth: "17ch",
@@ -154,13 +210,14 @@ export function KzHome() {
             flexDirection: "column",
             alignItems: "center",
             gap: 8,
+            zIndex: 2,
           }}
         >
           <span
             style={{
               fontFamily: "var(--font-mono)",
               fontSize: "0.6rem",
-              letterSpacing: "0.3em",
+              letterSpacing: "0.24em",
               color: "var(--dim)",
             }}
           >
@@ -174,8 +231,9 @@ export function KzHome() {
 
       <KzMarquee />
 
-      <section style={{ padding: "clamp(70px, 10vw, 120px) 0", background: "var(--bg)" }}>
-        <div
+      <section style={{ padding: KZ_SECTION_PAD, background: "var(--bg)" }}>
+        {/* Two columns, staggered: the heading lands, then the argument. */}
+        <KzStagger
           className="kz-wrap"
           style={{
             display: "grid",
@@ -184,43 +242,64 @@ export function KzHome() {
             alignItems: "start",
           }}
         >
-          <KzReveal delay={0}>
+          <div>
             <KzEyebrow index="01">The agentic era</KzEyebrow>
             <KzSectionTitle style={{ fontSize: "clamp(1.7rem, 3.8vw, 2.7rem)" }}>
               Software that doesn&apos;t just respond — it reasons, plans, and acts
             </KzSectionTitle>
-          </KzReveal>
+          </div>
 
-          <KzReveal delay={1}>
-            <p style={{ fontSize: "1.08rem", color: "var(--mut)", margin: "0 0 18px" }}>
+          <div>
+            <p className="kz-page-lead" style={{ marginBottom: 22 }}>
               Software is entering its agentic era. Kenzed Tech Lab helps organizations make that
               leap. We combine deep AI research capability with disciplined software engineering to
               deliver intelligent products that create measurable value: autonomous agents that
               handle real workflows, machine-learning models that turn data into decisions, and
               beautifully engineered applications that people love to use.
             </p>
-            <p style={{ fontSize: "1.08rem", color: "var(--mut)", margin: 0 }}>
-              Whether you are an enterprise modernizing operations, an institution reimagining
-              education, or a startup racing to launch — we are the technical partner that takes you
-              from idea to production, and keeps you there.
-            </p>
-            <KzReveal delay={2}>
-              <KzTerminal />
-            </KzReveal>
-          </KzReveal>
+            <KzTerminal />
+          </div>
+        </KzStagger>
+
+        <div className="kz-wrap" style={{ marginTop: "clamp(34px, 6vw, 60px)" }}>
+          <KzScrollFillText className="kz-page-lead">{KZ_STATEMENT}</KzScrollFillText>
         </div>
       </section>
 
-      <section style={{ padding: "0 0 clamp(70px, 10vw, 120px)", background: "var(--bg)" }}>
+      <KzLifecycleRing
+        eyebrow={kzLifecycleSection.eyebrow}
+        title={kzLifecycleSection.title}
+        stages={kzLifecycleSection.stages}
+      />
+
+      <section style={{ padding: KZ_SECTION_PAD, background: "var(--bg)" }}>
         <div className="kz-wrap">
-          <KzReveal delay={0}>
-            <KzEyebrow index="02">What we build</KzEyebrow>
+          <KzFadeUp>
+            <KzEyebrow>{kzBuildSection.eyebrow}</KzEyebrow>
+          </KzFadeUp>
+          {/* The light tracks the pointer across the whole diagram grid. It is
+              decoration, never information: the layer is not rendered at all on
+              a coarse pointer or under reduced motion. */}
+          <KzSpotlight size={340}>
+            <KzGraphCards
+              title={kzBuildSection.title}
+              lead={kzBuildSection.lead}
+              cards={kzBuildSection.cards}
+            />
+          </KzSpotlight>
+        </div>
+      </section>
+
+      <section style={{ padding: "0 0 clamp(72px, 10vw, 128px)", background: "var(--bg)" }}>
+        <div className="kz-wrap">
+          <KzFadeUp>
+            <KzEyebrow index="04">What we build</KzEyebrow>
             <KzSectionTitle style={{ maxWidth: "22ch", marginBottom: 44 }}>
               Services engineered for production, not prototypes
             </KzSectionTitle>
-          </KzReveal>
+          </KzFadeUp>
 
-          <div
+          <KzStagger
             style={{
               display: "grid",
               gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 265px), 1fr))",
@@ -228,203 +307,226 @@ export function KzHome() {
             }}
           >
             {kzServices.map((s, i) => (
-              <KzReveal key={s.title} delay={(i % 4) + 1}>
-                <Link
-                  href="/services"
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: 12,
-                    padding: 24,
-                    background: "var(--card)",
-                    border: "1px solid var(--line)",
-                    borderRadius: 16,
-                    transition: "transform .3s, border-color .3s, box-shadow .3s",
-                  }}
-                  className="kz-card"
-                >
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <span className="kz-icon-tile">
-                      <KzIcon name={s.icon} size={22} />
-                    </span>
-                    <span
-                      style={{
-                        fontFamily: "var(--font-mono)",
-                        fontSize: "0.72rem",
-                        color: "var(--dim)",
-                      }}
-                    >
-                      {String(i + 1).padStart(2, "0")}
-                    </span>
-                  </div>
-                  <h3
-                    style={{
-                      fontSize: "1.04rem",
-                      fontWeight: 700,
-                      margin: 0,
-                      lineHeight: 1.3,
-                      color: "var(--ink)",
-                    }}
-                  >
-                    {s.title.replace(" & Agentic AI", "").replace(" Engineering", "")}
-                  </h3>
-                  <p style={{ fontSize: "0.88rem", color: "var(--mut)", margin: 0, flex: 1 }}>
-                    {s.short.split(" — ")[0].split(". ")[0]}
-                  </p>
+              <Link
+                key={s.title}
+                href="/services"
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 12,
+                  padding: 24,
+                  background: "var(--card)",
+                  border: "1px solid var(--line)",
+                  borderRadius: 16,
+                  transition: "transform .3s, border-color .3s, box-shadow .3s",
+                }}
+                className="kz-card"
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span className="kz-icon-tile">
+                    <KzIcon name={s.icon} size={22} />
+                  </span>
                   <span
                     style={{
                       fontFamily: "var(--font-mono)",
-                      fontSize: "0.66rem",
-                      letterSpacing: "0.16em",
-                      textTransform: "uppercase",
-                      color: "var(--acc)",
+                      fontSize: "0.72rem",
+                      color: "var(--dim)",
                     }}
                   >
-                    Explore →
+                    {String(i + 1).padStart(2, "0")}
                   </span>
-                </Link>
-              </KzReveal>
+                </div>
+                <h3
+                  style={{
+                    fontSize: "1.04rem",
+                    fontWeight: 700,
+                    margin: 0,
+                    lineHeight: 1.3,
+                    color: "var(--ink)",
+                  }}
+                >
+                  {s.title.replace(" & Agentic AI", "").replace(" Engineering", "")}
+                </h3>
+                <p style={{ fontSize: "0.88rem", color: "var(--mut)", margin: 0, flex: 1 }}>
+                  {s.short.split(" — ")[0].split(". ")[0]}
+                </p>
+                <span
+                  style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "0.66rem",
+                    letterSpacing: "0.13em",
+                    textTransform: "uppercase",
+                    color: "var(--acc)",
+                  }}
+                >
+                  Explore →
+                </span>
+              </Link>
             ))}
-          </div>
+          </KzStagger>
         </div>
       </section>
 
-      <section style={{ padding: "0 0 clamp(70px, 10vw, 120px)", background: "var(--bg)" }}>
+      <section style={{ padding: "0 0 clamp(72px, 10vw, 128px)", background: "var(--bg)" }}>
         <div className="kz-wrap">
-          <KzReveal delay={0}>
-            <KzEyebrow index="03">Why Kenzed</KzEyebrow>
+          <KzFadeUp>
+            <KzEyebrow index="05">Why Kenzed</KzEyebrow>
             <KzSectionTitle style={{ marginBottom: 34 }}>
               Four reasons teams choose us
             </KzSectionTitle>
-          </KzReveal>
+          </KzFadeUp>
 
-          <div>
+          {/* The page's one pinned-feeling section, and it is the vertical kind:
+              the cards pile up under the header and the reader keeps scrolling
+              at native speed the whole way through. Nothing is scroll-jacked, so
+              a phone is never trapped here. The cards carry an opaque ground
+              because a translucent one would show the buried card through it. */}
+          <KzStickyStack top={96} offset={16} gap={18}>
             {kzWhy.map(([t, d], i) => (
-              <KzReveal key={t} delay={i}>
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 300px), 1fr))",
-                    gap: "8px 28px",
-                    padding: "26px 12px",
-                    borderTop: "1px solid var(--line)",
-                    alignItems: "baseline",
-                    transition: "background .3s",
-                  }}
-                  className="kz-hover-row"
-                >
-                  <div style={{ display: "flex", gap: 20, alignItems: "baseline" }}>
-                    <span
-                      style={{
-                        fontFamily: "var(--font-mono)",
-                        fontSize: "0.78rem",
-                        color: "var(--acc)",
-                      }}
-                    >
-                      {String(i + 1).padStart(2, "0")}
-                    </span>
-                    <h3
-                      style={{
-                        fontFamily: "var(--font-display)",
-                        fontWeight: 400,
-                        fontSize: "clamp(1.05rem, 2vw, 1.35rem)",
-                        textTransform: "uppercase",
-                        margin: 0,
-                        lineHeight: 1.2,
-                        color: "var(--ink)",
-                      }}
-                    >
-                      {t}
-                    </h3>
-                  </div>
-                  <p style={{ margin: 0, color: "var(--mut)", fontSize: "0.96rem" }}>{d}</p>
+              <div
+                key={t}
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 300px), 1fr))",
+                  gap: "8px 28px",
+                  padding: "clamp(20px, 4vw, 28px)",
+                  background: "var(--bg2)",
+                  border: "1px solid var(--line)",
+                  borderRadius: 16,
+                  alignItems: "baseline",
+                }}
+              >
+                <div style={{ display: "flex", gap: 20, alignItems: "baseline" }}>
+                  <span
+                    style={{
+                      fontFamily: "var(--font-mono)",
+                      fontSize: "0.78rem",
+                      color: "var(--acc)",
+                    }}
+                  >
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+                  <h3
+                    style={{
+                      fontFamily: "var(--font-display)",
+                      fontWeight: 600,
+                      fontSize: "clamp(1.05rem, 2vw, 1.35rem)",
+                      letterSpacing: "0.01em",
+                      textTransform: "uppercase",
+                      margin: 0,
+                      lineHeight: 1.2,
+                      color: "var(--ink)",
+                    }}
+                  >
+                    {t}
+                  </h3>
                 </div>
-              </KzReveal>
+                <p style={{ margin: 0, color: "var(--mut)", fontSize: "0.96rem" }}>{d}</p>
+              </div>
             ))}
-            <div style={{ borderTop: "1px solid var(--line)" }} />
-          </div>
+          </KzStickyStack>
         </div>
       </section>
 
-      <section style={{ padding: "0 0 clamp(70px, 10vw, 120px)", background: "var(--bg)" }}>
+      <section style={{ padding: "0 0 clamp(72px, 10vw, 128px)", background: "var(--bg)" }}>
         <div className="kz-wrap">
-          <KzReveal delay={0}>
-            <div
+          <KzFadeUp>
+            <KzEyebrow>{kzOutcomesSection.eyebrow}</KzEyebrow>
+          </KzFadeUp>
+          <KzStoryCarousel
+            title={kzOutcomesSection.title}
+            action={kzOutcomesSection.action}
+            stories={kzOutcomesSection.stories}
+          />
+          <KzFadeUp>
+            <p
               style={{
-                border: "1px solid var(--line)",
-                borderRadius: 24,
-                padding: "clamp(44px, 7vw, 72px) clamp(24px, 5vw, 56px)",
-                textAlign: "center",
-                position: "relative",
-                overflow: "hidden",
-                background: "linear-gradient(135deg, var(--card) 0%, var(--card2) 100%)",
+                margin: "18px 0 0",
+                maxWidth: "62ch",
+                color: "var(--dim)",
+                fontSize: "0.84rem",
+                lineHeight: 1.7,
+                textAlign: "justify",
               }}
             >
-              <div
-                style={{
-                  position: "absolute",
-                  width: 420,
-                  height: 420,
-                  borderRadius: "50%",
-                  background: "radial-gradient(circle, rgba(28,80,224,.14), transparent 65%)",
-                  top: -180,
-                  right: -100,
-                  pointerEvents: "none",
-                }}
-              />
-              <div
-                aria-hidden="true"
-                style={{
-                  position: "absolute",
-                  left: "6%",
-                  top: "24%",
-                  pointerEvents: "none",
-                }}
-              >
-                <KzCube size={54} opacity={0.7} />
-              </div>
-              <div
-                aria-hidden="true"
-                style={{
-                  position: "absolute",
-                  right: "8%",
-                  bottom: "16%",
-                  pointerEvents: "none",
-                }}
-              >
-                <KzOrbitDots count={8} radius={28} />
-              </div>
-              <h2
-                style={{
-                  fontFamily: "var(--font-display)",
-                  fontWeight: 400,
-                  textTransform: "uppercase",
-                  fontSize: "clamp(1.8rem, 4.4vw, 3rem)",
-                  lineHeight: 1.02,
-                  letterSpacing: "-0.01em",
-                  margin: "0 auto 18px",
-                  maxWidth: "20ch",
-                }}
-              >
-                Ready to build something intelligent?
-              </h2>
-              <p
-                style={{
-                  color: "var(--mut)",
-                  maxWidth: "52ch",
-                  margin: "0 auto 30px",
-                  fontSize: "1.04rem",
-                }}
-              >
-                Let&apos;s turn your idea into a production-grade AI product — engineered, secured,
-                and supported by a team that owns its craft end to end.
-              </p>
-              <KzButton href="/contact">Book a free consultation →</KzButton>
-            </div>
-          </KzReveal>
+              {kzOutcomesSection.note}
+            </p>
+          </KzFadeUp>
         </div>
       </section>
-    </div>
+
+      <section
+        style={{
+          position: "relative",
+          overflow: "hidden",
+          background: "var(--bg)",
+          borderTop: "1px solid var(--line)",
+          padding: "clamp(76px, 11vw, 130px) 0 clamp(170px, 28vw, 300px)",
+        }}
+      >
+        {/* The field is a backdrop, so it is masked into the page rather than
+            given its own edge: the copy stays fully legible above the fade. It
+            is also the page's one parallax layer — decorative, clipped by the
+            section, and halved on narrow viewports by the primitive itself. */}
+        <div
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            left: 0,
+            right: 0,
+            bottom: 0,
+            pointerEvents: "none",
+            opacity: 0.85,
+            WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, #000 42%)",
+            maskImage: "linear-gradient(to bottom, transparent 0%, #000 42%)",
+          }}
+        >
+          <KzParallax depth={0.3}>
+            <KzParticleField height={520} density={0.9} />
+          </KzParallax>
+        </div>
+
+        <div className="kz-wrap" style={{ position: "relative", zIndex: 1 }}>
+          <KzFadeUp>
+            <KzEyebrow>{kzHomeCta.eyebrow}</KzEyebrow>
+          </KzFadeUp>
+
+          {/* The page's single masked-line reveal, saved for the closing line. */}
+          <h2
+            style={{
+              fontFamily: "var(--font-display)",
+              fontWeight: 700,
+              textTransform: "uppercase",
+              fontSize: "clamp(2.1rem, 6.4vw, 4.1rem)",
+              lineHeight: 1.03,
+              letterSpacing: "-0.012em",
+              margin: "0 0 22px",
+              maxWidth: "16ch",
+              color: "var(--ink)",
+            }}
+          >
+            <KzMaskedLines as="span" text={kzHomeCta.title} />
+          </h2>
+
+          <KzFadeUp delay={90}>
+            <p className="kz-page-lead" style={{ marginBottom: 34 }}>
+              {kzHomeCta.lead}
+            </p>
+            <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
+              <KzMagnetic strength={0.28} max={12}>
+                <KzButton href={kzHomeCta.primary.href}>
+                  {kzHomeCta.primary.label.replace(KZ_TRAILING_ARROW, "")}{" "}
+                  <KzArrowNudge>→</KzArrowNudge>
+                </KzButton>
+              </KzMagnetic>
+              <KzButton href={kzHomeCta.secondary.href} variant="ghost">
+                {kzHomeCta.secondary.label}
+              </KzButton>
+            </div>
+          </KzFadeUp>
+        </div>
+      </section>
+    </>
   );
 }
 
@@ -465,5 +567,3 @@ function FloatingChip({
     </div>
   );
 }
-
-

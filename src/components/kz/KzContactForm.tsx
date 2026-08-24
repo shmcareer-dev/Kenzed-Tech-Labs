@@ -2,6 +2,9 @@
 
 import { useState, type FormEvent } from "react";
 
+import { KzButtonLoading, KzSuccessCheck } from "@/components/kz/motion/KzFeedback";
+import { KZ_HOVER_GROUP, KzArrowNudge, KzMagnetic } from "@/components/kz/motion/KzPointer";
+import { products } from "@/content/products";
 import { serviceOptions } from "@/content/services";
 import { site } from "@/content/site";
 import { fieldErrors, leadSchema } from "@/lib/validation";
@@ -19,6 +22,28 @@ const EMPTY_FORM = {
 };
 
 const phoneDigits = site.phone.replace(/\D/g, "");
+
+/**
+ * Product Studio deep-links here as /contact?product=<slug>&tier=<name>, and its
+ * bespoke CTA as /contact?intent=custom. Resolved at submit time rather than
+ * prefilled into form state: this page is prerendered, so reading `window`
+ * during render would desync hydration.
+ */
+function enquiryContext(): string[] {
+  const params = new URLSearchParams(window.location.search);
+
+  const product = products.find((item) => item.slug === params.get("product"));
+  if (product) {
+    const tier = params.get("tier");
+    return [`*Product:* ${product.name}${tier ? ` — ${tier} tier` : ""}`];
+  }
+
+  if (params.get("intent") === "custom") {
+    return ["*Enquiry type:* Custom requirement, not a listed product"];
+  }
+
+  return [];
+}
 
 const budgetOptions = [
   "Prefer not to say",
@@ -44,7 +69,7 @@ export function KzContactForm() {
     });
   };
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const parsed = leadSchema.safeParse(form);
     if (!parsed.success) {
@@ -58,6 +83,15 @@ export function KzContactForm() {
     setServerMessage("");
 
     const data = parsed.data;
+
+    /* Honeypot: only a bot fills a field no human can see. Report success so it
+       never learns which field gave it away, and send nothing. */
+    if (data.website) {
+      setStatus("success");
+      setForm(EMPTY_FORM);
+      return;
+    }
+
     const lines = [
       `*New enquiry from Kenzed Tech Lab website*`,
       ``,
@@ -65,6 +99,7 @@ export function KzContactForm() {
       `*Email:* ${data.email}`,
       data.company ? `*Company:* ${data.company}` : "",
       `*Service:* ${data.service}`,
+      ...enquiryContext(),
       data.budget ? `*Budget:* ${data.budget}` : "",
       `*Message:*`,
       data.message,
@@ -73,14 +108,23 @@ export function KzContactForm() {
     const text = encodeURIComponent(lines.join("\n"));
     const url = `https://wa.me/${phoneDigits}?text=${text}`;
 
+    /* A blocked pop-up returns null rather than throwing, so the catch never
+       saw it and the form reported success while the enquiry went nowhere. */
+    let handed: Window | null = null;
     try {
-      window.open(url, "_blank", "noopener,noreferrer");
-      setStatus("success");
-      setForm(EMPTY_FORM);
+      handed = window.open(url, "_blank", "noopener,noreferrer");
     } catch {
+      handed = null;
+    }
+
+    if (!handed) {
       setStatus("error");
       setServerMessage("Could not open WhatsApp. Please try again or email us directly.");
+      return;
     }
+
+    setStatus("success");
+    setForm(EMPTY_FORM);
   }
 
   if (status === "success") {
@@ -95,7 +139,8 @@ export function KzContactForm() {
           textAlign: "center",
         }}
       >
-        <h3 style={{ fontSize: "1.3rem", fontWeight: 700, color: "var(--ink)" }}>
+        <KzSuccessCheck size={64} label="Enquiry sent" />
+        <h3 style={{ fontSize: "1.3rem", fontWeight: 700, margin: "8px 0 0", color: "var(--ink)" }}>
           Thanks — we&apos;ve got your enquiry.
         </h3>
         <p style={{ margin: "12px auto 0", maxWidth: "42ch", fontSize: "0.95rem", color: "var(--mut)" }}>
@@ -223,17 +268,22 @@ export function KzContactForm() {
         />
       </div>
 
-      <button
-        type="submit"
-        disabled={status === "submitting"}
-        className="kz-btn kz-btn-primary"
-        style={{ width: "100%" }}
-      >
-        {status === "submitting" ? "Sending…" : "Send via WhatsApp →"}
-      </button>
+      {/* The magnetic host is a grid so its inner span stretches: the button keeps
+          its full-width block, and only the wrapper leans toward the pointer. */}
+      <KzMagnetic max={10} style={{ display: "grid" }}>
+        <KzButtonLoading
+          type="submit"
+          loading={status === "submitting"}
+          loadingLabel="Sending…"
+          className={KZ_HOVER_GROUP}
+          style={{ width: "100%" }}
+        >
+          Send via WhatsApp <KzArrowNudge>→</KzArrowNudge>
+        </KzButtonLoading>
+      </KzMagnetic>
 
       {status === "error" && serverMessage && (
-        <p role="alert" style={{ marginTop: 12, fontSize: "0.85rem", color: "#ff6b6b" }}>
+        <p role="alert" style={{ marginTop: 12, fontSize: "0.85rem", color: "var(--err)" }}>
           {serverMessage}
         </p>
       )}
@@ -267,7 +317,7 @@ function Field({
       <label className="kz-label">{label}</label>
       {children}
       {error && (
-        <p style={{ marginTop: 6, fontSize: "0.8rem", color: "#ff6b6b" }}>{error}</p>
+        <p style={{ marginTop: 6, fontSize: "0.8rem", color: "var(--err)" }}>{error}</p>
       )}
     </div>
   );

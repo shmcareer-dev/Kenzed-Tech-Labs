@@ -2,8 +2,16 @@
 
 import { useEffect, useState } from "react";
 
-import { KzReveal } from "@/components/kz/KzReveal";
-import { KzPageHero, KzCube, KzOrbitDots } from "@/components/kz/primitives";
+import { KzStackDial } from "@/components/kz/KzStackDial";
+import { KzGridPattern } from "@/components/kz/motion/KzAmbient";
+import { KzFadeUp, KzStagger } from "@/components/kz/motion/KzEntrance";
+import {
+  KzPageHero,
+  KzCube,
+  KzOrbitDots,
+  KzEyebrow,
+  KzSectionTitle,
+} from "@/components/kz/primitives";
 import { useKzPage } from "@/components/kz/useKzPage";
 import { kzStack, kzArchFlow } from "@/content/kz";
 
@@ -19,7 +27,7 @@ export function KzTechnology() {
   }, []);
 
   return (
-    <div className="kz-page-enter">
+    <>
       <div style={{ position: "relative" }}>
         {desk && (
           <>
@@ -48,15 +56,22 @@ export function KzTechnology() {
           </>
         )}
         <KzPageHero
-          eyebrow="03 / Technology"
+          eyebrow="05 / Technology"
           title="A modern stack behind every build"
           lead="A transparent view of the languages, frameworks, and platforms we use to build and run reliable production systems."
         />
       </div>
 
-      <section style={{ padding: "0 0 clamp(70px, 10vw, 120px)", background: "var(--bg)" }}>
-        <div className="kz-wrap">
-          <KzReveal delay={0}>
+      <section
+        style={{
+          padding: "0 0 clamp(70px, 10vw, 120px)",
+          background: "var(--bg)",
+          position: "relative",
+        }}
+      >
+        <KzGridPattern cell={64} opacity={0.4} fade="center" />
+        <div className="kz-wrap" style={{ position: "relative" }}>
+          <KzFadeUp>
             <div
               style={{
                 marginBottom: 26,
@@ -82,113 +97,125 @@ export function KzTechnology() {
               >
                 Production topology
               </span>
-              {kzArchFlow.map((t, i) => (
-                <span key={t} style={{ display: "inline-flex", alignItems: "center", gap: 12 }}>
-                  <span
+              <KzStagger
+                as="span"
+                childAs="span"
+                step={90}
+                distance={14}
+                style={{ display: "inline-flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}
+              >
+                {kzArchFlow.map((t, i) => (
+                  <span key={t} style={{ display: "inline-flex", alignItems: "center", gap: 12 }}>
+                    <span
+                      style={{
+                        fontFamily: "var(--font-mono)",
+                        fontSize: "0.7rem",
+                        letterSpacing: "0.08em",
+                        padding: "8px 13px",
+                        border: "1px solid var(--line)",
+                        borderRadius: 9,
+                        background: "var(--card2)",
+                        color: "var(--ink)",
+                      }}
+                    >
+                      {t}
+                    </span>
+                    {i < kzArchFlow.length - 1 && (
+                      <span
+                        style={{
+                          fontFamily: "var(--font-mono)",
+                          color: "var(--acc)",
+                          fontSize: "0.8rem",
+                        }}
+                      >
+                        →
+                      </span>
+                    )}
+                  </span>
+                ))}
+              </KzStagger>
+            </div>
+          </KzFadeUp>
+
+          <KzFadeUp style={{ marginTop: "clamp(46px, 7vw, 78px)" }}>
+            <KzEyebrow>The stack, layer by layer</KzEyebrow>
+            <KzSectionTitle style={{ maxWidth: "20ch", marginBottom: 16 }}>
+              Eleven layers on one instrument
+            </KzSectionTitle>
+            <p className="kz-page-lead">
+              Every layer of the stack sits on a single dial. Scroll and the ring turns under the
+              fixed marker, stepping through all eleven while the panel reads out the tools in the
+              layer it lands on — and the full written index follows below.
+            </p>
+          </KzFadeUp>
+
+          {/* No entrance wrapper: an entry transform would shift the dial's
+              measured position and jitter the rotation it derives from it, and a
+              second scroll-linked system on top of the dial would fight it.
+              aria-hidden because the index below is the same names as text —
+              assistive tech should hear them once, not once here and again there. */}
+          <div aria-hidden="true" style={{ marginTop: "clamp(26px, 4vw, 40px)" }}>
+            <KzStackDial groups={kzStack} />
+          </div>
+
+          <KzFadeUp style={{ marginTop: "clamp(40px, 6vw, 64px)" }}>
+            <h3
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: "0.64rem",
+                letterSpacing: "0.22em",
+                textTransform: "uppercase",
+                color: "var(--dim)",
+                margin: "0 0 14px",
+                fontWeight: 500,
+              }}
+            >
+              Full stack index
+            </h3>
+            <dl style={{ margin: 0, borderTop: "1px solid var(--line)" }}>
+              {kzStack.map(([category, tags]) => (
+                <div
+                  key={category}
+                  style={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                    alignItems: "baseline",
+                    gap: "4px 22px",
+                    padding: "14px 2px",
+                    borderBottom: "1px solid var(--line)",
+                  }}
+                >
+                  <dt
                     style={{
+                      flex: "0 0 auto",
+                      minWidth: 128,
                       fontFamily: "var(--font-mono)",
                       fontSize: "0.7rem",
-                      letterSpacing: "0.08em",
-                      padding: "8px 13px",
-                      border: "1px solid var(--line)",
-                      borderRadius: 9,
-                      background: "var(--card2)",
-                      color: "var(--ink)",
+                      letterSpacing: "0.16em",
+                      textTransform: "uppercase",
+                      color: "var(--acc)",
+                      fontWeight: 600,
                     }}
                   >
-                    {t}
-                  </span>
-                  {i < kzArchFlow.length - 1 && (
-                    <span
-                      style={{
-                        fontFamily: "var(--font-mono)",
-                        color: "var(--acc)",
-                        fontSize: "0.8rem",
-                      }}
-                    >
-                      →
-                    </span>
-                  )}
-                </span>
-              ))}
-            </div>
-          </KzReveal>
-
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))",
-              gap: 16,
-            }}
-          >
-            {kzStack.map(([category, tags], i) => (
-              <KzReveal key={category} delay={i % 3}>
-                <div
-                  style={{
-                    background: "var(--card)",
-                    border: "1px solid var(--line)",
-                    borderRadius: 16,
-                    padding: 24,
-                    transition: "transform .3s, border-color .3s, box-shadow .3s",
-                  }}
-                  className="kz-card"
-                >
-                  <div
+                    {category}
+                  </dt>
+                  <dd
                     style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "baseline",
-                      marginBottom: 16,
+                      flex: "1 1 260px",
+                      margin: 0,
+                      fontSize: "0.9rem",
+                      lineHeight: 1.65,
+                      color: "var(--mut)",
                     }}
                   >
-                    <h3
-                      style={{
-                        fontFamily: "var(--font-mono)",
-                        fontSize: "0.74rem",
-                        letterSpacing: "0.16em",
-                        textTransform: "uppercase",
-                        color: "var(--acc)",
-                        margin: 0,
-                        fontWeight: 600,
-                      }}
-                    >
-                      {category}
-                    </h3>
-                    <span
-                      style={{
-                        fontFamily: "var(--font-mono)",
-                        fontSize: "0.66rem",
-                        color: "var(--dim)",
-                      }}
-                    >
-                      {String(i + 1).padStart(2, "0")}
-                    </span>
-                  </div>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                    {tags.map((t) => (
-                      <span
-                        key={t}
-                        style={{
-                          fontSize: "0.82rem",
-                          padding: "7px 13px",
-                          borderRadius: 9,
-                          background: "var(--card2)",
-                          border: "1px solid var(--line)",
-                          color: "var(--mut)",
-                          transition: "color .2s, border-color .2s",
-                        }}
-                        className="kz-tag"
-                      >
-                        {t}
-                      </span>
-                    ))}
-                  </div>
+                    {tags.join(" · ")}
+                  </dd>
                 </div>
-              </KzReveal>
-            ))}
-          </div>
+              ))}
+            </dl>
+          </KzFadeUp>
         </div>
       </section>
-    </div>
+    </>
   );
 }

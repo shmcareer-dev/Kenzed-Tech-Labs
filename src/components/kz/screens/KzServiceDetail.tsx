@@ -17,14 +17,14 @@ export function KzServiceDetail({ service, related }: KzServiceDetailProps) {
   useKzPage("services");
 
   return (
-    <div className="kz-page-enter">
+    <>
       <section style={{ padding: "clamp(130px, 18vh, 180px) 0 clamp(40px, 6vw, 70px)" }}>
         <div className="kz-wrap">
           <div
             style={{
               fontFamily: "var(--font-mono)",
               fontSize: "0.7rem",
-              letterSpacing: "0.24em",
+              letterSpacing: "0.2em",
               textTransform: "uppercase",
               color: "var(--acc)",
               fontWeight: 500,
@@ -168,7 +168,7 @@ export function KzServiceDetail({ service, related }: KzServiceDetailProps) {
                   className="kz-card"
                 >
                   <span className="kz-icon-tile">
-                    <KzIcon name={item.icon as import("@/components/kz/KzIcon").KzIconKey} size={22} />
+                    <KzIcon name={item.icon} size={22} />
                   </span>
                   <h3
                     style={{
@@ -203,11 +203,11 @@ export function KzServiceDetail({ service, related }: KzServiceDetailProps) {
               <h2
                 style={{
                   fontFamily: "var(--font-display)",
-                  fontWeight: 400,
+                  fontWeight: 700,
                   textTransform: "uppercase",
                   fontSize: "clamp(1.5rem, 3.8vw, 2.2rem)",
-                  lineHeight: 1.04,
-                  letterSpacing: "-0.01em",
+                  lineHeight: 1.06,
+                  letterSpacing: "-0.004em",
                   margin: "0 auto 18px",
                   maxWidth: "24ch",
                 }}
@@ -238,6 +238,6 @@ export function KzServiceDetail({ service, related }: KzServiceDetailProps) {
           </KzReveal>
         </div>
       </section>
-    </div>
+    </>
   );
 }

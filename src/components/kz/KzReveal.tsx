@@ -25,13 +25,17 @@ export function KzReveal({
       el.classList.add("is-visible");
       return;
     }
+    // The stagger runs on a timer, so disconnecting the observer is not enough:
+    // a route change inside the delay window would otherwise leave a callback
+    // queued against an unmounted node.
+    let timer: ReturnType<typeof setTimeout> | null = null;
     const io = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (!entry.isIntersecting) return;
           const target = entry.target as HTMLElement;
           io.unobserve(target);
-          setTimeout(() => {
+          timer = setTimeout(() => {
             target.classList.add("is-visible");
           }, Math.min(delay, 6) * 90);
         });
@@ -39,7 +43,10 @@ export function KzReveal({
       { threshold: 0.12 }
     );
     io.observe(el);
-    return () => io.disconnect();
+    return () => {
+      io.disconnect();
+      if (timer !== null) clearTimeout(timer);
+    };
   }, [delay]);
 
   return (

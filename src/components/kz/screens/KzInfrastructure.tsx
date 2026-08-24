@@ -9,7 +9,7 @@ import { kzInfrastructure, kzInfraWhy, kzStatusRows } from "@/content/kz";
 export function KzInfrastructure() {
   useKzPage("infrastructure");
   return (
-    <div className="kz-page-enter" style={{ position: "relative" }}>
+    <div style={{ position: "relative" }}>
       <div
         aria-hidden="true"
         style={{
@@ -36,7 +36,7 @@ export function KzInfrastructure() {
       </div>
 
       <KzPageHero
-        eyebrow="04 / Infrastructure"
+        eyebrow="06 / Infrastructure"
         title="Great software needs a great foundation"
         lead="We invested early in our own facility, compute, and utilities — so our teams build without interruption, and clients who need private, on-premise, or sovereign AI can trust exactly where their workloads run."
       />
@@ -60,34 +60,36 @@ export function KzInfrastructure() {
               <div>
                 <div
                   style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "0.72rem",
+                    letterSpacing: "0.18em",
+                    textTransform: "uppercase",
+                    color: "var(--mut)",
+                    marginBottom: 10,
+                  }}
+                >
+                  Durgapur · Engineering centre
+                </div>
+                <div
+                  style={{
                     fontFamily: "var(--font-display)",
-                    fontSize: "clamp(3rem, 8vw, 5rem)",
-                    lineHeight: 1,
+                    fontWeight: 700,
+                    fontSize: "clamp(1.7rem, 4.5vw, 2.9rem)",
+                    lineHeight: 1.04,
+                    letterSpacing: "-0.012em",
                     background: "var(--grt)",
                     WebkitBackgroundClip: "text",
                     backgroundClip: "text",
                     WebkitTextFillColor: "transparent",
                   }}
                 >
-                  15,000
-                </div>
-                <div
-                  style={{
-                    fontFamily: "var(--font-mono)",
-                    fontSize: "0.72rem",
-                    letterSpacing: "0.22em",
-                    textTransform: "uppercase",
-                    color: "var(--mut)",
-                    marginTop: 6,
-                  }}
-                >
-                  sq ft · Durgapur
+                  Infrastructure we own, not rent
                 </div>
               </div>
               <p style={{ margin: 0, color: "var(--mut)", fontSize: "1.02rem" }}>
-                A dedicated, purpose-built development &amp; studio facility for focused engineering,
-                collaboration, and round-the-clock delivery — with a corporate presence in Kolkata
-                for client engagement.
+                A dedicated, purpose-built development &amp; studio facility in Durgapur for focused
+                engineering, collaboration, and round-the-clock delivery — with a corporate presence
+                in Kolkata for client engagement.
               </p>
             </div>
           </KzReveal>
@@ -121,7 +123,7 @@ export function KzInfrastructure() {
                     style={{
                       fontFamily: "var(--font-mono)",
                       fontSize: "0.64rem",
-                      letterSpacing: "0.16em",
+                      letterSpacing: "0.13em",
                       textTransform: "uppercase",
                       color: "var(--dim)",
                     }}
@@ -232,8 +234,9 @@ export function KzInfrastructure() {
                     <h3
                       style={{
                         fontFamily: "var(--font-display)",
-                        fontWeight: 400,
+                        fontWeight: 600,
                         fontSize: "clamp(1rem, 1.8vw, 1.25rem)",
+                        letterSpacing: "0.01em",
                         textTransform: "uppercase",
                         margin: 0,
                         lineHeight: 1.2,

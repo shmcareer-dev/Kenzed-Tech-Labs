@@ -2,11 +2,7 @@ import { z } from "zod";
 
 import { serviceOptions } from "@/content/services";
 
-/**
- * Contact-form payload. Shared by the client form and the API route so both
- * sides agree on the rules and the browser never sends something the server
- * will silently reject.
- */
+/** Contact-form payload, validated in the browser before the WhatsApp handoff. */
 export const leadSchema = z.object({
   name: z.string().trim().min(2, "Please enter your name").max(120),
 
@@ -30,22 +26,11 @@ export const leadSchema = z.object({
    * Honeypot. Real people never see this field, so anything in it is a bot.
    * Named innocuously because scrapers fill in fields called "website".
    *
-   * Deliberately permissive: the API route decides what to do with a filled
+   * Deliberately permissive: the form decides what to do with a filled
    * honeypot. Rejecting it here would tell the bot which field gave it away.
    */
   website: z.string().optional(),
 });
-
-export type LeadInput = z.infer<typeof leadSchema>;
-
-/** Budget bands offered in the contact form dropdown. */
-export const budgetOptions = [
-  "Under $5,000",
-  "$5,000 – $25,000",
-  "$25,000 – $100,000",
-  "$100,000+",
-  "Not sure yet",
-];
 
 /** Flattens a Zod error into { field: message } for rendering under inputs. */
 export function fieldErrors(error: z.ZodError): Record<string, string> {

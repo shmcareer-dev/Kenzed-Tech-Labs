@@ -1,15 +1,25 @@
 "use client";
 
-import { KzReveal } from "@/components/kz/KzReveal";
+import { type CSSProperties } from "react";
+
+import { KzGridPattern } from "@/components/kz/motion/KzAmbient";
+import { KzFadeUp, KzStagger } from "@/components/kz/motion/KzEntrance";
+import { KzHoverLift } from "@/components/kz/motion/KzPointer";
 import { KzSectionTitle, KzSphere, KzCube } from "@/components/kz/primitives";
 import { useKzPage } from "@/components/kz/useKzPage";
 import { kzValues, kzTeam, kzIndustries } from "@/content/kz";
 import { longStory, mission, vision } from "@/content/company";
 
+const cardGrid = (min: number): CSSProperties => ({
+  display: "grid",
+  gridTemplateColumns: `repeat(auto-fit, minmax(min(100%, ${min}px), 1fr))`,
+  gap: 16,
+});
+
 export function KzAbout() {
   useKzPage("about");
   return (
-    <div className="kz-page-enter" style={{ position: "relative" }}>
+    <div style={{ position: "relative" }}>
       <div
         aria-hidden="true"
         style={{
@@ -35,13 +45,14 @@ export function KzAbout() {
         <KzCube size={40} opacity={0.26} />
       </div>
 
+      {/* Above the fold: painted straight, never animated in. */}
       <section style={{ padding: "clamp(130px, 18vh, 180px) 0 clamp(40px, 6vw, 70px)" }}>
         <div className="kz-wrap">
           <div
             style={{
               fontFamily: "var(--font-mono)",
               fontSize: "0.7rem",
-              letterSpacing: "0.24em",
+              letterSpacing: "0.2em",
               textTransform: "uppercase",
               color: "var(--acc)",
               fontWeight: 500,
@@ -52,7 +63,7 @@ export function KzAbout() {
             }}
           >
             <span style={{ width: 26, height: 1, background: "var(--acc)", opacity: 0.7 }} />
-            06 / About us
+            08 / About us
           </div>
           <h1 className="kz-page-title" style={{ maxWidth: "18ch" }}>
             Built in the steel city. Engineered for the world.
@@ -69,12 +80,12 @@ export function KzAbout() {
             gap: "clamp(28px, 5vw, 64px)",
           }}
         >
-          <KzReveal delay={0}>
+          <KzFadeUp>
             <div
               style={{
                 fontFamily: "var(--font-mono)",
                 fontSize: "0.66rem",
-                letterSpacing: "0.2em",
+                letterSpacing: "0.16em",
                 textTransform: "uppercase",
                 color: "var(--acc)",
                 marginBottom: 14,
@@ -85,7 +96,12 @@ export function KzAbout() {
             <p style={{ fontSize: "1.06rem", color: "var(--mut)", margin: "0 0 16px" }}>
               {longStory}
             </p>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginTop: 24 }}>
+            <KzStagger
+              step={90}
+              distance={14}
+              childAs="span"
+              style={{ display: "flex", flexWrap: "wrap", gap: 10, marginTop: 24 }}
+            >
               {[
                 "23.52°N 87.31°E — DURGAPUR HQ",
                 "22.58°N 88.46°E — KOLKATA",
@@ -94,6 +110,7 @@ export function KzAbout() {
                 <span
                   key={t}
                   style={{
+                    display: "inline-block",
                     fontFamily: "var(--font-mono)",
                     fontSize: "0.66rem",
                     letterSpacing: "0.08em",
@@ -106,71 +123,61 @@ export function KzAbout() {
                   {t}
                 </span>
               ))}
-            </div>
-          </KzReveal>
+            </KzStagger>
+          </KzFadeUp>
 
-          <div style={{ display: "grid", gap: 16 }}>
-            <KzReveal delay={1}>
-              <div
-                style={{
-                  background: "var(--card)",
-                  border: "1px solid var(--line)",
-                  borderRadius: 16,
-                  padding: 26,
-                }}
-              >
+          <KzStagger step={100} style={{ display: "grid", gap: 16 }}>
+            {[
+              ["Mission", mission],
+              ["Vision", vision],
+            ].map(([label, body]) => (
+              <KzHoverLift key={label} lift={5}>
                 <div
                   style={{
-                    fontFamily: "var(--font-mono)",
-                    fontSize: "0.66rem",
-                    letterSpacing: "0.2em",
-                    textTransform: "uppercase",
-                    color: "var(--acc)",
-                    marginBottom: 10,
+                    background: "var(--card)",
+                    border: "1px solid var(--line)",
+                    borderRadius: 16,
+                    padding: 26,
                   }}
                 >
-                  Mission
+                  <div
+                    style={{
+                      fontFamily: "var(--font-mono)",
+                      fontSize: "0.66rem",
+                      letterSpacing: "0.16em",
+                      textTransform: "uppercase",
+                      color: "var(--acc)",
+                      marginBottom: 10,
+                    }}
+                  >
+                    {label}
+                  </div>
+                  <p style={{ margin: 0, color: "var(--mut)", fontSize: "0.96rem" }}>{body}</p>
                 </div>
-                <p style={{ margin: 0, color: "var(--mut)", fontSize: "0.96rem" }}>{mission}</p>
-              </div>
-            </KzReveal>
-            <KzReveal delay={2}>
-              <div
-                style={{
-                  background: "var(--card)",
-                  border: "1px solid var(--line)",
-                  borderRadius: 16,
-                  padding: 26,
-                }}
-              >
-                <div
-                  style={{
-                    fontFamily: "var(--font-mono)",
-                    fontSize: "0.66rem",
-                    letterSpacing: "0.2em",
-                    textTransform: "uppercase",
-                    color: "var(--acc)",
-                    marginBottom: 10,
-                  }}
-                >
-                  Vision
-                </div>
-                <p style={{ margin: 0, color: "var(--mut)", fontSize: "0.96rem" }}>{vision}</p>
-              </div>
-            </KzReveal>
-          </div>
+              </KzHoverLift>
+            ))}
+          </KzStagger>
         </div>
       </section>
 
-      <section style={{ padding: "0 0 clamp(50px, 7vw, 80px)", background: "var(--bg)" }}>
-        <div className="kz-wrap">
-          <KzReveal delay={0}>
+      <section
+        style={{
+          padding: "0 0 clamp(50px, 7vw, 80px)",
+          background: "var(--bg)",
+          position: "relative",
+        }}
+      >
+        <KzGridPattern cell={64} opacity={0.4} fade="center" />
+        <div className="kz-wrap" style={{ position: "relative" }}>
+          <KzFadeUp>
             <KzSectionTitle style={{ marginBottom: 26 }}>Our values</KzSectionTitle>
-          </KzReveal>
+          </KzFadeUp>
           <div>
-            {kzValues.map(([t, d], i) => (
-              <KzReveal key={t} delay={i}>
+            <KzStagger step={90}>
+              {kzValues.map(([t, d], i) => (
                 <div
+                  key={t}
+                  className="kz-hover-row"
                   style={{
                     display: "grid",
                     gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 300px), 1fr))",
@@ -178,9 +185,7 @@ export function KzAbout() {
                     padding: "22px 12px",
                     borderTop: "1px solid var(--line)",
                     alignItems: "baseline",
-                    transition: "background .3s",
                   }}
-                  className="kz-hover-row"
                 >
                   <div style={{ display: "flex", gap: 20, alignItems: "baseline" }}>
                     <span
@@ -195,11 +200,12 @@ export function KzAbout() {
                     <h3
                       style={{
                         fontFamily: "var(--font-display)",
-                        fontWeight: 400,
+                        fontWeight: 600,
                         fontSize: "clamp(1rem, 1.8vw, 1.2rem)",
+                        letterSpacing: "0.01em",
                         textTransform: "uppercase",
                         margin: 0,
-                        lineHeight: 1.2,
+                        lineHeight: 1.25,
                         color: "var(--ink)",
                       }}
                     >
@@ -208,8 +214,8 @@ export function KzAbout() {
                   </div>
                   <p style={{ margin: 0, color: "var(--mut)", fontSize: "0.94rem" }}>{d}</p>
                 </div>
-              </KzReveal>
-            ))}
+              ))}
+            </KzStagger>
             <div style={{ borderTop: "1px solid var(--line)" }} />
           </div>
         </div>
@@ -217,7 +223,7 @@ export function KzAbout() {
 
       <section style={{ padding: "0 0 clamp(50px, 7vw, 80px)", background: "var(--bg)" }}>
         <div className="kz-wrap">
-          <KzReveal delay={0}>
+          <KzFadeUp>
             <KzSectionTitle style={{ marginBottom: 10 }}>
               Every discipline under one roof
             </KzSectionTitle>
@@ -229,60 +235,53 @@ export function KzAbout() {
                 fontSize: "1rem",
               }}
             >
-              A multidisciplinary team of 25 professionals taking products from concept to delivery,
-              maintenance, and beyond — with no handoffs to third parties.
+              Our team of twenty-five works from a dedicated 15,000 sq ft facility in Durgapur,
+              taking products from concept to delivery, maintenance, and beyond — with no handoffs
+              to third parties.
             </p>
-          </KzReveal>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 265px), 1fr))",
-              gap: 16,
-            }}
-          >
+          </KzFadeUp>
+          <KzStagger step={90} style={cardGrid(265)}>
             {kzTeam.map(([t, d], i) => (
-              <KzReveal key={t} delay={i % 4}>
+              <div
+                key={t}
+                className="kz-card"
+                style={{
+                  background: "var(--card)",
+                  border: "1px solid var(--line)",
+                  borderRadius: 16,
+                  padding: 24,
+                }}
+              >
                 <div
                   style={{
-                    background: "var(--card)",
-                    border: "1px solid var(--line)",
-                    borderRadius: 16,
-                    padding: 24,
-                    transition: "transform .3s, border-color .3s, box-shadow .3s",
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "0.66rem",
+                    color: "var(--dim)",
+                    marginBottom: 10,
                   }}
-                  className="kz-card"
                 >
-                  <div
-                    style={{
-                      fontFamily: "var(--font-mono)",
-                      fontSize: "0.66rem",
-                      color: "var(--dim)",
-                      marginBottom: 10,
-                    }}
-                  >
-                    {String(i + 1).padStart(2, "0")}
-                  </div>
-                  <h3
-                    style={{
-                      fontSize: "1.05rem",
-                      fontWeight: 700,
-                      margin: "0 0 8px",
-                      color: "var(--ink)",
-                    }}
-                  >
-                    {t}
-                  </h3>
-                  <p style={{ fontSize: "0.88rem", color: "var(--mut)", margin: 0 }}>{d}</p>
+                  {String(i + 1).padStart(2, "0")}
                 </div>
-              </KzReveal>
+                <h3
+                  style={{
+                    fontSize: "1.05rem",
+                    fontWeight: 700,
+                    margin: "0 0 8px",
+                    color: "var(--ink)",
+                  }}
+                >
+                  {t}
+                </h3>
+                <p style={{ fontSize: "0.88rem", color: "var(--mut)", margin: 0 }}>{d}</p>
+              </div>
             ))}
-          </div>
+          </KzStagger>
         </div>
       </section>
 
       <section style={{ padding: "0 0 clamp(70px, 10vw, 120px)", background: "var(--bg)" }}>
         <div className="kz-wrap">
-          <KzReveal delay={0}>
+          <KzFadeUp>
             <KzSectionTitle style={{ marginBottom: 10 }}>Industries we serve</KzSectionTitle>
             <p
               style={{
@@ -294,51 +293,43 @@ export function KzAbout() {
             >
               Our work adapts to the realities of each sector.
             </p>
-          </KzReveal>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 245px), 1fr))",
-              gap: 16,
-            }}
-          >
+          </KzFadeUp>
+          <KzStagger step={90} style={cardGrid(245)}>
             {kzIndustries.map(([t, d], i) => (
-              <KzReveal key={t} delay={i % 4}>
+              <div
+                key={t}
+                className="kz-card"
+                style={{
+                  background: "var(--card)",
+                  border: "1px solid var(--line)",
+                  borderRadius: 16,
+                  padding: 22,
+                }}
+              >
                 <div
                   style={{
-                    background: "var(--card)",
-                    border: "1px solid var(--line)",
-                    borderRadius: 16,
-                    padding: 22,
-                    transition: "transform .3s, border-color .3s, box-shadow .3s",
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "0.66rem",
+                    color: "var(--acc)",
+                    marginBottom: 10,
                   }}
-                  className="kz-card"
                 >
-                  <div
-                    style={{
-                      fontFamily: "var(--font-mono)",
-                      fontSize: "0.66rem",
-                      color: "var(--acc)",
-                      marginBottom: 10,
-                    }}
-                  >
-                    {String(i + 1).padStart(2, "0")}
-                  </div>
-                  <h3
-                    style={{
-                      fontSize: "1rem",
-                      fontWeight: 700,
-                      margin: "0 0 6px",
-                      color: "var(--ink)",
-                    }}
-                  >
-                    {t}
-                  </h3>
-                  <p style={{ fontSize: "0.86rem", color: "var(--mut)", margin: 0 }}>{d}</p>
+                  {String(i + 1).padStart(2, "0")}
                 </div>
-              </KzReveal>
+                <h3
+                  style={{
+                    fontSize: "1rem",
+                    fontWeight: 700,
+                    margin: "0 0 6px",
+                    color: "var(--ink)",
+                  }}
+                >
+                  {t}
+                </h3>
+                <p style={{ fontSize: "0.86rem", color: "var(--mut)", margin: 0 }}>{d}</p>
+              </div>
             ))}
-          </div>
+          </KzStagger>
         </div>
       </section>
     </div>

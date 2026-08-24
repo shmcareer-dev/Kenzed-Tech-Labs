@@ -8,7 +8,7 @@ import { kzProcess } from "@/content/kz";
 export function KzProcess() {
   useKzPage("process");
   return (
-    <div className="kz-page-enter" style={{ position: "relative" }}>
+    <div style={{ position: "relative" }}>
       <div
         aria-hidden="true"
         style={{
@@ -35,27 +35,37 @@ export function KzProcess() {
       </div>
 
       <KzPageHero
-        eyebrow="05 / How we work"
+        eyebrow="07 / How we work"
         title="A transparent, production-first process"
         lead="Agile delivery that de-risks your project and keeps you in control at every step."
       />
 
       <section style={{ padding: "0 0 clamp(70px, 10vw, 120px)", background: "var(--bg)" }}>
         <div className="kz-wrap">
+          {/* The rail is a clipping window; the ramp inside it is twice as wide
+              and carries the gradient twice, so sliding it half its width loops
+              seamlessly while only ever moving a composited layer. */}
           <div
             aria-hidden="true"
             style={{
               height: 3,
               borderRadius: 2,
               margin: "0 12px 10px",
-              background:
-                "linear-gradient(90deg, var(--acc), var(--acc2), var(--acc3), var(--acc))",
-              backgroundSize: "200px 100%",
-              backgroundRepeat: "repeat-x",
-              animation: "kzFlow 5s linear infinite",
+              overflow: "hidden",
               opacity: 0.5,
             }}
-          />
+          >
+            <div
+              style={{
+                width: "200%",
+                height: "100%",
+                background:
+                  "repeating-linear-gradient(90deg, var(--acc), var(--acc2), var(--acc3), var(--acc) 200px)",
+                animation: "kzFlow 5s linear infinite",
+                willChange: "transform",
+              }}
+            />
+          </div>
 
           {kzProcess.map(([t, d], i) => (
             <KzReveal key={t} delay={i % 3}>
@@ -73,8 +83,10 @@ export function KzProcess() {
                 <div
                   style={{
                     fontFamily: "var(--font-display)",
+                    fontWeight: 700,
                     fontSize: "clamp(1.8rem, 4.5vw, 3rem)",
-                    lineHeight: 1,
+                    lineHeight: 1.02,
+                    letterSpacing: "-0.02em",
                     color: "var(--dim)",
                     transition: "color .3s",
                   }}
@@ -93,11 +105,12 @@ export function KzProcess() {
                   <h2
                     style={{
                       fontFamily: "var(--font-display)",
-                      fontWeight: 400,
+                      fontWeight: 600,
                       fontSize: "clamp(1.15rem, 2.4vw, 1.6rem)",
+                      letterSpacing: "0.01em",
                       textTransform: "uppercase",
                       margin: 0,
-                      lineHeight: 1.15,
+                      lineHeight: 1.22,
                       color: "var(--ink)",
                     }}
                   >
@@ -113,7 +126,7 @@ export function KzProcess() {
             style={{
               fontFamily: "var(--font-mono)",
               fontSize: "0.72rem",
-              letterSpacing: "0.14em",
+              letterSpacing: "0.11em",
               textTransform: "uppercase",
               color: "var(--dim)",
               margin: "26px 12px 0",
