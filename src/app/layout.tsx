@@ -5,7 +5,6 @@ import { KzThemeProvider } from "@/components/kz/KzThemeProvider";
 import { KzHeader } from "@/components/kz/KzHeader";
 import { KzFooter } from "@/components/kz/KzFooter";
 import { KzChatbot } from "@/components/kz/KzChatbot";
-import { Kz3DBackgroundDeferred } from "@/components/kz/Kz3DBackgroundDeferred";
 import { JsonLd } from "@/components/ui/JsonLd";
 import { Kz3DProvider } from "@/components/kz/Kz3DProvider";
 import { KzSmoothScroll } from "@/components/kz/motion/KzSmoothScroll";
@@ -97,7 +96,6 @@ export default function RootLayout({
             <KzScrollProgress />
             <KzCustomCursor />
 
-            <Kz3DBackgroundDeferred />
             <KzHeader />
             {/* Fixed chrome stays OUTSIDE the transition wrapper: the wrapper
                 carries a transform mid-route-change, which would otherwise

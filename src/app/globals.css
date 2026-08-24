@@ -1037,12 +1037,4 @@
   }
 }
 
-/* ==========================================================================
-   Isometric 3D scene (Kz3DBackground)
-   Opacity and the mask are set inline by the component (see its VEIL map) so
-   that they can switch on the desktop/mobile composition. Declaring them here
-   too would be dead CSS — inline styles always win. Only layout lives here.
-   ========================================================================== */
-.kz-scene {
-  will-change: transform;
-}
+
