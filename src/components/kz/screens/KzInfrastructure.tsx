@@ -1,43 +1,19 @@
 "use client";
 
 import { KzReveal } from "@/components/kz/KzReveal";
-import { KzIcon } from "@/components/kz/KzIcon";
 import { KzScrollSpy } from "@/components/kz/KzScrollSpy";
-import { KzPageHero, KzSectionTitle, KzSphere, KzCube } from "@/components/kz/primitives";
+import { KzSpatialIcon3D, kindForLabel } from "@/components/kz/KzSpatial3D";
+import { KzPageHero, KzSectionTitle } from "@/components/kz/primitives";
 import { kzInfrastructure, kzInfraWhy, kzStatusRows } from "@/content/kz";
 
 export function KzInfrastructure() {
   return (
     <div id="top" style={{ position: "relative" }}>
-      <div
-        aria-hidden="true"
-        style={{
-          position: "absolute",
-          right: "min(6%, 90px)",
-          top: "clamp(140px, 20vh, 200px)",
-          pointerEvents: "none",
-          zIndex: 1,
-        }}
-      >
-        <KzSphere size={60} opacity={0.35} />
-      </div>
-      <div
-        aria-hidden="true"
-        style={{
-          position: "absolute",
-          left: "min(4%, 50px)",
-          top: "clamp(220px, 34vh, 340px)",
-          pointerEvents: "none",
-          zIndex: 1,
-        }}
-      >
-        <KzCube size={44} opacity={0.28} />
-      </div>
-
       <KzPageHero
         eyebrow="06 / Infrastructure"
         title="Great software needs a great foundation"
         lead="We invested early in our own facility, compute, and utilities — so our teams build without interruption, and clients who need private, on-premise, or sovereign AI can trust exactly where their workloads run."
+        visual="cloud"
       />
 
       <KzScrollSpy
@@ -183,9 +159,12 @@ export function KzInfrastructure() {
                   }}
                   className="kz-card"
                 >
-                  <span className="kz-icon-tile" style={{ marginBottom: 14 }}>
-                    <KzIcon name={icon} size={20} stroke="var(--acc3)" />
-                  </span>
+                  <KzSpatialIcon3D
+                    kind={kindForLabel(`${icon} ${t}`)}
+                    size={58}
+                    float={false}
+                    style={{ marginBottom: 10 }}
+                  />
                   <h3
                     style={{
                       fontSize: "1rem",

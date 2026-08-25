@@ -3,13 +3,13 @@
 import { useState } from "react";
 
 import { KzWebFlow, type KzFlowNode } from "@/components/kz/KzDiagrams";
-import { KzIcon } from "@/components/kz/KzIcon";
 import { KzScrollSpy } from "@/components/kz/KzScrollSpy";
+import { KzSpatialIcon3D, kindForLabel } from "@/components/kz/KzSpatial3D";
 import { KzGridPattern } from "@/components/kz/motion/KzAmbient";
 import { KzFadeUp } from "@/components/kz/motion/KzEntrance";
 import { KzSlidingTabs, type KzTabItem } from "@/components/kz/motion/KzNav";
 import { KZ_HOVER_GROUP, KzArrowNudge, KzTilt3D } from "@/components/kz/motion/KzPointer";
-import { KzButton, KzPageHero, KzSectionTitle, KzSphere, KzTorus } from "@/components/kz/primitives";
+import { KzButton, KzPageHero, KzSectionTitle } from "@/components/kz/primitives";
 import { productCategories, products, type Product, type ProductTier } from "@/content/products";
 
 const ALL_PRODUCTS = "All products";
@@ -42,35 +42,11 @@ export function KzProductStudio() {
 
   return (
     <div id="top" style={{ position: "relative" }}>
-      <div
-        aria-hidden="true"
-        style={{
-          position: "absolute",
-          right: "min(6%, 90px)",
-          top: "clamp(140px, 20vh, 200px)",
-          pointerEvents: "none",
-          zIndex: 1,
-        }}
-      >
-        <KzTorus size={62} opacity={0.34} />
-      </div>
-      <div
-        aria-hidden="true"
-        style={{
-          position: "absolute",
-          left: "min(4%, 50px)",
-          top: "clamp(210px, 33vh, 330px)",
-          pointerEvents: "none",
-          zIndex: 1,
-        }}
-      >
-        <KzSphere size={48} opacity={0.28} />
-      </div>
-
       <KzPageHero
         eyebrow="03 / Product studio"
         title="Products we already know how to ship"
         lead="Six systems we build again and again — agent platforms, retrieval, voice, vision, automation, and private models. Each one arrives configured to your data and your workflows, not as a demo. Open a product to see what it does, what you receive, and what it costs to run."
+        visual="chip"
       />
 
       <KzScrollSpy
@@ -246,9 +222,11 @@ function ProductCard({ product }: { product: Product }) {
             marginBottom: 14,
           }}
         >
-          <span className="kz-icon-tile">
-            <KzIcon name={product.icon} size={22} />
-          </span>
+          <KzSpatialIcon3D
+            kind={kindForLabel(`${product.name} ${product.category}`)}
+            size={58}
+            float={false}
+          />
           <h2
             style={{
               fontSize: "clamp(1.25rem, 3vw, 1.6rem)",

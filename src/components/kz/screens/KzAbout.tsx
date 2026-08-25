@@ -6,7 +6,8 @@ import { KzGridPattern } from "@/components/kz/motion/KzAmbient";
 import { KzFadeUp, KzStagger } from "@/components/kz/motion/KzEntrance";
 import { KzScrollSpy } from "@/components/kz/KzScrollSpy";
 import { KzHoverLift } from "@/components/kz/motion/KzPointer";
-import { KzSectionTitle, KzSphere, KzCube } from "@/components/kz/primitives";
+import { KzSpatialIcon3D, kindForLabel } from "@/components/kz/KzSpatial3D";
+import { KzPageHero, KzSectionTitle } from "@/components/kz/primitives";
 import { kzValues, kzTeam, kzIndustries } from "@/content/kz";
 import { longStory, mission, vision } from "@/content/company";
 
@@ -19,56 +20,13 @@ const cardGrid = (min: number): CSSProperties => ({
 export function KzAbout() {
   return (
     <div style={{ position: "relative" }}>
-      <div
-        aria-hidden="true"
-        style={{
-          position: "absolute",
-          right: "min(6%, 90px)",
-          top: "clamp(140px, 20vh, 200px)",
-          pointerEvents: "none",
-          zIndex: 1,
-        }}
-      >
-        <KzSphere size={54} opacity={0.3} />
+      <div id="top">
+        <KzPageHero
+          eyebrow="08 / About us"
+          title="Built in the steel city. Engineered for the world."
+          visual="cube"
+        />
       </div>
-      <div
-        aria-hidden="true"
-        style={{
-          position: "absolute",
-          left: "min(4%, 50px)",
-          top: "clamp(220px, 34vh, 340px)",
-          pointerEvents: "none",
-          zIndex: 1,
-        }}
-      >
-        <KzCube size={40} opacity={0.26} />
-      </div>
-
-      {/* Above the fold: painted straight, never animated in. */}
-      <section id="top" style={{ padding: "clamp(130px, 18vh, 180px) 0 clamp(40px, 6vw, 70px)" }}>
-        <div className="kz-wrap">
-          <div
-            style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: "0.7rem",
-              letterSpacing: "0.2em",
-              textTransform: "uppercase",
-              color: "var(--acc)",
-              fontWeight: 500,
-              display: "flex",
-              alignItems: "center",
-              gap: 12,
-              marginBottom: 18,
-            }}
-          >
-            <span style={{ width: 26, height: 1, background: "var(--acc)", opacity: 0.7 }} />
-            08 / About us
-          </div>
-          <h1 className="kz-page-title" style={{ maxWidth: "18ch" }}>
-            Built in the steel city. Engineered for the world.
-          </h1>
-        </div>
-      </section>
 
       <KzScrollSpy
         sections={[
@@ -261,15 +219,11 @@ export function KzAbout() {
                   padding: 24,
                 }}
               >
-                <div
-                  style={{
-                    fontFamily: "var(--font-mono)",
-                    fontSize: "0.66rem",
-                    color: "var(--dim)",
-                    marginBottom: 10,
-                  }}
-                >
-                  {String(i + 1).padStart(2, "0")}
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+                  <KzSpatialIcon3D kind={kindForLabel(t)} size={52} float={false} />
+                  <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.66rem", color: "var(--dim)" }}>
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
                 </div>
                 <h3
                   style={{
@@ -315,15 +269,11 @@ export function KzAbout() {
                   padding: 22,
                 }}
               >
-                <div
-                  style={{
-                    fontFamily: "var(--font-mono)",
-                    fontSize: "0.66rem",
-                    color: "var(--acc)",
-                    marginBottom: 10,
-                  }}
-                >
-                  {String(i + 1).padStart(2, "0")}
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+                  <KzSpatialIcon3D kind={kindForLabel(t)} size={52} float={false} />
+                  <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.66rem", color: "var(--acc)" }}>
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
                 </div>
                 <h3
                   style={{

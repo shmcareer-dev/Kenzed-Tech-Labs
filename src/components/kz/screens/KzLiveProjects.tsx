@@ -7,26 +7,18 @@ import {
   type KzDonutSlice,
   type KzLifecycleStage,
 } from "@/components/kz/KzDiagrams";
-import { KzIcon, type KzIconKey } from "@/components/kz/KzIcon";
 import { KzScrollSpy } from "@/components/kz/KzScrollSpy";
+import { KzSpatialIcon3D, kindForLabel } from "@/components/kz/KzSpatial3D";
 import { KzGridPattern } from "@/components/kz/motion/KzAmbient";
 import { KzFadeUp } from "@/components/kz/motion/KzEntrance";
 import { KzCountUp } from "@/components/kz/motion/KzFeedback";
 import { KZ_HOVER_GROUP, KzArrowNudge } from "@/components/kz/motion/KzPointer";
-import { KzPageHero, KzSectionTitle, KzSphere, KzOrbitDots } from "@/components/kz/primitives";
+import { KzPageHero, KzSectionTitle } from "@/components/kz/primitives";
 import { site } from "@/content/site";
 import { liveProjects, performers, trainingPrograms } from "@/content/training";
 
 /* The records rendered here come from src/content/training.ts, which is flagged
    as demonstration data — swap in real trainees and projects before launch. */
-
-const programIcons: Record<string, KzIconKey> = {
-  "agentic-ai-engineering": "agent",
-  "applied-ml-computer-vision": "ml",
-  "llm-fine-tuning-llmops": "llm",
-  "voice-ai-systems": "voice",
-  "product-engineering": "web",
-};
 
 const projectTitleById = new Map(liveProjects.map((project) => [project.id, project.title]));
 
@@ -65,35 +57,11 @@ const registerStats = [
 export function KzLiveProjects() {
   return (
     <div id="top" style={{ position: "relative" }}>
-      <div
-        aria-hidden="true"
-        style={{
-          position: "absolute",
-          right: "min(6%, 90px)",
-          top: "clamp(140px, 20vh, 200px)",
-          pointerEvents: "none",
-          zIndex: 1,
-        }}
-      >
-        <KzSphere size={54} opacity={0.3} />
-      </div>
-      <div
-        aria-hidden="true"
-        style={{
-          position: "absolute",
-          left: "min(4%, 50px)",
-          top: "clamp(220px, 34vh, 340px)",
-          pointerEvents: "none",
-          zIndex: 1,
-        }}
-      >
-        <KzOrbitDots count={7} radius={22} />
-      </div>
-
       <KzPageHero
         eyebrow="04 / Live projects & training"
         title="Train on live work. Leave with the record."
         lead="Our trainees do not build toy projects. They join a delivery squad on real client work, ship a reviewed contribution, and leave with a certificate and an entry in the register below — a credential someone can actually check."
+        visual="code"
       />
 
       <KzScrollSpy
@@ -151,11 +119,13 @@ export function KzLiveProjects() {
                     flexDirection: "column",
                     gap: 16,
                   }}
-                >
-                  <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-                    <span className="kz-icon-tile">
-                      <KzIcon name={programIcons[program.slug] ?? "sw"} size={20} />
-                    </span>
+                  >
+                    <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                    <KzSpatialIcon3D
+                      kind={kindForLabel(program.title)}
+                      size={54}
+                      float={false}
+                    />
                     <span
                       style={{
                         fontFamily: "var(--font-mono)",

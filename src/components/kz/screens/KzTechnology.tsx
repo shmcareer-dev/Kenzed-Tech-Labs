@@ -1,63 +1,31 @@
 "use client";
 
-import { useEffect, useState } from "react";
-
 import { KzStackDial } from "@/components/kz/KzStackDial";
 import { KzScrollSpy } from "@/components/kz/KzScrollSpy";
 import { KzGridPattern } from "@/components/kz/motion/KzAmbient";
 import { KzFadeUp, KzStagger } from "@/components/kz/motion/KzEntrance";
 import {
+  KzDecorPin,
+  KzSpatialIcon3D,
+  KzTechAtlas3D,
+  kindForLabel,
+} from "@/components/kz/KzSpatial3D";
+import {
   KzPageHero,
-  KzCube,
-  KzOrbitDots,
   KzEyebrow,
   KzSectionTitle,
 } from "@/components/kz/primitives";
 import { kzStack, kzArchFlow } from "@/content/kz";
 
 export function KzTechnology() {
-  const [desk, setDesk] = useState(false);
-
-  useEffect(() => {
-    const check = () => setDesk(window.innerWidth >= 940);
-    check();
-    window.addEventListener("resize", check);
-    return () => window.removeEventListener("resize", check);
-  }, []);
-
   return (
     <>
       <div id="top" style={{ position: "relative" }}>
-        {desk && (
-          <>
-            <div
-              aria-hidden="true"
-              style={{
-                position: "absolute",
-                right: "clamp(40px, 8vw, 120px)",
-                top: "44%",
-                zIndex: 1,
-              }}
-            >
-              <KzCube size={64} opacity={0.8} />
-            </div>
-            <div
-              aria-hidden="true"
-              style={{
-                position: "absolute",
-                right: "clamp(120px, 14vw, 220px)",
-                top: "22%",
-                zIndex: 1,
-              }}
-            >
-              <KzOrbitDots count={6} radius={22} />
-            </div>
-          </>
-        )}
         <KzPageHero
           eyebrow="05 / Technology"
           title="A modern stack behind every build"
           lead="A transparent view of the languages, frameworks, and platforms we use to build and run reliable production systems."
+          visual="code"
         />
       </div>
 
@@ -115,6 +83,9 @@ export function KzTechnology() {
                   <span key={t} style={{ display: "inline-flex", alignItems: "center", gap: 12 }}>
                     <span
                       style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 7,
                         fontFamily: "var(--font-mono)",
                         fontSize: "0.7rem",
                         letterSpacing: "0.08em",
@@ -125,6 +96,11 @@ export function KzTechnology() {
                         color: "var(--ink)",
                       }}
                     >
+                      <KzSpatialIcon3D
+                        kind={kindForLabel(t)}
+                        size={28}
+                        float={false}
+                      />
                       {t}
                     </span>
                     {i < kzArchFlow.length - 1 && (
@@ -144,17 +120,26 @@ export function KzTechnology() {
             </div>
           </KzFadeUp>
 
-          <KzFadeUp style={{ marginTop: "clamp(46px, 7vw, 78px)" }}>
-            <KzEyebrow>The stack, layer by layer</KzEyebrow>
-            <KzSectionTitle style={{ maxWidth: "20ch", marginBottom: 16 }}>
-              Eleven layers on one instrument
-            </KzSectionTitle>
-            <p className="kz-page-lead">
-              Every layer of the stack sits on a single dial. Scroll and the ring turns under the
-              fixed marker, stepping through all eleven while the panel reads out the tools in the
-              layer it lands on — and the full written index follows below.
-            </p>
-          </KzFadeUp>
+          <div style={{ position: "relative" }}>
+            <KzDecorPin
+              kind="database"
+              label="Vector + data layer"
+              size={54}
+              tone="violet"
+              className="kz-tech-pin"
+            />
+            <KzFadeUp style={{ marginTop: "clamp(46px, 7vw, 78px)" }}>
+              <KzEyebrow>The stack, layer by layer</KzEyebrow>
+              <KzSectionTitle style={{ maxWidth: "20ch", marginBottom: 16 }}>
+                Eleven layers, one spatial system
+              </KzSectionTitle>
+              <p className="kz-page-lead">
+                Scroll and the instrument turns through all eleven layers. The active panel reads
+                out the tools in that layer; below it, every named technology gets a textured 3D
+                marker in the complete visual index.
+              </p>
+            </KzFadeUp>
+          </div>
 
           {/* No entrance wrapper: an entry transform would shift the dial's
               measured position and jitter the rotation it derives from it, and a
@@ -165,7 +150,7 @@ export function KzTechnology() {
             <KzStackDial groups={kzStack} />
           </div>
 
-          <KzFadeUp style={{ marginTop: "clamp(40px, 6vw, 64px)" }}>
+          <KzFadeUp style={{ marginTop: "clamp(46px, 7vw, 72px)" }}>
             <h3
               style={{
                 fontFamily: "var(--font-mono)",
@@ -177,49 +162,9 @@ export function KzTechnology() {
                 fontWeight: 500,
               }}
             >
-              Full stack index
+              Full 3D technology index
             </h3>
-            <dl style={{ margin: 0, borderTop: "1px solid var(--line)" }}>
-              {kzStack.map(([category, tags]) => (
-                <div
-                  key={category}
-                  style={{
-                    display: "flex",
-                    flexWrap: "wrap",
-                    alignItems: "baseline",
-                    gap: "4px 22px",
-                    padding: "14px 2px",
-                    borderBottom: "1px solid var(--line)",
-                  }}
-                >
-                  <dt
-                    style={{
-                      flex: "0 0 auto",
-                      minWidth: 128,
-                      fontFamily: "var(--font-mono)",
-                      fontSize: "0.7rem",
-                      letterSpacing: "0.16em",
-                      textTransform: "uppercase",
-                      color: "var(--acc)",
-                      fontWeight: 600,
-                    }}
-                  >
-                    {category}
-                  </dt>
-                  <dd
-                    style={{
-                      flex: "1 1 260px",
-                      margin: 0,
-                      fontSize: "0.9rem",
-                      lineHeight: 1.65,
-                      color: "var(--mut)",
-                    }}
-                  >
-                    {tags.join(" · ")}
-                  </dd>
-                </div>
-              ))}
-            </dl>
+            <KzTechAtlas3D groups={kzStack} />
           </KzFadeUp>
         </div>
       </section>

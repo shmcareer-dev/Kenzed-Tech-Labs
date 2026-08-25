@@ -5,10 +5,14 @@ import Link from "next/link";
 import { KzTerminal } from "@/components/kz/KzTerminal";
 import { KzHeroStory } from "@/components/kz/KzHeroStory";
 import { KzScrollSpy } from "@/components/kz/KzScrollSpy";
-import { KzIcon } from "@/components/kz/KzIcon";
 import { KzLifecycleRing } from "@/components/kz/KzLifecycleRing";
 import { KzParticleField } from "@/components/kz/KzParticleField";
 import { KzGraphCards, KzStoryCarousel } from "@/components/kz/KzShowcase";
+import {
+  KzDecorPin,
+  KzSpatialIcon3D,
+  kindForLabel,
+} from "@/components/kz/KzSpatial3D";
 import { KzEyebrow, KzSectionTitle, KzButton } from "@/components/kz/primitives";
 import { KzFadeUp, KzStagger } from "@/components/kz/motion/KzEntrance";
 import { KzMaskedLines } from "@/components/kz/motion/KzText";
@@ -64,7 +68,10 @@ export function KzHome() {
         ]}
       />
 
-      <section id="agentic" style={{ padding: KZ_SECTION_PAD, background: "var(--bg)" }}>
+      <section
+        id="agentic"
+        style={{ padding: KZ_SECTION_PAD, background: "var(--bg)", position: "relative" }}
+      >
         {/* Two columns, staggered: the heading lands, then the argument. */}
         <KzStagger
           className="kz-wrap"
@@ -82,7 +89,7 @@ export function KzHome() {
             </KzSectionTitle>
           </div>
 
-          <div>
+          <div style={{ position: "relative" }}>
             <p className="kz-page-lead" style={{ marginBottom: 22 }}>
               Software is entering its agentic era. Kenzed Tech Lab helps organizations make that
               leap. We combine deep AI research capability with disciplined software engineering to
@@ -90,6 +97,13 @@ export function KzHome() {
               handle real workflows, machine-learning models that turn data into decisions, and
               beautifully engineered applications that people love to use.
             </p>
+            <KzDecorPin
+              kind="code"
+              label="Code layer / live"
+              size={52}
+              className="kz-home-terminal-pin"
+              tone="blue"
+            />
             <KzTerminal />
           </div>
         </KzStagger>
@@ -160,9 +174,11 @@ export function KzHome() {
                 className="kz-card"
               >
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span className="kz-icon-tile">
-                    <KzIcon name={s.icon} size={22} />
-                  </span>
+                  <KzSpatialIcon3D
+                    kind={kindForLabel(s.title)}
+                    size={54}
+                    float={false}
+                  />
                   <span
                     style={{
                       fontFamily: "var(--font-mono)",
@@ -301,6 +317,13 @@ export function KzHome() {
           padding: "clamp(56px, 8vw, 96px) 0 clamp(112px, 18vw, 210px)",
         }}
       >
+        <KzDecorPin
+          kind="robot"
+          label="Agent channel / ready"
+          size={58}
+          className="kz-home-cta-pin"
+          tone="violet"
+        />
         {/* The field is a backdrop, so it is masked into the page rather than
             given its own edge: the copy stays fully legible above the fade. It
             is also the page's one parallax layer — decorative, clipped by the

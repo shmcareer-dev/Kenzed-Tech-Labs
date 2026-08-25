@@ -2,41 +2,18 @@
 
 import { KzReveal } from "@/components/kz/KzReveal";
 import { KzScrollSpy } from "@/components/kz/KzScrollSpy";
-import { KzPageHero, KzTorus, KzOrbitDots } from "@/components/kz/primitives";
+import { KzSpatialIcon3D, kindForLabel } from "@/components/kz/KzSpatial3D";
+import { KzPageHero } from "@/components/kz/primitives";
 import { kzProcess } from "@/content/kz";
 
 export function KzProcess() {
   return (
     <div id="top" style={{ position: "relative" }}>
-      <div
-        aria-hidden="true"
-        style={{
-          position: "absolute",
-          right: "min(6%, 90px)",
-          top: "clamp(140px, 20vh, 200px)",
-          pointerEvents: "none",
-          zIndex: 1,
-        }}
-      >
-        <KzTorus size={58} opacity={0.32} />
-      </div>
-      <div
-        aria-hidden="true"
-        style={{
-          position: "absolute",
-          left: "min(4%, 50px)",
-          top: "clamp(220px, 34vh, 340px)",
-          pointerEvents: "none",
-          zIndex: 1,
-        }}
-      >
-        <KzOrbitDots count={6} radius={20} />
-      </div>
-
       <KzPageHero
         eyebrow="07 / How we work"
         title="A transparent, production-first process"
         lead="Agile delivery that de-risks your project and keeps you in control at every step."
+        visual="pipeline"
       />
 
       <KzScrollSpy
@@ -78,7 +55,7 @@ export function KzProcess() {
               <div
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "minmax(64px, 110px) 1fr",
+                  gridTemplateColumns: "minmax(86px, 130px) 1fr",
                   gap: "clamp(14px, 3vw, 40px)",
                   padding: "clamp(24px, 4vw, 38px) 12px",
                   borderTop: "1px solid var(--line)",
@@ -86,19 +63,26 @@ export function KzProcess() {
                 }}
                 className="kz-hover-row"
               >
-                <div
-                  style={{
-                    fontFamily: "var(--font-display)",
-                    fontWeight: 600,
-                    fontSize: "clamp(1.8rem, 4.5vw, 3rem)",
-                    lineHeight: 1.02,
-                    letterSpacing: "-0.035em",
-                    color: "var(--dim)",
-                    transition: "color .3s",
-                  }}
-                  className="process-num"
-                >
-                  {String(i + 1).padStart(2, "0")}
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <KzSpatialIcon3D
+                    kind={kindForLabel(t)}
+                    size={44}
+                    float={false}
+                  />
+                  <span
+                    style={{
+                      fontFamily: "var(--font-display)",
+                      fontWeight: 600,
+                      fontSize: "clamp(1.45rem, 3.5vw, 2.4rem)",
+                      lineHeight: 1.02,
+                      letterSpacing: "-0.035em",
+                      color: "var(--dim)",
+                      transition: "color .3s",
+                    }}
+                    className="process-num"
+                  >
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
                 </div>
                 <div
                   style={{

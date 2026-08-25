@@ -3,9 +3,9 @@
 import Link from "next/link";
 
 import { KzReveal } from "@/components/kz/KzReveal";
-import { KzIcon } from "@/components/kz/KzIcon";
 import { KzScrollSpy } from "@/components/kz/KzScrollSpy";
-import { KzSectionTitle, KzButton } from "@/components/kz/primitives";
+import { KzSpatialIcon3D, kindForLabel } from "@/components/kz/KzSpatial3D";
+import { KzPageHero, KzSectionTitle, KzButton } from "@/components/kz/primitives";
 import type { Service } from "@/content/services";
 
 interface KzServiceDetailProps {
@@ -17,36 +17,14 @@ export function KzServiceDetail({ service, related }: KzServiceDetailProps) {
 
   return (
     <>
-      <section id="top" style={{ padding: "clamp(130px, 18vh, 180px) 0 clamp(40px, 6vw, 70px)" }}>
-        <div className="kz-wrap">
-          <div
-            style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: "0.7rem",
-              letterSpacing: "0.2em",
-              textTransform: "uppercase",
-              color: "var(--acc)",
-              fontWeight: 500,
-              display: "flex",
-              alignItems: "center",
-              gap: 12,
-              marginBottom: 18,
-            }}
-          >
-            <span style={{ width: 26, height: 1, background: "var(--acc)", opacity: 0.7 }} />
-            02 / Services
-          </div>
-          <h1
-            className="kz-page-title"
-            style={{ maxWidth: "22ch", fontSize: "clamp(1.9rem, 5vw, 3.2rem)" }}
-          >
-            {service.title}
-          </h1>
-          <p className="kz-page-lead" style={{ maxWidth: "70ch" }}>
-            {service.summary}
-          </p>
-        </div>
-      </section>
+      <div id="top">
+        <KzPageHero
+          eyebrow="02 / Services"
+          title={service.title}
+          lead={service.summary}
+          visual={kindForLabel(service.title)}
+        />
+      </div>
 
       <KzScrollSpy
         sections={[
@@ -176,9 +154,11 @@ export function KzServiceDetail({ service, related }: KzServiceDetailProps) {
                   }}
                   className="kz-card"
                 >
-                  <span className="kz-icon-tile">
-                    <KzIcon name={item.icon} size={22} />
-                  </span>
+                  <KzSpatialIcon3D
+                    kind={kindForLabel(item.title)}
+                    size={58}
+                    float={false}
+                  />
                   <h3
                     style={{
                       fontSize: "1.05rem",

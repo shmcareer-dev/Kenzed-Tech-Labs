@@ -9,6 +9,7 @@ import {
   useSyncExternalStore,
   type RefObject,
 } from "react";
+import { KzTechToken3D } from "@/components/kz/KzSpatial3D";
 
 export interface KzStackDialProps {
   groups: readonly (readonly [string, readonly string[]])[];
@@ -598,6 +599,7 @@ export function KzStackDial({ groups }: KzStackDialProps) {
               {Array.from({ length: sizer.rows }, (_, i) => (
                 <li key={i}>
                   <span className="kzsd-n">00</span>
+                  <KzTechToken3D name={sizer.longest} category={category} size={30} />
                   <span className="kzsd-t">{sizer.longest}</span>
                 </li>
               ))}
@@ -607,6 +609,7 @@ export function KzStackDial({ groups }: KzStackDialProps) {
                 {groups[ghost][1].map((tool, i) => (
                   <li key={tool}>
                     <span className="kzsd-n">{kzsdPad(i + 1)}</span>
+                    <KzTechToken3D name={tool} category={groups[ghost][0]} size={30} />
                     <span className="kzsd-t">{tool}</span>
                   </li>
                 ))}
@@ -616,6 +619,7 @@ export function KzStackDial({ groups }: KzStackDialProps) {
               {items.map((tool, i) => (
                 <li key={tool} style={{ animationDelay: `${i * 26}ms` }}>
                   <span className="kzsd-n">{kzsdPad(i + 1)}</span>
+                  <KzTechToken3D name={tool} category={category} size={30} />
                   <span className="kzsd-t">{tool}</span>
                 </li>
               ))}
@@ -749,9 +753,10 @@ const KZSD_CSS = `
 .kzsd-list{list-style:none;margin:0;padding:0}
 .kzsd-list li{
   display:flex;
-  align-items:baseline;
-  gap:12px;
-  padding:9px 2px;
+  align-items:center;
+  gap:9px;
+  min-height:44px;
+  padding:6px 2px;
   border-bottom:1px solid var(--line);
 }
 .kzsd-list li:last-child{border-bottom:0}

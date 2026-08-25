@@ -2,12 +2,12 @@
 
 import { useState } from "react";
 
-import { KzIcon } from "@/components/kz/KzIcon";
 import { KzScrollSpy } from "@/components/kz/KzScrollSpy";
+import { KzSpatialIcon3D, kindForLabel } from "@/components/kz/KzSpatial3D";
 import { KzGridPattern } from "@/components/kz/motion/KzAmbient";
 import { KZ_EASE, KzFadeUp } from "@/components/kz/motion/KzEntrance";
 import { KzTilt3D } from "@/components/kz/motion/KzPointer";
-import { KzPageHero, KzTorus, KzSphere } from "@/components/kz/primitives";
+import { KzPageHero } from "@/components/kz/primitives";
 import { kzServices } from "@/content/kz";
 
 /* The house curve, spelled for a CSS transition. Derived from the kit constant
@@ -19,35 +19,11 @@ export function KzServices() {
 
   return (
     <div id="top" style={{ position: "relative" }}>
-      <div
-        aria-hidden="true"
-        style={{
-          position: "absolute",
-          right: "min(6%, 90px)",
-          top: "clamp(140px, 20vh, 200px)",
-          pointerEvents: "none",
-          zIndex: 1,
-        }}
-      >
-        <KzTorus size={64} opacity={0.35} />
-      </div>
-      <div
-        aria-hidden="true"
-        style={{
-          position: "absolute",
-          left: "min(4%, 50px)",
-          top: "clamp(200px, 32vh, 320px)",
-          pointerEvents: "none",
-          zIndex: 1,
-        }}
-      >
-        <KzSphere size={48} opacity={0.3} />
-      </div>
-
       <KzPageHero
         eyebrow="02 / Services"
         title="From autonomous agents to enterprise platforms"
         lead="Every service ships with the technical depth, security, and observability real systems demand. Tap a service to see exactly what we deliver — and the stack behind it."
+        visual="robot"
       />
 
       <KzScrollSpy
@@ -105,9 +81,11 @@ export function KzServices() {
                         }}
                       >
                         <div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
-                          <span className="kz-icon-tile">
-                            <KzIcon name={s.icon} size={22} />
-                          </span>
+                          <KzSpatialIcon3D
+                            kind={kindForLabel(s.title)}
+                            size={62}
+                            float={false}
+                          />
                           <div>
                             <div
                               style={{

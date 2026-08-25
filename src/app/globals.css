@@ -460,6 +460,79 @@
     padding-inline: clamp(18px, 4.5vw, 36px);
   }
 
+  .kz-page-hero {
+    position: relative;
+    overflow: hidden;
+    padding: 90px 0 38px;
+    border-bottom: 1px solid color-mix(in srgb, var(--line) 72%, transparent);
+    background:
+      radial-gradient(circle at 78% 30%, color-mix(in srgb, var(--acc) 10%, transparent), transparent 32%),
+      linear-gradient(180deg, var(--bg), color-mix(in srgb, var(--bg2) 76%, var(--bg)));
+  }
+
+  .kz-page-hero::after {
+    content: "";
+    position: absolute;
+    inset: auto -10% -54% 44%;
+    height: 76%;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--acc2) 8%, transparent);
+    filter: blur(54px);
+    pointer-events: none;
+  }
+
+  .kz-page-hero-grid {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: .2;
+    background-image:
+      linear-gradient(color-mix(in srgb, var(--acc) 22%, transparent) 1px, transparent 1px),
+      linear-gradient(90deg, color-mix(in srgb, var(--acc) 22%, transparent) 1px, transparent 1px);
+    background-size: 42px 42px;
+    -webkit-mask-image: linear-gradient(to bottom right, transparent, #000 32%, transparent 86%);
+    mask-image: linear-gradient(to bottom right, transparent, #000 32%, transparent 86%);
+  }
+
+  .kz-page-hero-layout {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    gap: 8px;
+  }
+
+  .kz-page-hero-art {
+    min-width: 0;
+    height: 118px;
+  }
+
+  .kz-page-hero-copy {
+    min-width: 0;
+  }
+
+  @media (min-width: 760px) {
+    .kz-page-hero {
+      padding: clamp(108px, 13vh, 148px) 0 clamp(48px, 6vw, 72px);
+    }
+
+    .kz-page-hero-layout {
+      grid-template-columns: minmax(0, 1.3fr) minmax(250px, .7fr);
+      align-items: center;
+      gap: clamp(34px, 6vw, 84px);
+    }
+
+    .kz-page-hero-art {
+      grid-column: 2;
+      grid-row: 1;
+      height: clamp(210px, 26vw, 280px);
+    }
+
+    .kz-page-hero-copy {
+      grid-column: 1;
+      grid-row: 1;
+    }
+  }
+
   /* Historically a gradient clip. The design replaces gradient text with a
      flat cyan and a soft backlight; the class name survives so none of the
      component call sites need editing — only the treatment behind it. */

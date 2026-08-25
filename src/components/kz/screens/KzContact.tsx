@@ -5,7 +5,7 @@ import { KzScrollSpy } from "@/components/kz/KzScrollSpy";
 import { KzGridPattern } from "@/components/kz/motion/KzAmbient";
 import { KzFadeUp, KzStagger } from "@/components/kz/motion/KzEntrance";
 import { KzHoverLift } from "@/components/kz/motion/KzPointer";
-import { KzPageHero, KzCube, KzOrbitDots } from "@/components/kz/primitives";
+import { KzPageHero } from "@/components/kz/primitives";
 import { KzContactForm } from "@/components/kz/KzContactForm";
 import { kzLocations } from "@/content/kz";
 
@@ -18,35 +18,11 @@ const contactLinks: [string, string, string?][] = [
 export function KzContact() {
   return (
     <div id="top" style={{ position: "relative" }}>
-      <div
-        aria-hidden="true"
-        style={{
-          position: "absolute",
-          right: "min(6%, 90px)",
-          top: "clamp(140px, 20vh, 200px)",
-          pointerEvents: "none",
-          zIndex: 1,
-        }}
-      >
-        <KzCube size={52} opacity={0.32} />
-      </div>
-      <div
-        aria-hidden="true"
-        style={{
-          position: "absolute",
-          left: "min(4%, 50px)",
-          top: "clamp(220px, 34vh, 340px)",
-          pointerEvents: "none",
-          zIndex: 1,
-        }}
-      >
-        <KzOrbitDots count={7} radius={24} />
-      </div>
-
       <KzPageHero
         eyebrow="09 / Contact"
         title="Let's build something intelligent"
         lead="Tell us about your project and our team will reply within one business day — whether you need a custom AI agent, a fine-tuned model, or an enterprise platform."
+        visual="robot"
       />
 
       <KzScrollSpy

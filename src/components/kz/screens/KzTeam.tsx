@@ -2,6 +2,7 @@
 
 import { KzReveal } from "@/components/kz/KzReveal";
 import { KzScrollSpy } from "@/components/kz/KzScrollSpy";
+import { KzSpatialIcon3D, kindForLabel } from "@/components/kz/KzSpatial3D";
 import { KzPageHero, KzSectionTitle } from "@/components/kz/primitives";
 import { kzTeam } from "@/content/kz";
 
@@ -61,15 +62,11 @@ export function KzTeam() {
                   }}
                   className="kz-card"
                 >
-                  <div
-                    style={{
-                      fontFamily: "var(--font-mono)",
-                      fontSize: "0.66rem",
-                      color: "var(--dim)",
-                      marginBottom: 10,
-                    }}
-                  >
-                    {String(i + 1).padStart(2, "0")}
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+                    <KzSpatialIcon3D kind={kindForLabel(t)} size={52} float={false} />
+                    <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.66rem", color: "var(--dim)" }}>
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
                   </div>
                   <h3
                     style={{
