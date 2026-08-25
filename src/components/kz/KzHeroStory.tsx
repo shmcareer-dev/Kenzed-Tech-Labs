@@ -177,26 +177,38 @@ const KZ_HERO_STORY_CSS = `
 
 /* --- Stage 2: the foundation reveal, fading in past ~0.35 progress. --- */
 .kzhs-reveal{
-  position:absolute;z-index:10;right:var(--kzhs-inset);top:18%;
-  width:min(500px,42vw);
+  position:absolute;z-index:10;right:var(--kzhs-inset);top:15%;
+  width:min(610px,46vw);padding:clamp(20px,2vw,28px);
+  border:1px solid color-mix(in srgb,var(--acc2) 28%,var(--line));
+  border-radius:20px;
+  background:linear-gradient(145deg,color-mix(in srgb,var(--bg) 86%,transparent),color-mix(in srgb,var(--bg2) 70%,transparent));
+  box-shadow:0 28px 90px -46px color-mix(in srgb,var(--acc) 65%,transparent),inset 0 1px 0 color-mix(in srgb,var(--ink) 8%,transparent);
+  backdrop-filter:blur(18px) saturate(120%);
+  -webkit-backdrop-filter:blur(18px) saturate(120%);
   opacity:clamp(0,calc((var(--progress) - .34)*4.2),1);
   transform:translate3d(calc(var(--pointer-x)*7px),calc((1 - var(--progress))*42px),0);
   pointer-events:none;
 }
-.kzhs-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px 20px;margin-top:8px}
-.kzhs-stat{border-left:1px solid var(--line2);padding-left:16px}
+.kzhs-reveal .kzhs-eyebrow{color:color-mix(in srgb,var(--acc3) 78%,var(--ink));font-weight:650}
+.kzhs-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px 18px;margin-top:10px}
+.kzhs-stat{
+  min-height:108px;padding:5px 10px 5px 18px;
+  border-left:2px solid color-mix(in srgb,var(--acc2) 58%,var(--line2));
+  background:linear-gradient(90deg,color-mix(in srgb,var(--acc) 7%,transparent),transparent 76%);
+}
 .kzhs-stat-num{
   color:var(--ink);font-family:var(--font-display);font-weight:600;
-  font-size:clamp(1.9rem,3.3vw,2.9rem);line-height:1.05;letter-spacing:-.035em;
+  font-size:clamp(2.55rem,4.15vw,4rem);line-height:.98;letter-spacing:-.05em;
+  text-shadow:0 0 28px color-mix(in srgb,var(--acc) 24%,transparent);
   /* Class-set family bypasses the [style*="--font-display"] tabular catch-all
      in globals.css, so tabular figures are restated here — an animated stat in
      proportional figures visibly shoves its neighbours as it ticks. */
   font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1,"liga" 1,"calt" 1;
 }
 .kzhs-stat-label{
-  margin-top:6px;max-width:20ch;color:var(--mut);
-  font-family:var(--font-mono);font-size:10px;font-weight:500;
-  letter-spacing:.09em;text-transform:uppercase;line-height:1.45;
+  margin-top:10px;max-width:22ch;color:color-mix(in srgb,var(--ink) 74%,var(--mut));
+  font-family:var(--font-mono);font-size:clamp(.69rem,.72vw,.78rem);font-weight:650;
+  letter-spacing:.075em;text-transform:uppercase;line-height:1.42;
 }
 
 /* --- Floating mono annotations over the lower art. --- */
@@ -249,33 +261,6 @@ const KZ_HERO_STORY_CSS = `
   .kzhs-reveal{width:min(520px,calc(100vw - 48px))}
 }
 
-@media (max-width:640px){
-  .kzhs-story{height:210svh}
-  .kzhs-sticky{min-height:640px}
-  .kzhs-frame{inset:-2% -24%;transform:translate3d(calc(var(--pointer-x)*-3px),calc((var(--progress)*-7vh) + (var(--pointer-y)*-2px)),0) scale(calc(1.02 + var(--progress)*.07))}
-  .kzhs-scene{background:linear-gradient(180deg,rgba(2,6,10,.94) 0%,rgba(2,7,12,.62) 34%,rgba(2,7,12,.05) 64%,rgba(2,7,12,.83) 100%)}
-  .kzhs-vignette{box-shadow:inset 0 0 90px 20px rgba(0,0,0,.45)}
-  .kzhs-grid{inset:38% 0 0;background-size:48px 48px}
-  .kzhs-marker{top:37%;grid-template-columns:1fr;padding:0 18px}
-  .kzhs-marker span{display:none}
-  /* Copy stays vertically centred on phones: the lede runs longer than the
-     mockup's, and a fixed top offset would push the CTAs into the meter. */
-  .kzhs-copy{left:20px;width:calc(100vw - 40px);transform:translateY(calc(-50% + var(--progress)*-48px))}
-  .kzhs-eyebrow{margin-bottom:17px;font-size:8px;letter-spacing:.1em}
-  .kzhs-lede{width:min(100%,440px);margin-top:20px;font-size:15px}
-  .kzhs-actions{flex-direction:column;width:min(100%,330px);margin-top:24px}
-  .kzhs-reveal{left:20px;right:auto;top:16%;width:calc(100vw - 40px)}
-  .kzhs-note{font-size:7px}
-  .kzhs-note-1{left:41%;bottom:27%}
-  .kzhs-note-2{left:44%;bottom:11%}
-  .kzhs-note-3{left:10%;bottom:18%}
-  .kzhs-meter{left:18px;bottom:50px;grid-template-columns:auto 70px}
-  .kzhs-meter > i{width:70px}
-  .kzhs-meter strong{display:none}
-  .kzhs-ribbon{height:35px}
-  .kzhs-ribbon-track span{padding:0 19px;font-size:8px}
-}
-
 /* Reduced motion: the story flattens into ordinary flow. The art stays as a
    static backdrop, both stages render in sequence at full opacity, and every
    scrubbed or looping layer disappears rather than freezing mid-state. */
@@ -295,6 +280,52 @@ const KZ_HERO_STORY_CSS = `
   .kzhs-ribbon{position:static;height:auto;min-height:39px;padding:8px 0}
   .kzhs-ribbon-track{width:100%;flex-wrap:wrap;justify-content:center;animation:none}
   .kzhs-ribbon-track span[aria-hidden]{display:none}
+}
+
+/* Phone-first hero: show the complete 16:9 artwork as its own opening panel,
+   then put the heading and actions in ordinary document flow below it. This
+   intentionally removes the desktop scroll-story on phones: no crop, no
+   hidden half of the illustration, and no 210svh spacer to swipe through. */
+@media (max-width:767px), (max-width:920px) and (max-height:560px) and (pointer:coarse){
+  .kzhs-story{height:auto;--progress:0}
+  .kzhs-sticky{
+    position:relative;top:auto;height:auto;min-height:0;overflow:hidden;
+    display:flex;flex-direction:column;padding:76px 0 0;
+  }
+  .kzhs-frame{
+    position:relative;z-index:0;inset:auto;order:0;width:100%;aspect-ratio:16/9;
+    flex:none;opacity:0;transform:none;filter:blur(14px) saturate(.72) brightness(.82);
+    will-change:auto;background:#02070c;
+  }
+  .kzhs-frame.is-loaded{opacity:1;filter:blur(0) saturate(.92) contrast(1.06) brightness(.92)}
+  .kzhs-frame img{object-fit:contain!important;object-position:center!important}
+  [data-kz-theme="light"] .kzhs-frame{display:block}
+  .kzhs-scene,.kzhs-grid,.kzhs-vignette,.kzhs-particles,
+  .kzhs-marker,.kzhs-scan,.kzhs-notes,.kzhs-meter{display:none}
+  .kzhs-copy{
+    position:relative;z-index:2;left:auto;top:auto;order:1;
+    width:auto;max-width:none;margin:0;padding:clamp(28px,8vw,42px) 20px 30px;
+    opacity:1;visibility:visible;transform:none;
+    background:linear-gradient(180deg,color-mix(in srgb,var(--bg2) 38%,var(--bg)),var(--bg));
+  }
+  .kzhs-story[data-kzhs-past="true"] .kzhs-intro{visibility:visible}
+  .kzhs-eyebrow{margin-bottom:16px;font-size:9px;letter-spacing:.1em;line-height:1.5}
+  .kzhs-title{font-size:clamp(2.65rem,13.5vw,4.35rem);line-height:.91;letter-spacing:-.057em}
+  .kzhs-lede{width:100%;max-width:44ch;margin-top:22px;font-size:16px;line-height:1.58;text-align:left;hyphens:none}
+  .kzhs-actions{flex-direction:column;width:100%;max-width:390px;margin-top:25px}
+  .kzhs-actions .kzmag,.kzhs-actions .kzmag-in,.kzhs-actions .kz-btn{width:100%}
+  .kzhs-actions .kz-btn{justify-content:center}
+  .kzhs-reveal{
+    position:relative;z-index:2;left:auto;right:auto;top:auto;order:2;
+    width:auto;max-width:none;margin:0 20px 34px;padding:20px 18px;
+    opacity:1;transform:none;pointer-events:auto;border-radius:16px;
+  }
+  .kzhs-stats{gap:18px 12px;margin-top:6px}
+  .kzhs-stat{min-height:94px;padding:4px 6px 4px 13px}
+  .kzhs-stat-num{font-size:clamp(2.15rem,11vw,3rem)}
+  .kzhs-stat-label{margin-top:8px;font-size:.66rem;line-height:1.38}
+  .kzhs-ribbon{position:relative;left:auto;right:auto;bottom:auto;order:3;height:35px;flex:none}
+  .kzhs-ribbon-track span{padding:0 19px;font-size:8px}
 }
 `;
 

@@ -26,7 +26,8 @@ import {
 
 /* Every section below the hero shares one vertical rhythm so the page reads as
    a sequence of rooms rather than a scroll of stacked widgets. */
-const KZ_SECTION_PAD = "clamp(56px, 8vw, 128px) 0";
+const KZ_SECTION_PAD = "clamp(44px, 6vw, 88px) 0";
+const KZ_SECTION_END = "0 0 clamp(48px, 6vw, 88px)";
 
 /* The one statement on the page that lights up word by word as it is read. It
    is pulled out of the intro column so the effect owns an element of its own
@@ -93,8 +94,10 @@ export function KzHome() {
           </div>
         </KzStagger>
 
-        <div className="kz-wrap" style={{ marginTop: "clamp(34px, 6vw, 60px)" }}>
-          <KzScrollFillText className="kz-page-lead">{KZ_STATEMENT}</KzScrollFillText>
+        <div className="kz-wrap" style={{ marginTop: "clamp(28px, 4vw, 44px)" }}>
+          <KzScrollFillText className="kz-page-lead" dim={0.46}>
+            {KZ_STATEMENT}
+          </KzScrollFillText>
         </div>
       </section>
 
@@ -124,11 +127,11 @@ export function KzHome() {
         </div>
       </section>
 
-      <section id="services" style={{ padding: "0 0 clamp(72px, 10vw, 128px)", background: "var(--bg)" }}>
+      <section id="services" style={{ padding: KZ_SECTION_END, background: "var(--bg)" }}>
         <div className="kz-wrap">
           <KzFadeUp>
             <KzEyebrow index="04">What we build</KzEyebrow>
-            <KzSectionTitle style={{ maxWidth: "22ch", marginBottom: 44 }}>
+            <KzSectionTitle style={{ maxWidth: "22ch", marginBottom: 32 }}>
               Services engineered for production, not prototypes
             </KzSectionTitle>
           </KzFadeUp>
@@ -201,7 +204,7 @@ export function KzHome() {
         </div>
       </section>
 
-      <section id="why" style={{ padding: "0 0 clamp(72px, 10vw, 128px)", background: "var(--bg)" }}>
+      <section id="why" style={{ padding: KZ_SECTION_END, background: "var(--bg)" }}>
         <div className="kz-wrap">
           <KzFadeUp>
             <KzEyebrow index="05">Why Kenzed</KzEyebrow>
@@ -261,7 +264,7 @@ export function KzHome() {
         </div>
       </section>
 
-      <section id="outcomes" style={{ padding: "0 0 clamp(72px, 10vw, 128px)", background: "var(--bg)" }}>
+      <section id="outcomes" style={{ padding: KZ_SECTION_END, background: "var(--bg)" }}>
         <div className="kz-wrap">
           <KzFadeUp>
             <KzEyebrow>{kzOutcomesSection.eyebrow}</KzEyebrow>
@@ -279,7 +282,7 @@ export function KzHome() {
                 color: "var(--dim)",
                 fontSize: "0.84rem",
                 lineHeight: 1.7,
-                textAlign: "justify",
+                textAlign: "left",
               }}
             >
               {kzOutcomesSection.note}
@@ -295,7 +298,7 @@ export function KzHome() {
           overflow: "hidden",
           background: "var(--bg)",
           borderTop: "1px solid var(--line)",
-          padding: "clamp(76px, 11vw, 130px) 0 clamp(170px, 28vw, 300px)",
+          padding: "clamp(56px, 8vw, 96px) 0 clamp(112px, 18vw, 210px)",
         }}
       >
         {/* The field is a backdrop, so it is masked into the page rather than
@@ -316,7 +319,7 @@ export function KzHome() {
           }}
         >
           <KzParallax depth={0.3}>
-            <KzParticleField height={520} density={0.9} />
+            <KzParticleField height={420} density={0.9} />
           </KzParallax>
         </div>
 

@@ -78,11 +78,14 @@ const KZLR_CSS = `
 .kzlr{
   position:relative;
   --kzlr-head:${KZLR_HEAD}px;
-  --kzlr-d:clamp(660px,64vw,1040px);
+  --kzlr-d:clamp(420px,min(48vw,66svh),700px);
   --kzlr-r:calc(var(--kzlr-d) / 2);
-  --kzlr-step:74svh;
-  --kzlr-band:clamp(20px,2.4vw,38px);
-  --kzlr-node:clamp(56px,5vw,74px);
+  --kzlr-step:56svh;
+  --kzlr-band:clamp(16px,1.8vw,28px);
+  --kzlr-node:clamp(54px,4vw,62px);
+  /* Viewport-to-content inset. Subtracting it below puts the wheel's centre
+     on the left edge of the screen, leaving one clean half-circle visible. */
+  --kzlr-edge:max(clamp(18px,4.5vw,36px),calc((100vw - var(--container-site))/2 + 36px));
   /* Pills ride the centreline of the band rather than its outer edge, so they
      read as sitting ON the arc instead of floating beside it. */
   --kzlr-pr:calc(var(--kzlr-r) - var(--kzlr-band) / 2);
@@ -91,11 +94,11 @@ const KZLR_CSS = `
   /* A dark halo punched around each pill so a label reading over the lit band
      never fights the band for the same pixels. */
   --kzlr-cut:color-mix(in srgb,var(--bg) 78%,transparent);
-  --kzlr-lead:color-mix(in srgb,var(--acc) 58%,var(--ink));
+  --kzlr-lead:color-mix(in srgb,var(--acc) 68%,var(--ink));
   /* One easing language across the whole section. */
   --kzlr-ease:cubic-bezier(.22,1,.36,1);
   --kzlr-mask:radial-gradient(farthest-side,#0000 calc(100% - var(--kzlr-band)),#000 calc(100% - var(--kzlr-band) + 1px));
-  padding-block:clamp(48px,8vw,96px);
+  padding-block:clamp(38px,6vw,76px);
 }
 /* Unpinned the section is ordinary flow, so only the horizontal bleed needs
    containing; the pinned rule below swaps in a full clip for the giant circle. */
@@ -180,7 +183,7 @@ const KZLR_CSS = `
   font-family:var(--font-mono);font-size:.68rem;letter-spacing:.13em;
   text-transform:uppercase;text-align:left;
   transform:translate(-50%,-50%) rotate(var(--kzlr-a)) translateX(var(--kzlr-pr)) translateX(var(--kzlr-shift,0px));
-  transition:color .35s var(--kzlr-ease),border-color .35s var(--kzlr-ease),
+  transition:opacity .25s var(--kzlr-ease),color .35s var(--kzlr-ease),border-color .35s var(--kzlr-ease),
     background .35s var(--kzlr-ease),box-shadow .35s var(--kzlr-ease),
     transform .45s var(--kzlr-ease);
 }
@@ -192,8 +195,8 @@ const KZLR_CSS = `
 }
 .kzlr-node{
   position:absolute;left:calc(100% - var(--kzlr-band) / 2);top:50%;z-index:2;
-  width:var(--kzlr-node);height:var(--kzlr-node);border-radius:50%;
-  display:grid;place-items:center;
+  min-width:clamp(132px,11vw,164px);height:var(--kzlr-node);padding:0 16px;border-radius:999px;
+  display:flex;align-items:center;justify-content:center;gap:10px;
   background:radial-gradient(circle at 50% 34%,color-mix(in srgb,var(--acc) 40%,var(--bg2)),var(--bg2) 74%);
   border:1px solid var(--kzlr-rim);
   box-shadow:
@@ -203,14 +206,24 @@ const KZLR_CSS = `
   transform:translate(-50%,-50%);
 }
 .kzlr-node::after{
-  content:"";position:absolute;inset:-13px;border-radius:50%;
+  content:"";position:absolute;inset:-10px;border-radius:999px;
   border:1px solid color-mix(in srgb,var(--acc2) 66%,transparent);
   animation:kzPulse 2.6s ease-in-out infinite;
 }
-.kzlr-hub{
-  position:absolute;inset:0;display:none;place-items:center;
-  font-family:var(--font-mono);font-size:.72rem;letter-spacing:.16em;color:var(--mut);
+.kzlr-focus{display:grid;gap:1px;min-width:0;text-align:left}
+.kzlr-focus small{
+  color:var(--acc3);font:600 .56rem var(--font-mono);letter-spacing:.14em;
 }
+.kzlr-focus b{
+  overflow:hidden;text-overflow:ellipsis;color:var(--ink);
+  font:650 .73rem var(--font-mono);letter-spacing:.12em;text-transform:uppercase;
+}
+.kzlr-hub{
+  position:absolute;inset:0;display:none;place-content:center;justify-items:center;gap:3px;
+  font-family:var(--font-mono);text-transform:uppercase;
+}
+.kzlr-hub b{color:var(--ink);font-size:.72rem;letter-spacing:.13em}
+.kzlr-hub small{color:var(--mut);font-size:.56rem;letter-spacing:.15em}
 
 .kzlr-panel{position:relative;z-index:1;min-width:0}
 .kzlr-body{display:grid;gap:clamp(11px,1.5vw,17px);min-width:0;--kzlr-from:20px}
@@ -239,7 +252,7 @@ const KZLR_CSS = `
 .kzlr-points{list-style:none;margin:0;padding:0;display:grid;gap:10px;max-width:62ch}
 .kzlr-points li{
   position:relative;padding-left:23px;color:var(--mut);font-size:.94rem;
-  text-align:justify;-webkit-hyphens:auto;hyphens:auto;
+  text-align:left;-webkit-hyphens:none;hyphens:none;
 }
 .kzlr-points li::before{
   content:"";position:absolute;left:0;top:.58em;width:7px;height:7px;
@@ -280,40 +293,37 @@ const KZLR_CSS = `
   .kzlr-pill{min-height:0;width:9px;height:9px;padding:0;border-radius:50%;box-shadow:none}
   .kzlr-pill.is-on{box-shadow:0 0 14px -1px var(--kzlr-glow)}
   .kzlr-pill span{display:none}
-  .kzlr-node{left:50%;top:calc(var(--kzlr-band) / 2)}
+  .kzlr-node{
+    left:50%;top:calc(var(--kzlr-band) / 2);min-width:var(--kzlr-node);width:var(--kzlr-node);
+    padding:0;border-radius:50%;
+  }
+  .kzlr-node::after{inset:-10px;border-radius:50%}
+  .kzlr-focus{display:none}
   .kzlr-hub{display:grid}
 }
 
 @media (min-width:900px){
-  /* Anchored to the stage row rather than to the wrap, so the dial and the
-     panel share a midline however tall the heading above them runs. */
-  .kzlr-ringwrap{position:absolute;left:0;top:50%;transform:translate(-58%,-50%)}
+  /* The wheel's centre sits on the viewport edge, making the visible shape a
+     true half-circle with the active readout at its middle focus point. */
+  .kzlr-ringwrap{
+    position:absolute;left:calc(var(--kzlr-edge) * -1);top:50%;
+    transform:translate(-50%,-50%);
+  }
   .kzlr-stage{
-    grid-template-columns:calc(var(--kzlr-d) * .42 + clamp(48px,4vw,88px)) minmax(0,1fr);
+    grid-template-columns:max(0px,calc(var(--kzlr-r) - var(--kzlr-edge) + clamp(64px,6vw,94px))) minmax(0,1fr);
     align-items:center;
   }
   .kzlr-panel{grid-column:2}
-  /* The node marks three o'clock, which is exactly where the active pill lands.
-     Pulling that one label inboard along its own spoke stops the two stacking
-     into an unreadable blob, and reads as a tag hung off the live node. */
-  .kzlr-pill.is-on{--kzlr-shift:calc(-50% - var(--kzlr-node) / 2 - 14px)}
+  /* The focus capsule owns the active word at three o'clock, so the matching
+     orbit pill fades instead of duplicating the same label underneath it. */
+  .kzlr-pill.is-on{opacity:0}
 }
 
 @media (min-width:900px) and (prefers-reduced-motion:no-preference){
   .kzlr{padding-block:0;height:calc(100vh - var(--kzlr-head) + (var(--kzlr-n) - 1) * var(--kzlr-step))}
   .kzlr{height:calc(100svh - var(--kzlr-head) + (var(--kzlr-n) - 1) * var(--kzlr-step))}
-  /* Heading, rail, the two row gaps and the frame padding sit above the dial;
-     that stack is near enough constant, so subtracting it leaves the height
-     the circle may actually occupy. Sizing the dial against the SHORTER of
-     that and the width keeps the whole arc — and every pill on it — inside the
-     pinned frame instead of running off the bottom edge. The floor keeps a
-     very short window from shrinking the instrument into a token. A custom
-     property is never validated at parse time, so a vh twin would not act as
-     a fallback here — svh is the single source, exactly as --kzlr-step is. */
-  .kzlr{
-    --kzlr-chrome:300px;
-    --kzlr-d:min(64vw,1040px,max(360px,calc(100svh - var(--kzlr-head) - var(--kzlr-chrome))));
-  }
+  /* The pinned frame owns clipping and vertical centring. The compact wheel
+     size above already responds to both viewport width and height. */
   .kzlr-sticky{
     position:sticky;top:var(--kzlr-head);
     height:calc(100vh - var(--kzlr-head));
@@ -576,9 +586,9 @@ export function KzLifecycleRing({
 
               <div className="kzlr-stage">
                 <div className="kzlr-ringwrap" aria-hidden="true">
-                  <span className="kzlr-arc" />
                   <span className="kzlr-orbit" />
                   <div className="kzlr-ring" ref={ringRef}>
+                    <span className="kzlr-arc" />
                     {stages.map((entry, i) => (
                       <span
                         key={entry.key}
@@ -590,10 +600,15 @@ export function KzLifecycleRing({
                     ))}
                   </div>
                   <span className="kzlr-node">
-                    <KzIcon name={current?.icon ?? "bld"} size={24} />
+                    <KzIcon name={current?.icon ?? "bld"} size={20} />
+                    <span className="kzlr-focus">
+                      <small>{kzlrOrdinal(active)}</small>
+                      <b>{current?.label}</b>
+                    </span>
                   </span>
                   <span className="kzlr-hub">
-                    {kzlrOrdinal(active)} / {kzlrOrdinal(count - 1)}
+                    <b>{current?.label}</b>
+                    <small>{kzlrOrdinal(active)} / {kzlrOrdinal(count - 1)}</small>
                   </span>
                 </div>
 

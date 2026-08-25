@@ -206,11 +206,12 @@
     overflow-wrap: break-word;
   }
 
-  /* Prose only. hyphens + overflow-wrap keep narrow 360px columns river-free. */
+  /* Left-aligned prose scans more cleanly on narrow screens and avoids the
+     uneven word spacing that justification introduced in short tech copy. */
   p {
-    text-align: justify;
-    -webkit-hyphens: auto;
-    hyphens: auto;
+    text-align: left;
+    -webkit-hyphens: none;
+    hyphens: none;
     overflow-wrap: break-word;
   }
 
@@ -598,7 +599,9 @@
     color: var(--mut);
     max-width: 62ch;
     margin: 0;
-    text-align: justify;
+    text-align: left;
+    -webkit-hyphens: none;
+    hyphens: none;
   }
 
   .kz-icon-tile {
