@@ -39,7 +39,7 @@ export function KzTechnology() {
       <section
         id="stack"
         style={{
-          padding: "0 0 clamp(16px, 7vw, 96px)",
+          padding: "0 0 clamp(48px, 7vw, 96px)",
           background: "var(--bg)",
           position: "relative",
         }}
@@ -49,10 +49,10 @@ export function KzTechnology() {
           <KzFadeUp>
             <div
               style={{
-                marginBottom: "clamp(8px, 3vw, 24px)",
+                marginBottom: "clamp(16px, 3vw, 24px)",
                 border: "1px solid var(--line)",
                 borderRadius: 16,
-                padding: "14px clamp(8px, 2.5vw, 24px)",
+                padding: "14px clamp(14px, 2.5vw, 24px)",
                 background: "var(--card)",
                 display: "flex",
                 alignItems: "center",
@@ -128,7 +128,7 @@ export function KzTechnology() {
               tone="violet"
               className="kz-tech-pin"
             />
-            <KzFadeUp style={{ marginTop: "clamp(8px, 4vw, 44px)" }}>
+            <KzFadeUp style={{ marginTop: "clamp(24px, 4vw, 44px)" }}>
               <KzEyebrow>The stack, layer by layer</KzEyebrow>
               <KzSectionTitle style={{ maxWidth: "20ch", marginBottom: 14 }}>
                 Eleven layers, one spatial system
@@ -141,11 +141,11 @@ export function KzTechnology() {
             </KzFadeUp>
           </div>
 
-          <div aria-hidden="true" style={{ marginTop: "clamp(8px, 3vw, 32px)" }}>
+          <div aria-hidden="true" style={{ marginTop: "clamp(18px, 3vw, 32px)" }}>
             <KzStackDial groups={kzStack} />
           </div>
 
-          <KzFadeUp style={{ marginTop: "clamp(12px, 5vw, 56px)" }}>
+          <KzFadeUp style={{ marginTop: "clamp(32px, 5vw, 56px)" }}>
             <h3
               style={{
                 fontFamily: "var(--font-mono)",

@@ -471,7 +471,7 @@
   .kz-page-hero {
     position: relative;
     overflow: hidden;
-    padding: 90px 0 12px;
+    padding: 90px 0 38px;
     border-bottom: 1px solid color-mix(in srgb, var(--line) 72%, transparent);
     background:
       radial-gradient(circle at 78% 30%, color-mix(in srgb, var(--acc) 10%, transparent), transparent 32%),
