@@ -81,6 +81,8 @@ const KZ_HERO_STORY_CSS = `
   will-change:transform;
 }
 .kzhs-frame.is-loaded{opacity:1;filter:blur(0) saturate(.83) contrast(1.07) brightness(.86)}
+.kzhs-frame.is-loaded::after{content:'';position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(105deg,transparent 38%,rgba(255,255,255,.035) 46%,rgba(255,255,255,.045) 50%,rgba(255,255,255,.035) 54%,transparent 62%);background-size:250% 100%;mix-blend-mode:soft-light;animation:kzhsShimmer 60s linear infinite}
+@keyframes kzhsShimmer{0%{background-position:250% center}100%{background-position:-250% center}}
 .kzhs-scene{
   position:absolute;z-index:-4;inset:0;
   background:
@@ -103,7 +105,7 @@ const KZ_HERO_STORY_CSS = `
 /* --- Perspective floor grid, brightening as the story descends. --- */
 .kzhs-grid{
   position:absolute;z-index:-3;inset:37% 0 0;
-  opacity:calc(.06 + var(--progress)*.14);
+  opacity:calc(.05 + var(--progress)*.22);
   background-image:
     linear-gradient(color-mix(in srgb,var(--acc2) 24%,transparent) 1px,transparent 1px),
     linear-gradient(90deg,color-mix(in srgb,var(--acc2) 18%,transparent) 1px,transparent 1px);
@@ -248,7 +250,8 @@ const KZ_HERO_STORY_CSS = `
   color:var(--mut);font:500 9px var(--font-mono);letter-spacing:.13em;
   text-transform:uppercase;white-space:nowrap;
 }
-.kzhs-ribbon-track i{width:4px;height:4px;transform:rotate(45deg);border:1px solid var(--acc3);box-shadow:0 0 7px color-mix(in srgb,var(--acc3) 65%,transparent)}
+.kzhs-ribbon-track i{width:4px;height:4px;transform:rotate(45deg);border:1px solid var(--acc3);box-shadow:0 0 12px 3px color-mix(in srgb,var(--acc3) 65%,transparent);animation:kzhsDiamond 4s linear infinite}
+@keyframes kzhsDiamond{to{transform:rotate(405deg)}}
 @keyframes kzhsMarquee{to{transform:translateX(-50%)}}
 
 @media (max-width:920px){
@@ -291,17 +294,28 @@ const KZ_HERO_STORY_CSS = `
     position:relative;z-index:0;inset:auto;order:0;width:100%;aspect-ratio:16/9;
     flex:none;opacity:0;transform:none;filter:blur(14px) saturate(.72) brightness(.82);
     will-change:auto;background:#02070c;
+    -webkit-mask-image:linear-gradient(to bottom,#000 55%,transparent 100%);
+    mask-image:linear-gradient(to bottom,#000 55%,transparent 100%);
   }
   .kzhs-frame.is-loaded{opacity:1;filter:blur(0) saturate(.92) contrast(1.06) brightness(.92)}
+  .kzhs-frame.is-loaded::after{display:none}
   .kzhs-frame img{object-fit:contain!important;object-position:center!important}
   [data-kz-theme="light"] .kzhs-frame{display:block}
   .kzhs-scene,.kzhs-grid,.kzhs-vignette,.kzhs-particles,
   .kzhs-marker,.kzhs-scan,.kzhs-notes,.kzhs-meter{display:none}
+  .kzhs-ribbon{
+    position:relative;left:auto;right:auto;bottom:auto;order:1;height:36px;flex:none;
+    margin-top:-22px;z-index:3;border-top:none;
+    background:linear-gradient(180deg,transparent,color-mix(in srgb,var(--bg) 58%,transparent) 30%,color-mix(in srgb,var(--bg) 82%,transparent));
+    backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  }
+  .kzhs-ribbon-track span{padding:0 19px;font-size:8px}
+  .kzhs-ribbon-track{animation-duration:44s}
   .kzhs-copy{
-    position:relative;z-index:2;left:auto;top:auto;order:1;
-    width:auto;max-width:none;margin:0;padding:clamp(28px,8vw,42px) 20px 30px;
+    position:relative;z-index:2;left:auto;top:auto;order:2;
+    width:auto;max-width:none;margin:0;padding:clamp(24px,7vw,38px) 20px 26px;
     opacity:1;visibility:visible;transform:none;
-    background:linear-gradient(180deg,color-mix(in srgb,var(--bg2) 38%,var(--bg)),var(--bg));
+    background:var(--bg);
   }
   .kzhs-story[data-kzhs-past="true"] .kzhs-intro{visibility:visible}
   .kzhs-eyebrow{margin-bottom:16px;font-size:9px;letter-spacing:.1em;line-height:1.5}
@@ -311,16 +325,14 @@ const KZ_HERO_STORY_CSS = `
   .kzhs-actions .kzmag,.kzhs-actions .kzmag-in,.kzhs-actions .kz-btn{width:100%}
   .kzhs-actions .kz-btn{justify-content:center}
   .kzhs-reveal{
-    position:relative;z-index:2;left:auto;right:auto;top:auto;order:2;
+    position:relative;z-index:2;left:auto;right:auto;top:auto;order:3;
     width:auto;max-width:none;margin:0 20px 34px;padding:20px 18px;
     opacity:1;transform:none;pointer-events:auto;border-radius:16px;
   }
-  .kzhs-stats{gap:18px 12px;margin-top:6px}
-  .kzhs-stat{min-height:94px;padding:4px 6px 4px 13px}
+  .kzhs-stats{gap:14px 10px;margin-top:6px}
+  .kzhs-stat{min-height:94px;padding:4px 4px 4px 12px}
   .kzhs-stat-num{font-size:clamp(2.15rem,11vw,3rem)}
   .kzhs-stat-label{margin-top:8px;font-size:.66rem;line-height:1.38}
-  .kzhs-ribbon{position:relative;left:auto;right:auto;bottom:auto;order:3;height:35px;flex:none}
-  .kzhs-ribbon-track span{padding:0 19px;font-size:8px}
 }
 `;
 
@@ -357,7 +369,7 @@ export function KzHeroStory() {
     };
 
     const render = () => {
-      current = reduced ? target : current + (target - current) * 0.11;
+      current = reduced ? target : current + (target - current) * 0.09;
       story.style.setProperty("--progress", current.toFixed(4));
       const nextPast = current > 0.5;
       if (nextPast !== past) {

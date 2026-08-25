@@ -44,7 +44,7 @@ export interface KzSmoothScrollProps {
  * watched live, so toggling the OS setting installs or tears down the whole
  * thing without a reload.
  */
-export function KzSmoothScroll({ children, lerp = 0.11, wheelMultiplier = 1 }: KzSmoothScrollProps) {
+export function KzSmoothScroll({ children, lerp = 0.085, wheelMultiplier = 1.15 }: KzSmoothScrollProps) {
   useEffect(() => {
     const media = window.matchMedia(KZ_REDUCED_MOTION_QUERY);
     const root = document.documentElement;

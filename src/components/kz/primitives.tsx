@@ -11,6 +11,7 @@ import {
 export function KzEyebrow({ children, index }: { children: React.ReactNode; index?: string }) {
   return (
     <div className="kz-eyebrow" style={{ marginBottom: 18 }}>
+      <style>{`.kz-eyebrow::before { animation: kzPulse 3s ease-in-out infinite; }`}</style>
       {index ? `${index} / ${children}` : children}
     </div>
   );

@@ -346,6 +346,7 @@ export function KzStoryCarousel({
           overscrollBehaviorX: "contain",
           scrollSnapType: "x mandatory",
           padding: "6px 0 22px",
+          scrollPaddingInlineStart: 20,
         }}
       >
         {stories.map((story, i) => (

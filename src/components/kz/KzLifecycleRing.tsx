@@ -110,6 +110,7 @@ const KZLR_CSS = `
   position:relative;z-index:1;
   display:flex;gap:8px;overflow-x:auto;padding:2px 2px 6px;margin:0 -2px;
   scroll-snap-type:x proximity;scrollbar-width:none;overscroll-behavior-x:contain;
+  scroll-padding-inline: 16px;
 }
 .kzlr-rail::-webkit-scrollbar{display:none}
 .kzlr-tab{

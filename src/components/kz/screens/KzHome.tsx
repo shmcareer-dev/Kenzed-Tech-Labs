@@ -115,6 +115,8 @@ export function KzHome() {
         </div>
       </section>
 
+      <div className="kz-wrap"><hr className="kz-section-glow" /></div>
+
       <section id="lifecycle" style={{ background: "var(--bg)" }}>
         <KzLifecycleRing
           eyebrow={kzLifecycleSection.eyebrow}
@@ -220,6 +222,8 @@ export function KzHome() {
         </div>
       </section>
 
+      <div className="kz-wrap"><hr className="kz-section-glow" /></div>
+
       <section id="why" style={{ padding: KZ_SECTION_END, background: "var(--bg)" }}>
         <div className="kz-wrap">
           <KzFadeUp>
@@ -280,6 +284,8 @@ export function KzHome() {
         </div>
       </section>
 
+      <div className="kz-wrap"><hr className="kz-section-glow" /></div>
+
       <section id="outcomes" style={{ padding: KZ_SECTION_END, background: "var(--bg)" }}>
         <div className="kz-wrap">
           <KzFadeUp>
@@ -337,12 +343,12 @@ export function KzHome() {
             bottom: 0,
             pointerEvents: "none",
             opacity: 0.85,
-            WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, #000 42%)",
-            maskImage: "linear-gradient(to bottom, transparent 0%, #000 42%)",
+            WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, #000 35%)",
+            maskImage: "linear-gradient(to bottom, transparent 0%, #000 35%)",
           }}
         >
           <KzParallax depth={0.3}>
-            <KzParticleField height={420} density={0.9} />
+            <KzParticleField height={420} density={1.1} />
           </KzParallax>
         </div>
 
