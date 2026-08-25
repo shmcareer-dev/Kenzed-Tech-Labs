@@ -28,12 +28,7 @@ import { KzCountUp } from "@/components/kz/motion/KzFeedback";
 import { kzStats } from "@/content/kz";
 import { site } from "@/content/site";
 
-/**
- * The capability ribbon renders the same items as KzMarquee. Its `terms`
- * array is module-private and that file is outside this change's ownership,
- * so the list is mirrored byte-for-byte here — if KzMarquee's terms change,
- * change these with them.
- */
+/** Capabilities repeated across the seamless hero ribbon. */
 const KZ_RIBBON_ITEMS = [
   "Agentic AI",
   "RAG Pipelines",

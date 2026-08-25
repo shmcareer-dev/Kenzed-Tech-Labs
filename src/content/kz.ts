@@ -306,11 +306,11 @@ export const kzArchFlow = [
   "ON-PREM GPU",
 ];
 
-export const kzStats: { target: number; val: string; suffix: string; label: string }[] = [
-  { target: 99.98, val: "99.98", suffix: "%", label: "Uptime target on production systems" },
-  { target: 8, val: "8", suffix: "+", label: "Industries served end to end" },
-  { target: 24, val: "24", suffix: "×7", label: "Operations & in-house AI compute" },
-  { target: 2, val: "2", suffix: "", label: "Locations — Durgapur & Kolkata" },
+export const kzStats: { target: number; suffix: string; label: string }[] = [
+  { target: 99.98, suffix: "%", label: "Uptime target on production systems" },
+  { target: 8, suffix: "+", label: "Industries served end to end" },
+  { target: 24, suffix: "×7", label: "Operations & in-house AI compute" },
+  { target: 2, suffix: "", label: "Locations — Durgapur & Kolkata" },
 ];
 
 /* ==========================================================================

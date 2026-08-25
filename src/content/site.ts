@@ -23,7 +23,6 @@ export type Location = {
   postalCode: string;
   region: string;
   country: string;
-  note?: string;
 };
 
 export const locations: Location[] = [
@@ -34,7 +33,6 @@ export const locations: Location[] = [
     postalCode: "713212",
     region: "West Bengal",
     country: "IN",
-    note: "Development & studio facility",
   },
   {
     kind: "Liaison Office",

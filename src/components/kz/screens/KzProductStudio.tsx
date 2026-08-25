@@ -35,7 +35,6 @@ function knowPriceHref(slug: string, tier: string) {
 }
 
 export function KzProductStudio() {
-  /* The Kz3D page union has no product-studio scene, so this borrows the services one. */
   const [category, setCategory] = useState(ALL_PRODUCTS);
 
   const shown =

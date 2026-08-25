@@ -15,8 +15,6 @@ export type Service = {
   /** Key into the ICONS map in components/kz/KzIcon.tsx */
   icon: KzIconKey;
   title: string;
-  /** One-line stack summary shown on the card footer. */
-  techLine: string;
   /** Card blurb on the homepage / services grid. */
   short: string;
   /** Opening paragraph on the detail page. */
@@ -31,7 +29,6 @@ export const services: Service[] = [
     slug: "ai-agent-development",
     icon: "agent",
     title: "Custom AI Agents & Agentic AI",
-    techLine: "Multi-agent orchestration · RAG · MCP · LangGraph · guardrails",
     short:
       "Autonomous, multi-agent systems that reason, plan, use tools, and complete real tasks — from education agents to workflow automation and customer experience.",
     summary:
@@ -77,7 +74,6 @@ export const services: Service[] = [
     slug: "machine-learning-development",
     icon: "ml",
     title: "Machine Learning & Data Science",
-    techLine: "PyTorch · TensorFlow · Computer Vision · NLP · MLOps",
     short:
       "ML-implemented software that turns data into predictions, classifications, and recommendations — deployed and monitored as a dependable production service.",
     summary:
@@ -118,7 +114,6 @@ export const services: Service[] = [
     slug: "llm-fine-tuning",
     icon: "llm",
     title: "LLM Fine-Tuning & LLMOps",
-    techLine: "LoRA · QLoRA · RLHF · SLMs · vLLM · quantization",
     short:
       "Private, domain-specialized language models that are faster, cheaper, and more accurate for your use case — including efficient small models for the edge.",
     summary:
@@ -160,7 +155,6 @@ export const services: Service[] = [
     slug: "voice-ai-development",
     icon: "voice",
     title: "Voice AI & Conversational Assistants",
-    techLine: "Whisper ASR · neural TTS · low-latency · telephony",
     short:
       "Real-time voice assistants that understand, respond, and act — in English and Indian languages — for support, education, IVR, and hands-free operations.",
     summary:
@@ -197,7 +191,6 @@ export const services: Service[] = [
     slug: "web-app-development",
     icon: "web",
     title: "Web & Application Development",
-    techLine: "React · Next.js · Three.js · React Native · PWA",
     short:
       "High-performance websites, web apps, and mobile apps — including immersive 3D / WebGL experiences — engineered for Core Web Vitals and conversion.",
     summary:
@@ -235,7 +228,6 @@ export const services: Service[] = [
     slug: "adaptive-ui-ux-design",
     icon: "ux",
     title: "Adaptive UI/UX Design",
-    techLine: "Figma · design systems · motion · accessibility (WCAG)",
     short:
       "Context-aware, personalized interfaces that respond to each user — combining human-centered research with AI-driven personalization.",
     summary:
@@ -272,7 +264,6 @@ export const services: Service[] = [
     slug: "enterprise-software-development",
     icon: "ent",
     title: "Enterprise-Grade Software",
-    techLine: "Microservices · AWS/Azure/GCP · RBAC · Kubernetes",
     short:
       "Secure, scalable, cloud-native systems architected for high availability, compliance, and long-term maintainability — cleanly integrated with your stack.",
     summary:
@@ -313,7 +304,6 @@ export const services: Service[] = [
     slug: "utility-software-automation",
     icon: "util",
     title: "Utility Software & Automation",
-    techLine: "Automation · RPA · data pipelines · internal tools",
     short:
       "Practical tools that remove repetitive work — cross-platform utilities, RPA, data pipelines, and internal apps that quietly save hours every day.",
     summary:
