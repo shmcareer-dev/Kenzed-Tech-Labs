@@ -636,7 +636,7 @@ const KZSD_CSS = `
   display:grid;
   grid-template-columns:minmax(0,1fr);
   align-items:center;
-  gap:clamp(20px,4vw,32px);
+  gap:clamp(14px,3vw,24px);
 }
 @media (min-width:980px){
   .kzsd{
@@ -659,10 +659,15 @@ const KZSD_CSS = `
   margin:0;
   margin-inline:auto;
   width:100%;
-  max-width:560px;
+  max-width:min(320px, 86vw);
   /* The hub readout is HTML laid over the SVG; cq units let its type track the
      dial's own width instead of the viewport's. */
   container-type:inline-size;
+}
+@media (min-width:768px){
+  .kzsd-dial{
+    max-width:560px;
+  }
 }
 .kzsd-dial svg{display:block;width:100%;height:auto}
 
@@ -755,9 +760,15 @@ const KZSD_CSS = `
   display:flex;
   align-items:center;
   gap:9px;
-  min-height:44px;
-  padding:6px 2px;
+  min-height:38px;
+  padding:4px 2px;
   border-bottom:1px solid var(--line);
+}
+@media (min-width:768px){
+  .kzsd-list li{
+    min-height:44px;
+    padding:6px 2px;
+  }
 }
 .kzsd-list li:last-child{border-bottom:0}
 .kzsd-n{

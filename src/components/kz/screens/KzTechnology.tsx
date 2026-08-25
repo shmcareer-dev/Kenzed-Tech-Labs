@@ -39,7 +39,7 @@ export function KzTechnology() {
       <section
         id="stack"
         style={{
-          padding: "0 0 clamp(70px, 10vw, 120px)",
+          padding: "0 0 clamp(48px, 7vw, 96px)",
           background: "var(--bg)",
           position: "relative",
         }}
@@ -49,10 +49,10 @@ export function KzTechnology() {
           <KzFadeUp>
             <div
               style={{
-                marginBottom: 26,
+                marginBottom: "clamp(16px, 3vw, 24px)",
                 border: "1px solid var(--line)",
                 borderRadius: 16,
-                padding: "18px clamp(16px, 3vw, 26px)",
+                padding: "14px clamp(14px, 2.5vw, 24px)",
                 background: "var(--card)",
                 display: "flex",
                 alignItems: "center",
@@ -67,7 +67,7 @@ export function KzTechnology() {
                   letterSpacing: "0.22em",
                   textTransform: "uppercase",
                   color: "var(--dim)",
-                  marginRight: 6,
+                  marginRight: 4,
                 }}
               >
                 Production topology
@@ -77,10 +77,10 @@ export function KzTechnology() {
                 childAs="span"
                 step={90}
                 distance={14}
-                style={{ display: "inline-flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}
+                style={{ display: "inline-flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}
               >
                 {kzArchFlow.map((t, i) => (
-                  <span key={t} style={{ display: "inline-flex", alignItems: "center", gap: 12 }}>
+                  <span key={t} style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
                     <span
                       style={{
                         display: "inline-flex",
@@ -89,7 +89,7 @@ export function KzTechnology() {
                         fontFamily: "var(--font-mono)",
                         fontSize: "0.7rem",
                         letterSpacing: "0.08em",
-                        padding: "8px 13px",
+                        padding: "6px 12px",
                         border: "1px solid var(--line)",
                         borderRadius: 9,
                         background: "var(--card2)",
@@ -98,7 +98,7 @@ export function KzTechnology() {
                     >
                       <KzSpatialIcon3D
                         kind={kindForLabel(t)}
-                        size={28}
+                        size={24}
                         float={false}
                       />
                       {t}
@@ -108,7 +108,7 @@ export function KzTechnology() {
                         style={{
                           fontFamily: "var(--font-mono)",
                           color: "var(--acc)",
-                          fontSize: "0.8rem",
+                          fontSize: "0.75rem",
                         }}
                       >
                         →
@@ -128,12 +128,12 @@ export function KzTechnology() {
               tone="violet"
               className="kz-tech-pin"
             />
-            <KzFadeUp style={{ marginTop: "clamp(46px, 7vw, 78px)" }}>
+            <KzFadeUp style={{ marginTop: "clamp(24px, 4vw, 44px)" }}>
               <KzEyebrow>The stack, layer by layer</KzEyebrow>
-              <KzSectionTitle style={{ maxWidth: "20ch", marginBottom: 16 }}>
+              <KzSectionTitle style={{ maxWidth: "20ch", marginBottom: 14 }}>
                 Eleven layers, one spatial system
               </KzSectionTitle>
-              <p className="kz-page-lead">
+              <p className="kz-page-lead" style={{ marginBottom: 0 }}>
                 Scroll and the instrument turns through all eleven layers. The active panel reads
                 out the tools in that layer; below it, every named technology gets a textured 3D
                 marker in the complete visual index.
@@ -141,16 +141,11 @@ export function KzTechnology() {
             </KzFadeUp>
           </div>
 
-          {/* No entrance wrapper: an entry transform would shift the dial's
-              measured position and jitter the rotation it derives from it, and a
-              second scroll-linked system on top of the dial would fight it.
-              aria-hidden because the index below is the same names as text —
-              assistive tech should hear them once, not once here and again there. */}
-          <div aria-hidden="true" style={{ marginTop: "clamp(26px, 4vw, 40px)" }}>
+          <div aria-hidden="true" style={{ marginTop: "clamp(18px, 3vw, 32px)" }}>
             <KzStackDial groups={kzStack} />
           </div>
 
-          <KzFadeUp style={{ marginTop: "clamp(46px, 7vw, 72px)" }}>
+          <KzFadeUp style={{ marginTop: "clamp(32px, 5vw, 56px)" }}>
             <h3
               style={{
                 fontFamily: "var(--font-mono)",
