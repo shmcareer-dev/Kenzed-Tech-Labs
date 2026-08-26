@@ -213,6 +213,26 @@ jobs:
           echo "::endgroup::"
 
           if [ "$MODE" = "discover" ]; then
+            # Why the vhost config and not just the web root: routes that
+            # existed in an earlier release 301 to their trailing-slash form
+            # and then 404, while routes added later resolve correctly — from
+            # an identical on-disk layout. That difference cannot come from
+            # .htaccess, which has no per-path knowledge, so the question is
+            # whether the vhost declares per-path contexts or a rewrite of its
+            # own that outranks it. Read-only.
+            echo "::group::vhost configuration"
+            RUN 'for f in /usr/local/lsws/conf/vhosts/*/vhost.conf; do [ -f "$f" ] || continue; echo "--- $f"; cat "$f"; done' || echo "(no vhost.conf readable)"
+            echo "::endgroup::"
+
+            echo "::group::Stray .htaccess below the web root"
+            RUN "find '$WEBROOT' -name .htaccess -printf '%p  %s bytes\n' 2>/dev/null | head -20"
+            echo "::endgroup::"
+
+            echo "::group::LiteSpeed rewrite and cache settings"
+            RUN 'grep -rniE "rewrite|context|cache|autoindex|dirIndex" /usr/local/lsws/conf/httpd_config.conf 2>/dev/null | head -40' || true
+            RUN 'ls -la /usr/local/lsws/cachedata 2>/dev/null | head -5; echo "lsws uptime: $(ps -eo comm=,etime= 2>/dev/null | grep -m1 litespeed)"' || true
+            echo "::endgroup::"
+
             echo "Discover mode — nothing was changed."
             exit 0
           fi
