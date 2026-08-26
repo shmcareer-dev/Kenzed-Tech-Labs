@@ -1,0 +1,27 @@
+# Normalize to LF in the repository, check out native in the working tree.
+# This is what core.autocrlf=true already does on the machines this is
+# developed on; declaring it here makes it true regardless of anyone's local
+# config, which is the part that was only ever true by luck.
+* text=auto
+
+# Executed by a shell, so LF in the WORKING TREE as well, not just in the repo.
+# push-to-vps.sh checked out with CRLF dies on its own shebang
+# (`#!/usr/bin/env bash\r`: no such file or directory), and a workflow `run:`
+# block only survives CRLF because the YAML parser normalizes line breaks
+# before Actions writes the script out — true, but not something to rest on.
+*.sh      text eol=lf
+*.mjs     text eol=lf
+*.yml     text eol=lf
+*.yaml    text eol=lf
+.htaccess text eol=lf
+
+# Binary: never transformed, never diffed as text.
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.webp  binary
+*.ico   binary
+*.woff  binary
+*.woff2 binary
+*.gz    binary
+*.tar   binary
