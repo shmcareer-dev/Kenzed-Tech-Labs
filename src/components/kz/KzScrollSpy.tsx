@@ -29,6 +29,9 @@ const SPY_CSS = `
 /* Truncated rather than allowed to set its own width: the label is whatever
    the page passed as a section name, and a long one grew straight across the
    left edge of the content column. */
+/* 1560, not 1400: .kz-wrap caps at 1280 with a 36px gutter, so at 1440 the
+   free margin is 80px and a rail that ends at x=97 was landing 17px INSIDE
+   the content column. 1560 is the first width where the rail clears it. */
 .kzss a b{opacity:0;transform:translateX(-5px);font-weight:500;max-width:11ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;transition:opacity .25s cubic-bezier(0.22,1,0.36,1),transform .25s cubic-bezier(0.22,1,0.36,1)}
 .kzss a:hover span,.kzss a:hover b,.kzss a[aria-current="location"] span,.kzss a[aria-current="location"] b{opacity:1;transform:none}
 .kzss a[aria-current="location"]{color:var(--mut)}
@@ -39,7 +42,7 @@ const SPY_CSS = `
    cap. Below 1400px the two were overlapping: at 1280px exactly, the section
    label sat directly on top of the first line of every page lead.
    display:none also removes it from the tab order. */
-@media (max-width:1399px){.kzss{display:none}}
+@media (max-width:1559px){.kzss{display:none}}
 @media (prefers-reduced-motion:reduce){.kzss a span,.kzss a i,.kzss a b{transition:none}}
 `;
 

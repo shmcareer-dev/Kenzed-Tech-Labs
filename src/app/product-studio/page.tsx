@@ -1,16 +1,18 @@
 import { KzProductStudio } from "@/components/kz/screens/KzProductStudio";
 import { JsonLd } from "@/components/ui/JsonLd";
-import { breadcrumbSchema, pageMetadata } from "@/lib/seo";
+import { products } from "@/content/products";
+import { breadcrumbSchema, pageMetadata, productCatalogSchema } from "@/lib/seo";
 
 export const metadata = pageMetadata({
-  title: "Product Studio | AI Products & Pricing | Kenzed Tech Lab",
+  title: "Product Studio | Live Software We Built & Run | Kenzed Tech Lab",
   description:
-    "Explore Kenzed Tech Lab's ready-to-deploy AI products — agent platforms, document retrieval, voice agents, vision inspection, back-office automation, and private language models — with indicative pricing tiers and a quote scoped to your project.",
+    "Six systems in production today — Kenzed LMS, Kenzed ERP, Kenzed CRM, CareerKing, and two voice-enabled college platforms. Real screenshots of the live sites, and a quote scoped to your institution.",
   path: "/product-studio",
   keywords: [
-    "AI product pricing India",
-    "agentic AI platform for enterprises",
-    "voice AI and machine learning products Durgapur Kolkata",
+    "college ERP software India",
+    "learning management system for colleges",
+    "voice assistant website for colleges Durgapur",
+    "CRM for colleges and businesses",
   ],
 });
 
@@ -23,6 +25,9 @@ export default function ProductStudioPage() {
           { name: "Product Studio", path: "/product-studio" },
         ])}
       />
+      {/* Each product is a real, reachable application; an ItemList of
+          SoftwareApplication is how a search engine reads that. */}
+      <JsonLd data={productCatalogSchema(products)} />
       <KzProductStudio />
     </>
   );

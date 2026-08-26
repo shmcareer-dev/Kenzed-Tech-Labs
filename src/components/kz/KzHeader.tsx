@@ -160,7 +160,13 @@ const KZ_HDR_CSS = `
 @media (max-width:640px){
   .kzhdr{top:10px;width:calc(100% - 20px);height:58px;padding-left:12px;border-radius:11px}
   .kzhdr[data-compact="true"]{top:7px;height:52px}
-  .kzhdr-brand .kzwm-name b{display:none}
+  /* TECHLAB used to be dropped here, leaving a bare KENZED on every phone.
+     The lockup is the logo; half of it is not. Measured at 320px the full
+     brand takes ~157px of a 300px content box against 86px of controls, so it
+     fits with room to spare — it just needs its tracking pulled in so the
+     mono suffix stops setting the brand's width. */
+  .kzhdr-brand .kzwm-name{font-size:13px}
+  .kzhdr-brand .kzwm-name b{font-size:8.5px;letter-spacing:.07em}
   .kzhdr-menubtn{width:38px;height:38px}
 }
 /* A phone GPU re-blurs the whole strip behind the pill on every frame that

@@ -144,6 +144,30 @@ export function legalPageSchema(doc: {
   };
 }
 
+/** The product shelf as an ItemList of real, reachable applications. */
+export function productCatalogSchema(
+  items: { slug: string; name: string; tagline: string; summary: string; liveUrl: string }[]
+) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: `${site.name} products`,
+    itemListElement: items.map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      item: {
+        "@type": "SoftwareApplication",
+        name: item.name,
+        description: item.summary,
+        url: item.liveUrl,
+        applicationCategory: "BusinessApplication",
+        operatingSystem: "Web",
+        author: { "@type": "Organization", name: site.legalName, url: site.url },
+      },
+    })),
+  };
+}
+
 /** Breadcrumbs strengthen site-structure signals on inner pages. */
 export function breadcrumbSchema(trail: { name: string; path: string }[]) {
   return {

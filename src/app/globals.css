@@ -227,25 +227,66 @@
     overflow-wrap: break-word;
   }
 
-  /* Left-aligned prose scans more cleanly on narrow screens and avoids the
-     uneven word spacing that justification introduced in short tech copy. */
+  /* Justified, with hyphenation ON. Those two go together: justification
+     without hyphens is what tears rivers through a narrow measure, because
+     the only thing the browser can stretch is the word spaces. With `auto`
+     hyphens it breaks the word instead and the spacing stays even, which is
+     how justified text has always been set. `lang="en"` on <html> is what
+     makes the dictionary available — without it this silently does nothing.
+     The exceptions below opt short, label-like strings back out. */
   p {
-    text-align: left;
-    -webkit-hyphens: none;
-    hyphens: none;
+    text-align: justify;
+    text-justify: inter-word;
+    -webkit-hyphens: auto;
+    hyphens: auto;
+    /* Never strand a two-character fragment on its own line. */
+    -webkit-hyphenate-limit-before: 3;
+    -webkit-hyphenate-limit-after: 3;
+    hyphenate-limit-chars: 6 3 3;
     overflow-wrap: break-word;
   }
 
-  /* Short prose does not have enough words per line to justify cleanly. */
+  /* Short prose does not have enough words per line to justify cleanly, and
+     none of these are prose: a paragraph wrapping a single control, a caption,
+     a form label, a table cell. Mono furniture opts out the same way — an
+     uppercase tracked label justified across a column reads as broken. */
   p:has(> :only-child:is(a, button)),
+  p[style*="var(--font-mono)"],
   figcaption,
   caption,
   label,
   th,
-  td {
+  td,
+  .kz-eyebrow,
+  .kz-pill,
+  li[style*="var(--font-mono)"] {
     text-align: left;
     -webkit-hyphens: manual;
     hyphens: manual;
+  }
+
+  /* Justification needs a measure to work with, but 400px was far too
+     defensive: a 390px phone gives the body column ~48 characters, which
+     hyphenated justifies cleanly. Only the genuinely tiny screens — a 320px
+     device, or a paragraph nested two cards deep — drop back to ragged right.
+     `hyphens: auto` stays on either way; it improves ragged text too. */
+  @media (max-width: 340px) {
+    p {
+      text-align: left;
+    }
+  }
+
+  /* Card copy stays ragged. A card description is one or two lines at a short
+     measure, and justifying two lines means the browser can only stretch the
+     word spaces on the first one — "A  dedicated  studio  for  media,  PR, and"
+     is the result, which is worse than the ragged edge it replaced. Long-form
+     prose (page leads, product summaries, the legal shelf) is where
+     justification actually earns its keep, and that is where it stays. */
+  .kz-card p,
+  .kz3-atlas-card p,
+  .kzps-proof span,
+  .kzps-voice p {
+    text-align: left;
   }
 
   /* Headings are structural, not prose: left, balanced, never hyphenated. */
@@ -773,7 +814,15 @@
     transition: color .2s, border-color .2s;
   }
 
+  /* A reveal is an ANIMATION wrapper, and it must not become a layout one.
+     Dropped between a grid and a card it becomes the grid item: the grid
+     stretches IT to the row height, the card inside keeps its own, and every
+     card in the row ends somewhere different — 23px on /infrastructure, 50px
+     on /services. Making it a column flex container that stretches its child
+     hands the row height through to the thing that draws the border. */
   .kz-reveal {
+    display: flex;
+    flex-direction: column;
     opacity: 0;
     transform: translateY(24px);
     transition:
@@ -781,9 +830,33 @@
       transform 0.7s var(--ease);
   }
 
+  .kz-reveal > * {
+    flex: 1 1 auto;
+  }
+
   .kz-reveal.is-visible {
     opacity: 1;
     transform: none;
+  }
+
+  /* Same problem, wherever a motion wrapper lands between a card grid and its
+     card. Opt in with this rather than making every entrance wrapper on the
+     site a flex container, which would change margin collapsing in the many
+     places they wrap prose instead. */
+  .kz-stretch {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .kz-stretch > * {
+    flex: 1 1 auto;
+  }
+
+  /* A tilt wrapper has no size of its own to contribute — it exists to rotate
+     what it holds, so it should always be exactly as tall as that. */
+  .kztilt,
+  .kztilt-in {
+    height: 100%;
   }
 
   /* ------------------------------------------------------------------------
@@ -950,7 +1023,7 @@
   :root .kzbt,
   :root .kzcta,
   :root .kzbtt,
-  :root .kz3-pin::before {
+  :root .kz3-pin-label {
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
   }
@@ -972,7 +1045,7 @@
     background: color-mix(in srgb, var(--bg) 96%, transparent);
   }
 
-  :root .kz3-pin::before {
+  :root .kz3-pin-label {
     background: color-mix(in srgb, var(--bg2) 96%, transparent);
   }
 }

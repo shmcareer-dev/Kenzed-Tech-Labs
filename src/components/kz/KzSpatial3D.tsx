@@ -130,24 +130,28 @@ const KZ_SPATIAL_CSS = `
   pointer-events: none;
   color: var(--ink);
 }
-.kz3-pin::before {
-  content: "";
-  position: absolute;
-  inset: 12% -8px 12% 34%;
-  z-index: -1;
+/* The capsule IS the label. It used to be a ::before on the pin inset by
+   12% -8px 12% 34% — a left edge measured as a percentage of the WHOLE pin,
+   icon included. That only lines up at one label length: "Agent channel /
+   ready" made the pin wide enough that 34% landed past the start of the text,
+   so the first characters sat outside the capsule while dead space opened at
+   its right end. Bordering the label instead makes the capsule wrap the words
+   exactly, at any label length and any icon size, with no magic number. */
+.kz3-pin-label {
+  padding: 5px 13px;
   border: 1px solid var(--line);
   border-radius: 999px;
   background: color-mix(in srgb, var(--bg2) 84%, transparent);
   box-shadow: 0 14px 36px -24px var(--accglow);
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
-}
-.kz3-pin-label {
-  padding: 0 12px 0 0;
   font-family: var(--font-mono);
   font-size: .56rem;
   line-height: 1.15;
   letter-spacing: .16em;
+  /* The tracking is added AFTER the last glyph too, so without this the text
+     sits visibly off-centre in its own capsule. */
+  text-indent: .16em;
   text-transform: uppercase;
   color: var(--mut);
   white-space: nowrap;
@@ -482,8 +486,8 @@ const KZ_SPATIAL_CSS = `
 @media (max-width: 520px) {
   .kz3-tool-list { grid-template-columns: 1fr; }
   .kz3-atlas-card { border-radius: 15px; }
+  /* Hiding the label now takes the capsule with it — they are one element. */
   .kz3-pin-label { display: none; }
-  .kz3-pin::before { display: none; }
   .kz3-title-pin {
     margin-inline-start: .16em;
     vertical-align: -.18em;

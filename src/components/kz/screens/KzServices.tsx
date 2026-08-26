@@ -56,6 +56,7 @@ export function KzServices() {
                 <KzFadeUp
                   key={s.title}
                   delay={(i % 4) * 90}
+                  className="kz-stretch"
                   style={{ gridColumn: open ? "1 / -1" : "auto" }}
                 >
                   {/* Tilt is switched off while the card is expanded: a full-width
