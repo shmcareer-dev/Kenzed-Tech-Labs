@@ -41,5 +41,5 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# deploy build artifacts
+# deploy build artifacts (the script itself IS tracked)
 /deploy/*.tar.gz
