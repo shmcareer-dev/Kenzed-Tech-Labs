@@ -198,6 +198,7 @@ export function KzServices() {
                                       }}
                                     />
                                     <span
+                                      className="kz-prose"
                                       style={{
                                         fontSize: "0.9rem",
                                         color: "var(--ink)",

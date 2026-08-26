@@ -703,6 +703,7 @@ export function KzLiveProjects() {
                           {performer.role}
                         </span>
                         <span
+                          className="kz-prose"
                           style={{
                             display: "block",
                             maxWidth: "44ch",

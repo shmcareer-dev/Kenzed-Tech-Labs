@@ -302,6 +302,7 @@ export function KzApplyForm() {
       )}
 
       <p
+        className="kz-prose"
         style={{
           fontFamily: "var(--font-mono)",
           fontSize: "0.66rem",

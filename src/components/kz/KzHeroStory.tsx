@@ -374,7 +374,7 @@ const KZ_HERO_STORY_CSS = `
   .kzhs-story[data-kzhs-past="true"] .kzhs-intro{visibility:visible}
   .kzhs-eyebrow{margin-bottom:16px;font-size:9px;letter-spacing:.1em;line-height:1.5}
   .kzhs-title{font-size:clamp(2.65rem,13.5vw,4.35rem);line-height:.91;letter-spacing:-.057em}
-  .kzhs-lede{width:100%;max-width:44ch;margin-top:22px;font-size:16px;line-height:1.58;text-align:left;hyphens:none}
+  .kzhs-lede{width:100%;max-width:44ch;margin-top:22px;font-size:16px;line-height:1.58}
   .kzhs-actions{flex-direction:column;width:100%;max-width:390px;margin-top:25px}
   .kzhs-actions .kzmag,.kzhs-actions .kzmag-in,.kzhs-actions .kz-btn{width:100%}
   .kzhs-actions .kz-btn{justify-content:center}

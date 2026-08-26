@@ -332,7 +332,7 @@ const KZ_POINTER_CSS = `
 @media ${KZ_FINE}{.kzan:hover .kzan-in,.${KZ_HOVER_GROUP}:hover .kzan-in{transform:translate3d(var(--kzan-x,0px),var(--kzan-y,0px),0)}}
 
 .kzcr{position:relative;margin:0;overflow:hidden}
-.kzcr-cap{position:absolute;left:0;right:0;bottom:0;padding:14px 16px;text-align:left;font-size:.82rem;line-height:1.45;color:var(--ink);background:linear-gradient(to top,color-mix(in oklab,var(--bg) 92%,transparent),color-mix(in oklab,var(--bg) 0%,transparent))}
+.kzcr-cap{position:absolute;left:0;right:0;bottom:0;padding:14px 16px;font-size:.82rem;line-height:1.45;color:var(--ink);background:linear-gradient(to top,color-mix(in oklab,var(--bg) 92%,transparent),color-mix(in oklab,var(--bg) 0%,transparent))}
 @media ${KZ_FINE} and (prefers-reduced-motion:no-preference){
 .kzcr-cap{opacity:0;transform:translate3d(0,14px,0);transition:opacity .4s ${KZ_EASE},transform .4s ${KZ_EASE}}
 .kzcr:hover .kzcr-cap,.kzcr:focus-within .kzcr-cap{opacity:1;transform:translate3d(0,0,0)}

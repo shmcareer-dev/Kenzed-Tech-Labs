@@ -73,7 +73,7 @@ const FOOTER_CSS = `
 .kzf-input{background:var(--bg2)}
 .kzf-input[aria-invalid="true"]{border-color:var(--ink)}
 .kzf-sub{width:100%;margin-top:12px}
-.kzf-msg{margin:10px 0 0;font-size:.78rem;line-height:1.5;text-align:left;color:var(--ink)}
+.kzf-msg{margin:10px 0 0;font-size:.78rem;line-height:1.5;color:var(--ink)}
 .kzf-msg-ok{color:var(--acc3)}
 
 .kzf-markwrap{overflow:hidden;margin-top:clamp(34px,6vw,56px);container-type:inline-size}
@@ -110,7 +110,7 @@ const FOOTER_CSS = `
 .kzf-live .kzf-ping{animation:kzfPing 2.6s ease-out infinite}
 @keyframes kzfPing{0%{transform:scale(.7);opacity:.55}70%,100%{transform:scale(2.8);opacity:0}}
 .kzf-meta{display:flex;flex-wrap:wrap;align-items:center;gap:2px 18px}
-.kzf-copy{font-size:.78rem;text-align:left;color:var(--dim)}
+.kzf-copy{font-size:.78rem;color:var(--dim)}
 .kzf-legal{padding:14px 0;font-size:.78rem}
 
 @media (prefers-reduced-motion:reduce){

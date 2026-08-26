@@ -265,17 +265,6 @@
     hyphens: manual;
   }
 
-  /* Justification needs a measure to work with, but 400px was far too
-     defensive: a 390px phone gives the body column ~48 characters, which
-     hyphenated justifies cleanly. Only the genuinely tiny screens — a 320px
-     device, or a paragraph nested two cards deep — drop back to ragged right.
-     `hyphens: auto` stays on either way; it improves ragged text too. */
-  @media (max-width: 340px) {
-    p {
-      text-align: left;
-    }
-  }
-
   /* Card copy stays ragged. A card description is one or two lines at a short
      measure, and justifying two lines means the browser can only stretch the
      word spaces on the first one — "A  dedicated  studio  for  media,  PR, and"
@@ -1092,5 +1081,146 @@
 @media (min-width: 921px) {
   .kz-palette-dock {
     display: none;
+  }
+}
+
+
+/* ===========================================================================
+   MOBILE: every block of running text is justified.
+
+   Deliberately OUTSIDE any @layer. Layer order beats specificity in the
+   cascade, so an unlayered rule wins over everything in @layer base and
+   @layer components no matter how weak its selector — and that is exactly
+   what is needed here, because the things suppressing justification are
+   spread across both layers and across component stylesheets:
+
+     - `.kz-page-lead` (@layer components) sets text-align:left and
+       hyphens:none. It is the lead paragraph on EVERY page, six to nine lines
+       on a phone, and it was the single largest unjustified block on the site.
+     - The card exemption (@layer base) opted `.kz-card p` out. On a phone a
+       card is full-bleed, so the measure is the body measure and the original
+       reason for that exemption — a two-line card at a short desktop measure
+       having only one stretchable line — does not apply.
+     - The `@media (max-width:340px)` fallback turned justification off again
+       on exactly the narrowest screens.
+     - Most of the rest is not a <p> at all. The base rule targets `p`, so 39
+       legal list items, 23 product proof `span`s, 23 card `li`s, 10 legal
+       `dd`s and the footer's `.kzf-copy` never saw it. Measured at 390px
+       across all 15 routes: 224 blocks of running text, 18 distinct shapes.
+
+   Scoped to <=767px because that is where the ask was. Desktop keeps the
+   existing behaviour, card copy included.
+
+   `hyphens: auto` is not optional here. Justification without it is what
+   tears rivers through a narrow measure — the browser can only stretch word
+   spaces. With it the word breaks instead and the spacing stays even. It
+   works because <html> carries lang="en"; without that the dictionary is
+   never loaded and this silently degrades to the ugly version.
+   =========================================================================== */
+@media (max-width: 767px) {
+  p,
+  li,
+  dd,
+  blockquote,
+  .kz-page-lead,
+  .kzhs-lede,
+  .kzf-copy,
+  .kz-card p,
+  .kz3-atlas-card p,
+  .kzps-proof span,
+  .kzps-voice p,
+  .kzl-sec li,
+  .kzl-summary li,
+  .kzl-tr dd,
+  .kzlr-points li {
+    text-align: justify;
+    text-justify: inter-word;
+    -webkit-hyphens: auto;
+    hyphens: auto;
+    /* Never strand a two-character fragment on its own line. */
+    -webkit-hyphenate-limit-before: 3;
+    -webkit-hyphenate-limit-after: 3;
+    hyphenate-limit-chars: 6 3 3;
+    overflow-wrap: break-word;
+  }
+
+  /* Furniture opts straight back out. None of this is running text, and
+     justifying it is actively worse: a tracked uppercase chip pulled apart
+     across a column reads as broken, a nav item is a target rather than a
+     sentence, and a <dt> is a defined term whose two wrapped lines would be
+     stretched to the full measure for no reason. The rule above is broad on
+     purpose — `li` and `td` catch prose that is not in a <p> — so this is
+     where the breadth gets paid back. */
+  .kz-eyebrow,
+  .kz-pill,
+  .kz-label,
+  .kz-chip,
+  .kz-tag,
+  .kz-badge,
+  dt,
+  th,
+  caption,
+  figcaption,
+  legend,
+  label,
+  nav li,
+  nav p,
+  .kzf-links li,
+  .kzf-nav li,
+  .kzhdr-megamenu p,
+  .kz-palette-dock p,
+  [style*="var(--font-mono)"],
+  [style*="uppercase"],
+  p:has(> :only-child:is(a, button)),
+  li:has(> :only-child:is(a, button)),
+  /* These are <p> and <li> elements holding chips, kickers and tool names.
+     They carry no text-align of their own, so the broad rule above reaches
+     them and pulls three tracked words across the full measure — the exact
+     failure this whole block is supposed to avoid. Several were previously
+     saved only by their own component sheet also saying `left`, which made
+     the outcome depend on the order two unlayered stylesheets happen to land
+     in <head>. Naming them here removes that coincidence. */
+  .kzhs-eyebrow,
+  .kzl-toc-head,
+  .kzlr-kicker,
+  .kzf-head,
+  .kzf-tag,
+  .kzf-note,
+  .kzps-tagline,
+  .kzps-chips li,
+  .kzps-proof b,
+  .kzsd-list li,
+  .kz3-tool,
+  td {
+    text-align: left;
+    -webkit-hyphens: manual;
+    hyphens: manual;
+  }
+
+  /* Explicit prose opt-in, and it must stay LAST in this block. `.kz-prose`
+     and `[style*="var(--font-mono)"]` are both (0,1,0), so nothing but source
+     order decides which wins — this is the handle for running text that is
+     neither a <p> nor a list item, and for prose that happens to be set in
+     mono. `.kz-prose` was already being used in the markup and had never been
+     defined anywhere, so it was doing nothing at all until now. */
+  .kz-prose,
+  .kzcr-cap,
+  .kzf-msg,
+  .kzf-copy,
+  /* A <dt> is normally a defined term, and `dt` is opted out above for that
+     reason. In the legal tables it is not: the term column holds whole
+     sentences ("Reply to your enquiry, scope the work, and send you a
+     proposal"), so these are prose wearing a <dt>. (0,1,1) beats the bare
+     `dt` regardless of order; short terms elsewhere stay on one line, where
+     justification is a no-op anyway. */
+  .kzl-tr dt {
+    text-align: justify;
+    text-justify: inter-word;
+    -webkit-hyphens: auto;
+    hyphens: auto;
+    -webkit-hyphenate-limit-before: 3;
+    -webkit-hyphenate-limit-after: 3;
+    hyphenate-limit-chars: 6 3 3;
+    overflow-wrap: break-word;
   }
 }

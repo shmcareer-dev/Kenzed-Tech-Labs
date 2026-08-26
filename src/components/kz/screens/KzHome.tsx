@@ -304,7 +304,6 @@ export function KzHome() {
                 color: "var(--dim)",
                 fontSize: "0.84rem",
                 lineHeight: 1.7,
-                textAlign: "left",
               }}
             >
               {kzOutcomesSection.note}

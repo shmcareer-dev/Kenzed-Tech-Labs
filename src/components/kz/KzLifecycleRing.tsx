@@ -259,7 +259,6 @@ const KZLR_CSS = `
 .kzlr-points{list-style:none;margin:0;padding:0;display:grid;gap:10px;max-width:62ch}
 .kzlr-points li{
   position:relative;padding-left:23px;color:var(--mut);font-size:.94rem;
-  text-align:left;-webkit-hyphens:none;hyphens:none;
 }
 .kzlr-points li::before{
   content:"";position:absolute;left:0;top:.58em;width:7px;height:7px;
