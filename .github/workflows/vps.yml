@@ -30,6 +30,10 @@ on:
         default: deploy
         type: choice
         options: [deploy, discover]
+      force_reload:
+        description: "Reload LiteSpeed even if .htaccess did not change. Needed when its cached copy has gone stale."
+        default: false
+        type: boolean
 
 # Never let two releases interleave on the same web root.
 concurrency:
@@ -168,6 +172,7 @@ jobs:
           VPS_PASSWORD: ${{ secrets.VPS_PASSWORD }}
           VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
           VPS_WEBROOT: ${{ secrets.VPS_WEBROOT }}
+          FORCE_RELOAD: ${{ inputs.force_reload || 'false' }}
         run: |
           set -eu
           TARGET="$VPS_USER@$VPS_HOST"
@@ -260,7 +265,7 @@ jobs:
           echo "::endgroup::"
 
           echo "::group::Swapping in the release"
-          RUNIN "WEBROOT='$WEBROOT' BUNDLE='/tmp/kenzed-$STAMP.tar.gz' STAMP='$STAMP' bash -s" <<'REMOTE'
+          RUNIN "WEBROOT='$WEBROOT' BUNDLE='/tmp/kenzed-$STAMP.tar.gz' STAMP='$STAMP' FORCE_RELOAD='$FORCE_RELOAD' bash -s" <<'REMOTE'
           set -eu
           PARENT="$(dirname "$WEBROOT")"
           NAME="$(basename "$WEBROOT")"
@@ -270,6 +275,11 @@ jobs:
           rm -rf "$STAGE"; mkdir -p "$STAGE"
           tar xzf "$BUNDLE" -C "$STAGE"
           test -f "$STAGE/index.html" || { echo "bundle has no index.html — refusing to swap"; exit 1; }
+
+          # Recorded before the swap; compared after, to decide whether the
+          # server has to be told anything. See the reload note below.
+          OLD_HT="$(md5sum "$WEBROOT/.htaccess" 2>/dev/null | cut -d' ' -f1 || echo none)"
+          NEW_HT="$(md5sum "$STAGE/.htaccess"   2>/dev/null | cut -d' ' -f1 || echo none)"
 
           # Anything the server keeps outside the build — an ACME challenge dir,
           # a hand-edited .htaccess — has to survive the swap.
@@ -293,6 +303,29 @@ jobs:
 
           # Keep the three most recent backups; the rest is just disk.
           ls -1dt "$PARENT/$NAME-backup-"* 2>/dev/null | tail -n +4 | xargs -r rm -rf
+
+          # LiteSpeed caches parsed .htaccess per directory. A file swapped in
+          # underneath it is simply not read, and the server keeps applying the
+          # rules from the release before — which is the whole reason this site
+          # looked haunted. Under the old build a stale ruleset was arbitrating
+          # the page/directory collision differently for different paths, so
+          # ten routes 404'd, four worked, and one changed sides between two
+          # requests. After trailingSlash landed, the same stale rule — strip
+          # the trailing slash — ran against a build that no longer had .html
+          # siblings, and every route became a redirect loop.
+          #
+          # Only reload when the file actually changed: this box serves about
+          # twenty other production vhosts, and a reload, graceful as it is, is
+          # not free for them.
+          if [ "$OLD_HT" != "$NEW_HT" ] || [ "${FORCE_RELOAD:-false}" = "true" ]; then
+            if [ -x /usr/local/lsws/bin/lswsctrl ] && /usr/local/lsws/bin/lswsctrl reload >/dev/null 2>&1; then
+              echo "litespeed: reloaded (.htaccess changed $OLD_HT -> $NEW_HT)"
+            else
+              echo "litespeed: RELOAD FAILED — the new .htaccess will not take effect"
+            fi
+          else
+            echo "litespeed: .htaccess unchanged, no reload needed (re-run with force_reload if its cache is stale)"
+          fi
 
           echo "live:     $(find "$WEBROOT" -type f | wc -l) files"
           echo "rollback: mv '$WEBROOT' '/tmp/failed-$STAMP' && mv '$BACKUP' '$WEBROOT'"
@@ -326,10 +359,24 @@ jobs:
           sleep 5
           fail=0
           echo "--- routes ---"
-          for path in / /technology /product-studio /services /privacy /terms /contact; do
-            code="$(curl -sL -o /dev/null -w '%{http_code}' --max-time 25 "https://kenzed.in$path" || echo ERR)"
-            printf '  %-18s %s\n' "$path" "$code"
-            [ "$code" = "200" ] || fail=1
+          for path in / /technology /product-studio /services /about /team /process /industries /infrastructure /live-projects /privacy /terms /cookies /refund /contact; do
+            code="$(curl -sL --max-redirs 4 -o /dev/null -w '%{http_code}' --max-time 25 "https://kenzed.in$path" 2>/dev/null)" || rc=$? && rc=${rc:-0}
+            if [ "${rc:-0}" = "47" ]; then
+              # curl 47 is "too many redirects". Worth naming, because it is a
+              # different fault from a 404 and points somewhere else entirely:
+              # the server sending a request back and forth between two
+              # spellings of one URL, which is what a stale cached .htaccess
+              # does after the export's shape changes underneath it.
+              loc="$(curl -sI --max-time 15 "https://kenzed.in$path" | grep -i '^location:' | tr -d '\r' | head -1)"
+              printf '  %-18s REDIRECT LOOP  -> %s\n' "$path" "${loc#*: }"
+              fail=1
+            elif [ "$code" = "200" ]; then
+              printf '  %-18s 200\n' "$path"
+            else
+              printf '  %-18s %s\n' "$path" "${code:-ERR}"
+              fail=1
+            fi
+            unset rc
           done
 
           # A 200 from the PREVIOUS release looks identical above, so check that
