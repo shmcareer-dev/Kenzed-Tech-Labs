@@ -112,11 +112,20 @@ jobs:
           # and which one it answers with is not deterministic — that is what
           # put ten routes of this site on a 301 into a 404. trailingSlash
           # keeps them apart; this fails the build if it ever comes back.
+          # `if`, not `[ ... ] && ...`. Under `set -e` an and-list whose test
+          # fails returns non-zero and takes the whole step down with it, which
+          # is exactly what this guard did on its first run: it aborted the
+          # build on the FIRST non-colliding directory, so nothing deployed and
+          # the site stayed in the redirect loop this guard was written for.
           collisions=""
           for d in dist/*/; do
             b="$(basename "$d")"
-            [ "$b" = "404" ] && continue   # reached only via ErrorDocument, by explicit path
-            [ -f "dist/$b.html" ] && collisions="$collisions $b"
+            if [ "$b" = "404" ]; then
+              continue   # reached only via ErrorDocument, by explicit path
+            fi
+            if [ -f "dist/$b.html" ]; then
+              collisions="$collisions $b"
+            fi
           done
           if [ -n "$collisions" ]; then
             echo "::error::page/directory name collisions in the export:$collisions"
@@ -318,8 +327,13 @@ jobs:
           # twenty other production vhosts, and a reload, graceful as it is, is
           # not free for them.
           if [ "$OLD_HT" != "$NEW_HT" ] || [ "${FORCE_RELOAD:-false}" = "true" ]; then
+            if [ "$OLD_HT" != "$NEW_HT" ]; then
+              WHY=".htaccess changed $OLD_HT -> $NEW_HT"
+            else
+              WHY="forced; .htaccess itself unchanged"
+            fi
             if [ -x /usr/local/lsws/bin/lswsctrl ] && /usr/local/lsws/bin/lswsctrl reload >/dev/null 2>&1; then
-              echo "litespeed: reloaded (.htaccess changed $OLD_HT -> $NEW_HT)"
+              echo "litespeed: reloaded ($WHY)"
             else
               echo "litespeed: RELOAD FAILED — the new .htaccess will not take effect"
             fi
