@@ -1,0 +1,321 @@
+# ---------------------------------------------------------------------------
+# Publish kenzed.in from CI.
+#
+# The site has two homes with different shapes, and they cannot share a build:
+#
+#   * GitHub Pages, served under /Kenzed-Tech-Labs, built by pages.yml with
+#     NEXT_PUBLIC_BASE_PATH set. That is the staging copy.
+#   * kenzed.in, served from the ROOT of the domain by OpenLiteSpeed, which
+#     needs the same commit built with NO base path. A Pages bundle dropped on
+#     the VPS asks for /Kenzed-Tech-Labs/_next/... and renders unstyled.
+#
+# The swap is two `mv`s rather than an unpack over the top, so a visitor
+# mid-request never sees a directory that is half old build and half new, and
+# the previous release stays on disk under its own timestamp — a bad deploy is
+# one command to undo.
+#
+# Required secrets: VPS_HOST, VPS_USER, and either VPS_SSH_KEY or VPS_PASSWORD.
+# Optional:         VPS_WEBROOT (skips detection), VPS_KNOWN_HOSTS (pins the
+#                   host key), CF_API_TOKEN + CF_ZONE_ID (cache purge).
+# ---------------------------------------------------------------------------
+name: Deploy to kenzed.in
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "deploy = publish. discover = report the server layout and change nothing."
+        default: deploy
+        type: choice
+        options: [deploy, discover]
+
+# Never let two releases interleave on the same web root.
+concurrency:
+  group: kenzed-vps
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    # Secrets are not exposed to forks, and a fork has no business publishing
+    # to this domain in any case.
+    if: github.repository == 'shmcareer-dev/Kenzed-Tech-Labs'
+    runs-on: ubuntu-latest
+    env:
+      MODE: ${{ inputs.mode || 'deploy' }}
+    steps:
+      - name: Check the deploy secrets are present
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_PASSWORD: ${{ secrets.VPS_PASSWORD }}
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+        run: |
+          missing=""
+          [ -n "$VPS_HOST" ] || missing="$missing VPS_HOST"
+          [ -n "$VPS_USER" ] || missing="$missing VPS_USER"
+          if [ -z "$VPS_SSH_KEY" ] && [ -z "$VPS_PASSWORD" ]; then
+            missing="$missing VPS_SSH_KEY-or-VPS_PASSWORD"
+          fi
+          if [ -n "$missing" ]; then
+            echo "::error::Missing repository secrets:$missing"
+            echo "Add them under Settings -> Secrets and variables -> Actions, or run:"
+            echo "  gh secret set VPS_HOST      # 46.202.163.242"
+            echo "  gh secret set VPS_USER      # root"
+            echo "  gh secret set VPS_PASSWORD  # the root password"
+            exit 1
+          fi
+          echo "Secrets present. Mode: $MODE"
+
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        if: env.MODE == 'deploy'
+        run: npm ci
+
+      # Types, lint, and the CSS-template-literal guard. A stray backtick inside
+      # one of the component stylesheets truncates it silently, and the page it
+      # belongs to ships unstyled — cheap to catch here, expensive in production.
+      - name: Check
+        if: env.MODE == 'deploy'
+        run: npm run check
+
+      - name: Build for the root domain
+        if: env.MODE == 'deploy'
+        env:
+          NEXT_PUBLIC_BASE_PATH: ""
+        run: npm run build
+
+      - name: Sanity-check the bundle
+        if: env.MODE == 'deploy'
+        run: |
+          set -eu
+          test -f dist/index.html      || { echo "::error::dist/index.html missing"; exit 1; }
+          test -f dist/technology.html || { echo "::error::dist/technology.html missing"; exit 1; }
+          test -f dist/.htaccess       || { echo "::error::dist/.htaccess missing — every clean URL would 404"; exit 1; }
+          # A Pages bundle here would break every asset URL on the root domain.
+          if grep -q '/Kenzed-Tech-Labs/_next' dist/index.html; then
+            echo "::error::this bundle was built with a base path; it cannot serve kenzed.in"
+            exit 1
+          fi
+          echo "pages: $(find dist -maxdepth 1 -name '*.html' | wc -l), size: $(du -sh dist | cut -f1)"
+          tar czf /tmp/release.tar.gz -C dist .
+          echo "bundle: $(du -h /tmp/release.tar.gz | cut -f1)"
+
+      - name: Prepare SSH
+        if: env.MODE == 'deploy' || env.MODE == 'discover'
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
+        run: |
+          set -eu
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+
+          # A pinned VPS_KNOWN_HOSTS is the strong form. Without it we scan and
+          # record on first use, which still protects every later run from a
+          # substituted host.
+          if [ -n "$VPS_KNOWN_HOSTS" ]; then
+            printf '%s\n' "$VPS_KNOWN_HOSTS" > ~/.ssh/known_hosts
+            echo "host key: pinned from VPS_KNOWN_HOSTS"
+          else
+            ssh-keyscan -t ed25519,ecdsa,rsa "$VPS_HOST" > ~/.ssh/known_hosts 2>/dev/null
+            echo "host key: scanned — set VPS_KNOWN_HOSTS to pin it"
+          fi
+          chmod 600 ~/.ssh/known_hosts
+          ssh-keygen -lf ~/.ssh/known_hosts | sed 's/^/  /'
+
+          if [ -n "$VPS_SSH_KEY" ]; then
+            printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/id_ed25519
+            chmod 600 ~/.ssh/id_ed25519
+            echo "auth: key"
+          else
+            sudo apt-get update -qq && sudo apt-get install -y -qq sshpass
+            echo "auth: password"
+          fi
+
+      - name: Deploy
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_PASSWORD: ${{ secrets.VPS_PASSWORD }}
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_WEBROOT: ${{ secrets.VPS_WEBROOT }}
+        run: |
+          set -eu
+          TARGET="$VPS_USER@$VPS_HOST"
+          STAMP="$(date -u +%Y%m%d-%H%M%S)"
+
+          # RUN takes its stdin from /dev/null (-n). Without that, the first ssh
+          # in the step swallows the REST OF THIS SCRIPT as the remote command's
+          # input and everything below it silently never runs. RUNIN is the
+          # deliberate exception, for the two steps that pipe a script in.
+          if [ -n "$VPS_SSH_KEY" ]; then
+            OPTS="-o BatchMode=yes -o ConnectTimeout=20"
+            RUN()   { ssh -n $OPTS "$TARGET" "$@"; }
+            RUNIN() { ssh    $OPTS "$TARGET" "$@"; }
+            PUT()   { scp    $OPTS "$1" "$TARGET:$2"; }
+          else
+            export SSHPASS="$VPS_PASSWORD"
+            OPTS="-o ConnectTimeout=20"
+            RUN()   { sshpass -e ssh -n $OPTS "$TARGET" "$@"; }
+            RUNIN() { sshpass -e ssh    $OPTS "$TARGET" "$@"; }
+            PUT()   { sshpass -e scp    $OPTS "$1" "$TARGET:$2"; }
+          fi
+
+          echo "::group::Server"
+          RUN 'echo "host: $(hostname)"; . /etc/os-release 2>/dev/null; echo "os:   ${PRETTY_NAME:-unknown}"; echo "web:  $(ps -eo comm= 2>/dev/null | grep -iE "litespeed|lshttpd|httpd|apache2|nginx" | sort -u | tr "\n" " ")"'
+          echo "::endgroup::"
+
+          # --- locate the web root -------------------------------------------
+          # An explicit VPS_WEBROOT always wins. Otherwise read docRoot straight
+          # out of the OpenLiteSpeed vhost config, then try the usual places.
+          # Whatever comes back must already hold a Kenzed index.html before
+          # anything touches it: this must never guess its way into overwriting
+          # an unrelated site sharing the box.
+          echo "::group::Locating the web root"
+          WEBROOT="$(RUNIN "WANT='$VPS_WEBROOT' bash -s" <<'FIND'
+          set -eu
+          if [ -n "${WANT:-}" ]; then echo "$WANT"; exit 0; fi
+          for cfg in /usr/local/lsws/conf/vhosts/kenzed.in/vhost.conf /usr/local/lsws/conf/vhosts/*/vhost.conf; do
+            [ -f "$cfg" ] || continue
+            d="$(awk '/^[[:space:]]*docRoot/{print $2; exit}' "$cfg")"
+            [ -n "$d" ] || continue
+            vh="$(dirname "$cfg")"
+            d="$(printf '%s' "$d" | sed "s|\$VH_ROOT|$vh|g; s|\$SERVER_ROOT|/usr/local/lsws|g")"
+            if [ -f "$d/index.html" ] && grep -qi kenzed "$d/index.html"; then echo "$d"; exit 0; fi
+          done
+          for d in /home/*/public_html /home/*/domains/kenzed.in/public_html /var/www/kenzed.in/html /var/www/kenzed.in /var/www/html /usr/local/lsws/kenzed.in/html; do
+            if [ -f "$d/index.html" ] && grep -qi kenzed "$d/index.html"; then echo "$d"; exit 0; fi
+          done
+          echo NOTFOUND
+          FIND
+          )"
+          WEBROOT="$(printf '%s' "$WEBROOT" | tr -d '\r' | tail -n1)"
+
+          if [ "$WEBROOT" = "NOTFOUND" ] || [ -z "$WEBROOT" ]; then
+            echo "::error::Could not find the web root. Set the VPS_WEBROOT secret to the DocumentRoot for kenzed.in."
+            echo "Candidates on the box:"
+            RUN 'ls -d /home/*/public_html /var/www/* /usr/local/lsws/*/html 2>/dev/null | head -20' || true
+            exit 1
+          fi
+          echo "web root: $WEBROOT"
+          RUN "echo \"files: \$(find '$WEBROOT' -type f | wc -l)\"; ls -la '$WEBROOT' | head -8"
+          echo "::endgroup::"
+
+          if [ "$MODE" = "discover" ]; then
+            echo "Discover mode — nothing was changed."
+            exit 0
+          fi
+
+          echo "::group::Uploading"
+          PUT /tmp/release.tar.gz "/tmp/kenzed-$STAMP.tar.gz"
+          echo "::endgroup::"
+
+          echo "::group::Swapping in the release"
+          RUNIN "WEBROOT='$WEBROOT' BUNDLE='/tmp/kenzed-$STAMP.tar.gz' STAMP='$STAMP' bash -s" <<'REMOTE'
+          set -eu
+          PARENT="$(dirname "$WEBROOT")"
+          NAME="$(basename "$WEBROOT")"
+          STAGE="$PARENT/.$NAME-staging-$STAMP"
+          BACKUP="$PARENT/$NAME-backup-$STAMP"
+
+          rm -rf "$STAGE"; mkdir -p "$STAGE"
+          tar xzf "$BUNDLE" -C "$STAGE"
+          test -f "$STAGE/index.html" || { echo "bundle has no index.html — refusing to swap"; exit 1; }
+
+          # Anything the server keeps outside the build — an ACME challenge dir,
+          # a hand-edited .htaccess — has to survive the swap.
+          if [ -d "$WEBROOT/.well-known" ]; then
+            mkdir -p "$STAGE/.well-known"
+            cp -an "$WEBROOT/.well-known/." "$STAGE/.well-known/" 2>/dev/null || true
+          fi
+          if [ -f "$WEBROOT/.htaccess" ] && [ ! -f "$STAGE/.htaccess" ]; then
+            cp -p "$WEBROOT/.htaccess" "$STAGE/.htaccess"
+            echo "carried the live .htaccess forward"
+          fi
+
+          # Match the ownership the web server already expects BEFORE the swap,
+          # so the live directory is correct the instant it takes the name.
+          chown -R --reference="$WEBROOT" "$STAGE" 2>/dev/null || true
+          chmod -R u=rwX,go=rX "$STAGE"
+
+          mv "$WEBROOT" "$BACKUP"
+          mv "$STAGE" "$WEBROOT"
+          rm -f "$BUNDLE"
+
+          # Keep the three most recent backups; the rest is just disk.
+          ls -1dt "$PARENT/$NAME-backup-"* 2>/dev/null | tail -n +4 | xargs -r rm -rf
+
+          echo "live:     $(find "$WEBROOT" -type f | wc -l) files"
+          echo "rollback: mv '$WEBROOT' '/tmp/failed-$STAMP' && mv '$BACKUP' '$WEBROOT'"
+          REMOTE
+          echo "::endgroup::"
+
+      # HTML is not cached by Cloudflare's default rules, but the moment anyone
+      # adds a page rule this is what stops a stale release being served for
+      # hours. Runs only if both secrets exist.
+      - name: Purge Cloudflare
+        if: env.MODE == 'deploy'
+        continue-on-error: true
+        env:
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          CF_ZONE_ID: ${{ secrets.CF_ZONE_ID }}
+        run: |
+          if [ -z "${CF_API_TOKEN:-}" ] || [ -z "${CF_ZONE_ID:-}" ]; then
+            echo "CF_API_TOKEN / CF_ZONE_ID not set — skipping cache purge."
+            exit 0
+          fi
+          curl -sf -X POST "https://api.cloudflare.com/client/v4/zones/$CF_ZONE_ID/purge_cache" \
+            -H "Authorization: Bearer $CF_API_TOKEN" \
+            -H "Content-Type: application/json" \
+            --data '{"purge_everything":true}' | head -c 300
+          echo
+
+      - name: Verify the live site
+        if: env.MODE == 'deploy'
+        run: |
+          set -eu
+          sleep 5
+          fail=0
+          echo "--- routes ---"
+          for path in / /technology /product-studio /services /privacy /terms /contact; do
+            code="$(curl -sL -o /dev/null -w '%{http_code}' --max-time 25 "https://kenzed.in$path" || echo ERR)"
+            printf '  %-18s %s\n' "$path" "$code"
+            [ "$code" = "200" ] || fail=1
+          done
+
+          # A 200 from the PREVIOUS release looks identical above, so check that
+          # the content actually being served is this build.
+          echo "--- content ---"
+          home="$(curl -sL --max-time 25 https://kenzed.in/)"
+          for probe in "7699001138" "kenzedTechlab@gmail.com"; do
+            if printf '%s' "$home" | grep -q "$probe"; then
+              printf '  ok       %s\n' "$probe"
+            else
+              printf '  MISSING  %s\n' "$probe"; fail=1
+            fi
+          done
+          if printf '%s' "$home" | grep -q "7699002237"; then
+            echo "  STALE    the old phone number is still being served"; fail=1
+          fi
+
+          tech="$(curl -sL --max-time 25 https://kenzed.in/technology)"
+          if printf '%s' "$tech" | grep -q 'data-measured'; then
+            echo "  ok       technology page carries the measured stack deck"
+          else
+            echo "  MISSING  measured stack deck — the mobile gap fix is not live"; fail=1
+          fi
+
+          [ "$fail" = "0" ] || { echo "::error::Live verification failed. The rollback command is in the swap step above."; exit 1; }
+          echo
+          echo "kenzed.in is serving this commit."

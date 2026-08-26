@@ -138,12 +138,53 @@ the build, so every change requires a new export.
 
 `npm run build` creates a self-contained site in `dist/`.
 
-- GitHub Pages is published by `.github/workflows/pages.yml` on pushes to
-  `master`. The workflow supplies `/Kenzed-Tech-Labs` as its base path.
-- The root-domain build leaves the base path empty and is synchronized to the
-  `kenzed.in` web root as an atomic release with a server-side backup.
+Both targets publish from `master`; neither needs a manual step.
+
+- **GitHub Pages** — `.github/workflows/pages.yml`. Supplies
+  `/Kenzed-Tech-Labs` as the base path. This is the staging copy.
+- **kenzed.in** — `.github/workflows/vps.yml`. Builds the same commit with an
+  empty base path and swaps it into the VPS web root as an atomic release with
+  a server-side backup.
 - `public/.htaccess` is part of the production export and must be preserved so
   clean route URLs resolve correctly on the live web server.
+
+### The kenzed.in pipeline
+
+Secrets, under Settings → Secrets and variables → Actions:
+
+| Secret | Required | What it is |
+| --- | --- | --- |
+| `VPS_HOST` | yes | `46.202.163.242` |
+| `VPS_USER` | yes | `root` |
+| `VPS_SSH_KEY` | either | Private deploy key. Preferred. |
+| `VPS_PASSWORD` | either | Root password. Works, but see below. |
+| `VPS_KNOWN_HOSTS` | no | Pins the host key. Without it the first run scans. |
+| `VPS_WEBROOT` | no | Skips detection. |
+| `CF_API_TOKEN`, `CF_ZONE_ID` | no | Purges Cloudflare after a release. |
+
+A password in `VPS_PASSWORD` is a standing root credential that every future
+workflow run can use, so prefer a key: generate one, append the public half to
+`~/.ssh/authorized_keys` on the server, put the private half in `VPS_SSH_KEY`,
+then delete `VPS_PASSWORD`. The workflow picks the key automatically whenever
+it is present.
+
+The web root is **detected, not assumed** — first from `docRoot` in the
+OpenLiteSpeed vhost config, then from the usual locations. A candidate only
+counts if it already holds a Kenzed `index.html`, so a wrong answer refuses the
+deploy rather than overwriting an unrelated site on the same box. Set
+`VPS_WEBROOT` to skip detection entirely.
+
+Run the workflow with **mode: discover** to print the server layout and the
+detected web root while changing nothing. Worth doing once before the first
+real deploy.
+
+The release itself is two `mv`s, not an unpack over the top, so no visitor ever
+sees a web root that is half old build and half new. The previous release stays
+on disk as `<name>-backup-<stamp>` (three kept), and the swap step prints the
+one-line rollback command. Afterwards the workflow checks that kenzed.in is
+serving *this* build — a 200 from the previous release looks identical, so it
+greps for the current phone number and the measured stack deck rather than
+trusting the status code.
 
 Before publishing, run lint, type-checking, and a clean production build. Never
 copy `.next/`, local environment files, or deployment archives into the web

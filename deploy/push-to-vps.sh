@@ -21,7 +21,7 @@
 set -euo pipefail
 
 BUNDLE="${1:-}"
-WEBROOT="${2:-/home/kenzed/public_html}"
+WEBROOT="${2:-}"   # empty = detect it on the server, same rule CI uses
 HOST="root@46.202.163.242"
 
 if [[ -z "$BUNDLE" || ! -f "$BUNDLE" ]]; then
@@ -35,7 +35,7 @@ REMOTE_TMP="/tmp/kenzed-$STAMP.tar.gz"
 
 echo "==> bundle : $BUNDLE ($(du -h "$BUNDLE" | cut -f1))"
 echo "==> host   : $HOST"
-echo "==> webroot: $WEBROOT"
+echo "==> webroot: (detected on the server)"
 echo
 
 # One connection for the whole run, so the password is entered once.
@@ -44,8 +44,35 @@ ssh -o ControlMaster=yes -o ControlPath="$CTL" -o ControlPersist=300 -fN "$HOST"
 trap 'ssh -o ControlPath="$CTL" -O exit "$HOST" 2>/dev/null || true' EXIT
 SSH=(ssh -o ControlPath="$CTL" "$HOST")
 
-echo "==> checking the target"
-"${SSH[@]}" "test -d '$WEBROOT' || { echo \"NO SUCH WEBROOT: $WEBROOT\" >&2; exit 1; }; echo \"currently \$(find '$WEBROOT' -maxdepth 1 -type f | wc -l) files at the top level\""
+# Find the web root rather than guessing at one. Whatever comes back has to
+# already hold a Kenzed index.html before anything is allowed to touch it, so a
+# wrong answer refuses instead of overwriting some other site on the same box.
+echo "==> locating the web root"
+WEBROOT="$("${SSH[@]}" "WANT='$WEBROOT' bash -s" <<'FIND' | tr -d '\r' | tail -n1
+set -eu
+if [ -n "${WANT:-}" ]; then echo "$WANT"; exit 0; fi
+for cfg in /usr/local/lsws/conf/vhosts/kenzed.in/vhost.conf /usr/local/lsws/conf/vhosts/*/vhost.conf; do
+  [ -f "$cfg" ] || continue
+  d="$(awk '/^[[:space:]]*docRoot/{print $2; exit}' "$cfg")"
+  [ -n "$d" ] || continue
+  vh="$(dirname "$cfg")"
+  d="$(printf '%s' "$d" | sed "s|\$VH_ROOT|$vh|g; s|\$SERVER_ROOT|/usr/local/lsws|g")"
+  if [ -f "$d/index.html" ] && grep -qi kenzed "$d/index.html"; then echo "$d"; exit 0; fi
+done
+for d in /home/*/public_html /home/*/domains/kenzed.in/public_html /var/www/kenzed.in/html /var/www/kenzed.in /var/www/html /usr/local/lsws/kenzed.in/html; do
+  if [ -f "$d/index.html" ] && grep -qi kenzed "$d/index.html"; then echo "$d"; exit 0; fi
+done
+echo NOTFOUND
+FIND
+)"
+if [ "$WEBROOT" = "NOTFOUND" ] || [ -z "$WEBROOT" ]; then
+  echo "Could not find the web root. Pass it explicitly:" >&2
+  echo "  $0 $BUNDLE /path/to/docroot" >&2
+  "${SSH[@]}" 'ls -d /home/*/public_html /var/www/* /usr/local/lsws/*/html 2>/dev/null | head -20' || true
+  exit 1
+fi
+echo "    $WEBROOT"
+"${SSH[@]}" "echo \"currently \$(find '$WEBROOT' -maxdepth 1 -type f | wc -l) files at the top level\""
 
 echo "==> uploading"
 scp -o ControlPath="$CTL" "$BUNDLE" "$HOST:$REMOTE_TMP"
