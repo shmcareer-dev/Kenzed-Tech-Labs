@@ -99,9 +99,27 @@ jobs:
         if: env.MODE == 'deploy'
         run: |
           set -eu
-          test -f dist/index.html      || { echo "::error::dist/index.html missing"; exit 1; }
-          test -f dist/technology.html || { echo "::error::dist/technology.html missing"; exit 1; }
-          test -f dist/.htaccess       || { echo "::error::dist/.htaccess missing — every clean URL would 404"; exit 1; }
+          test -f dist/index.html            || { echo "::error::dist/index.html missing"; exit 1; }
+          test -f dist/technology/index.html || { echo "::error::dist/technology/index.html missing"; exit 1; }
+          test -f dist/.htaccess             || { echo "::error::dist/.htaccess missing"; exit 1; }
+
+          # The bug this guards against: an export that emits BOTH `foo.html`
+          # and a `foo/` directory gives LiteSpeed two candidates for `/foo`,
+          # and which one it answers with is not deterministic — that is what
+          # put ten routes of this site on a 301 into a 404. trailingSlash
+          # keeps them apart; this fails the build if it ever comes back.
+          collisions=""
+          for d in dist/*/; do
+            b="$(basename "$d")"
+            [ "$b" = "404" ] && continue   # reached only via ErrorDocument, by explicit path
+            [ -f "dist/$b.html" ] && collisions="$collisions $b"
+          done
+          if [ -n "$collisions" ]; then
+            echo "::error::page/directory name collisions in the export:$collisions"
+            echo "Every one of these is a route that will intermittently 404. Check trailingSlash in next.config.ts."
+            exit 1
+          fi
+          echo "no page/directory collisions"
           # A Pages bundle here would break every asset URL on the root domain.
           if grep -q '/Kenzed-Tech-Labs/_next' dist/index.html; then
             echo "::error::this bundle was built with a base path; it cannot serve kenzed.in"

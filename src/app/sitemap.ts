@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 
 import { services } from "@/content/services";
-import { site } from "@/content/site";
+import { canonicalUrl } from "@/lib/seo";
 
 export const dynamic = "force-static";
 
@@ -31,13 +31,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   return [
     ...routes.map((route) => ({
-      url: new URL(route.path, site.url).toString(),
+      url: canonicalUrl(route.path),
       lastModified,
       changeFrequency: route.changeFrequency,
       priority: route.priority,
     })),
     ...services.map((service) => ({
-      url: new URL(`/services/${service.slug}`, site.url).toString(),
+      url: canonicalUrl(`/services/${service.slug}`),
       lastModified,
       changeFrequency: "monthly" as const,
       priority: 0.8,

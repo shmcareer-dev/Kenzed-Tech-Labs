@@ -4,6 +4,23 @@ import { LEGAL_ISO } from "@/content/legal";
 import { locations, site } from "@/content/site";
 
 /**
+ * The canonical absolute URL for a route.
+ *
+ * `trailingSlash` is on in next.config.ts, so Next writes every internal href,
+ * canonical tag and og:url with a trailing slash of its own accord. Anything
+ * that assembles a URL by hand — the sitemap, the breadcrumb and document
+ * JSON-LD — has to agree with it. When it did not, the sitemap advertised
+ * `/technology` while the page itself claimed `/technology/` as canonical: two
+ * spellings of one page for a crawler to reconcile, and a redirect on the way
+ * in to every URL the sitemap lists.
+ */
+export function canonicalUrl(path: string): string {
+  const url = new URL(path, site.url);
+  if (!url.pathname.endsWith("/")) url.pathname += "/";
+  return url.toString();
+}
+
+/**
  * Per-page metadata helper.
  *
  * Every page calls this so canonical URLs, Open Graph and Twitter cards stay
@@ -20,7 +37,7 @@ export function pageMetadata({
   path: string;
   keywords?: string[];
 }): Metadata {
-  const url = new URL(path, site.url).toString();
+  const url = canonicalUrl(path);
 
   return {
     title,
@@ -120,7 +137,7 @@ export function serviceSchema({
     description,
     provider: { "@type": "Organization", name: site.name, url: site.url },
     areaServed: ["India", "Worldwide"],
-    url: new URL(path, site.url).toString(),
+    url: canonicalUrl(path),
   };
 }
 
@@ -136,7 +153,7 @@ export function legalPageSchema(doc: {
     "@type": "WebPage",
     name: doc.title,
     description: doc.metaDescription,
-    url: new URL(`/${doc.slug}`, site.url).toString(),
+    url: canonicalUrl(`/${doc.slug}`),
     inLanguage: "en",
     dateModified: LEGAL_ISO,
     isPartOf: { "@type": "WebSite", name: site.name, url: site.url },
@@ -177,7 +194,7 @@ export function breadcrumbSchema(trail: { name: string; path: string }[]) {
       "@type": "ListItem",
       position: index + 1,
       name: crumb.name,
-      item: new URL(crumb.path, site.url).toString(),
+      item: canonicalUrl(crumb.path),
     })),
   };
 }
