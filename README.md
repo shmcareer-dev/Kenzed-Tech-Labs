@@ -152,6 +152,11 @@ root.
 **Release bundles in `deploy/` go stale silently.** They are snapshots of a
 past `dist/`, and nothing revalidates them: `kenzed-web-dist.tar.gz` and
 `kenzed-20260825-3d-34b5d51.tar.gz` still contain the pre-2026-08-26 phone
-number and email, long after the source was corrected. Publish
-`kenzed-20260826-dist.tar.gz` or a newer bundle you generate yourself; treat
-the two older archives as history, not as deployables.
+number and email, long after the source was corrected. Name a bundle after the
+commit it was cut from — `kenzed-9616567-dist.tar.gz` is the current one — and
+treat the two older archives as history, not as deployables.
+
+Note that a bundle is only ever the ROOT-DOMAIN build. `dist/` differs between
+the two targets: the Pages workflow sets `NEXT_PUBLIC_BASE_PATH`, which changes
+every asset URL in the output. Never upload a Pages-built `dist/` to kenzed.in
+or the reverse.
