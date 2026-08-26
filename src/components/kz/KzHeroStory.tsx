@@ -78,7 +78,13 @@ const KZ_HERO_STORY_CSS = `
   --kzhs-ease:cubic-bezier(0.22,1,0.36,1);
   /* Matches the kz-wrap gutter: 1280px container, up to 36px inline padding. */
   --kzhs-inset:max(clamp(18px,4.5vw,36px),calc((100vw - var(--container-site))/2 + 36px));
-  position:relative;height:235svh;background:var(--bg);
+  /* The scroll budget for the whole story. The sticky stage below is 100svh,
+     so the travel that maps to progress 0→1 is this MINUS 100svh — at 235svh
+     that was 135svh, a screen and a third of scrolling before the page moved
+     on, which read as the hero refusing to end. 185svh puts it at 85svh.
+     Every stage threshold is a fraction of progress, so the sequence keeps its
+     proportions and simply plays over less scroll. */
+  position:relative;height:185svh;background:var(--bg);
 }
 .kzhs-sticky{position:sticky;top:0;height:100svh;min-height:660px;overflow:hidden;isolation:isolate;background:var(--bg)}
 
@@ -432,7 +438,13 @@ export function KzHeroStory() {
          above force layout, and from the listener they did so synchronously on
          every scroll event instead of once per painted frame. */
       measure();
-      current = reduced ? target : current + (target - current) * 0.09;
+      /* 0.13, raised with the shorter travel. The factor smooths in PROGRESS,
+         not in pixels, so shrinking the story from 135svh of travel to 85svh
+         makes the same wheel notch move the target ~1.6x further — and the old
+         0.09 then left a visibly bigger gap behind the finger. Matching the two
+         keeps the settle time where it was instead of making the art feel like
+         it is being dragged along after the scroll. */
+      current = reduced ? target : current + (target - current) * 0.13;
       story.style.setProperty("--progress", current.toFixed(4));
       const nextPast = current > 0.5;
       if (nextPast !== past) {
