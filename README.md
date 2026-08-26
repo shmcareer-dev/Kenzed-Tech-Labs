@@ -174,9 +174,43 @@ counts if it already holds a Kenzed `index.html`, so a wrong answer refuses the
 deploy rather than overwriting an unrelated site on the same box. Set
 `VPS_WEBROOT` to skip detection entirely.
 
-Run the workflow with **mode: discover** to print the server layout and the
-detected web root while changing nothing. Worth doing once before the first
-real deploy.
+Run the workflow with **mode: discover** to print the server layout, the
+detected web root and the vhost config while changing nothing. Worth doing
+once before the first real deploy.
+
+### LiteSpeed caches .htaccess, and that will bite you
+
+This is the single most important thing to know about this server.
+
+OpenLiteSpeed caches parsed `.htaccess` per directory. A file swapped in
+underneath it is **not read** — the server keeps applying the rules from the
+previous release, indefinitely. It does not look like a caching problem from
+outside; it looks like the server behaving at random. Both of the live faults
+this pipeline was built to chase were this one thing:
+
+- Before `trailingSlash`, a stale ruleset arbitrated the page/directory name
+  collision differently per path. Ten routes 301'd into a directory with no
+  index and returned 404, four served correctly, and `/privacy` changed sides
+  between two requests minutes apart from an unchanged web root.
+- After `trailingSlash`, the same stale rule — strip the trailing slash — ran
+  against a build whose pages now live *at* the trailing slash. Every route
+  became `/x` → `/x/` → `/x`, forever, while `/x/index.html` served 200 the
+  whole time.
+
+The deploy reloads LiteSpeed whenever the deployed `.htaccess` differs from
+the one that was live, and only then: this box carries around twenty other
+production vhosts and a reload, graceful though it is, is not free for them.
+
+If you ever edit `.htaccess` on the server by hand, or the cache goes stale
+some other way, run the workflow with **force_reload: true**. That is the
+switch, and it is the fix.
+
+The URL shape is a trailing slash — `/technology/`, not `/technology`. That is
+`trailingSlash: true` in `next.config.ts`, and it is load-bearing rather than
+stylistic; the comment there explains why. `canonicalUrl()` in `lib/seo.ts` is
+the one place that shape is decided, and the sitemap, breadcrumbs and JSON-LD
+all go through it. If you add a route and build its URL by hand, use that
+helper or the sitemap will advertise a spelling the page itself disowns.
 
 The release itself is two `mv`s, not an unpack over the top, so no visitor ever
 sees a web root that is half old build and half new. The previous release stays
