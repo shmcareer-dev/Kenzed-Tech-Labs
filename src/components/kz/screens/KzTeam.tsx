@@ -2,7 +2,7 @@
 
 import { KzReveal } from "@/components/kz/KzReveal";
 import { KzScrollSpy } from "@/components/kz/KzScrollSpy";
-import { KzSpatialIcon3D, kindForLabel } from "@/components/kz/KzSpatial3D";
+import { KzDecorPin, KzSpatialIcon3D, kindForLabel } from "@/components/kz/KzSpatial3D";
 import { KzPageHero, KzSectionTitle } from "@/components/kz/primitives";
 import { kzTeam } from "@/content/kz";
 
@@ -25,7 +25,14 @@ export function KzTeam() {
       </div>
 
       <section id="disciplines" style={{ padding: "0 0 clamp(70px, 10vw, 120px)", background: "var(--bg)" }}>
-        <div className="kz-wrap">
+        <div className="kz-wrap" style={{ position: "relative" }}>
+          <KzDecorPin
+            kind="studio"
+            label="Six disciplines"
+            size={58}
+            tone="blue"
+            className="kz-section-pin"
+          />
           <KzReveal delay={0}>
             <KzSectionTitle style={{ marginBottom: 10 }}>
               Every discipline under one roof

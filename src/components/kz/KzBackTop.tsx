@@ -44,25 +44,63 @@ export function KzBackTop() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    // rAF-throttled: scroll fires per frame or faster, and the read of
-    // scrollHeight is layout-bound, so coalesce to at most one check a frame.
+    // The 22% mark is a fraction of the scrollable range, but
+    // `documentElement.scrollHeight` is the one box read the engine can never
+    // serve from cache — it lays out the entire document. This used to run
+    // inside the per-frame scroll handler, so every frame of every scroll on
+    // these long marketing pages paid for a full-page layout, on every route,
+    // since the button is mounted in the root layout. The range only moves when
+    // the document itself does, so it is measured on those events and the
+    // scroll handler is left with a single scalar compare.
+    let threshold = Number.POSITIVE_INFINITY;
+    const measure = () => {
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      // A page shorter than the viewport can never reach the mark; Infinity says
+      // so without the per-frame handler needing a second guard.
+      threshold = max > 0 ? max * 0.22 : Number.POSITIVE_INFINITY;
+    };
+
+    // rAF-throttled: scroll fires per frame or faster, so coalesce to at most
+    // one check a frame.
     let ticking = false;
     const check = () => {
       ticking = false;
-      const max = document.documentElement.scrollHeight - window.innerHeight;
-      setVisible(max > 0 && window.scrollY / max > 0.22);
+      setVisible(window.scrollY > threshold);
     };
     const onScroll = () => {
       if (ticking) return;
       ticking = true;
       window.requestAnimationFrame(check);
     };
+    const remeasure = () => {
+      measure();
+      onScroll();
+    };
+
+    measure();
     check(); // deep links can land mid-page, past the threshold
+
+    // Anything that changes the document's height after mount — images landing,
+    // a section expanding, the viewport rotating — arrives here rather than as a
+    // scroll event, and a stale threshold would show or hide the chip at the
+    // wrong point.
+    const observer = new ResizeObserver(remeasure);
+    observer.observe(document.documentElement);
+
+    // The webfont swap reflows every block on the page, so the range measured
+    // against fallback metrics is not the final one.
+    let live = true;
+    document.fonts?.ready.then(() => {
+      if (live) remeasure();
+    });
+
     window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll, { passive: true });
+    window.addEventListener("resize", remeasure, { passive: true });
     return () => {
+      live = false;
+      observer.disconnect();
       window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
+      window.removeEventListener("resize", remeasure);
     };
   }, []);
 

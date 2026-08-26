@@ -91,3 +91,6 @@ ErrorDocument 404 /404.html
 AddType application/javascript .js
 AddType image/svg+xml .svg
 AddType font/woff2 .woff2
+# Without this the manifest is served as octet-stream and Chrome refuses it,
+# so the installed-shortcut name and icon fall back to the page title.
+AddType application/manifest+json .webmanifest

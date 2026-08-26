@@ -157,10 +157,21 @@ function useKzInView<T extends Element>(threshold = 0.2) {
   return { ref, inView };
 }
 
-function useKzDrawIn(duration = 950) {
+/* `paint` writes each frame onto the DOM itself; 600ms because the 950 this
+   used to run for overshot the 800ms ceiling the system sets itself in
+   KzEntrance, and a chart draw is not the place to break it. */
+function useKzDrawIn(paint: (progress: number) => void, duration = 600) {
   const { ref, inView } = useKzInView<SVGSVGElement>(0.25);
   const reduced = useKzReducedMotion();
-  const [drawn, setDrawn] = useState(0);
+  const [settled, setSettled] = useState(false);
+  const paintRef = useRef(paint);
+
+  /* Refreshed after every render and declared ahead of the loop below, so a
+     frame always paints against the latest geometry while the loop itself never
+     has to restart just because the caller re-rendered. */
+  useEffect(() => {
+    paintRef.current = paint;
+  });
 
   useEffect(() => {
     if (!inView || reduced) return;
@@ -168,14 +179,21 @@ function useKzDrawIn(duration = 950) {
     const start = performance.now();
     const tick = (now: number) => {
       const p = Math.min((now - start) / duration, 1);
-      setDrawn(1 - Math.pow(1 - p, 3));
+      /* Progress used to be state, so each of the ~36 frames re-rendered the
+         whole figure — every arc, both centre labels and the legend — to land
+         on a paint React could not tell apart from this one. */
+      paintRef.current(1 - Math.pow(1 - p, 3));
       if (p < 1) raf = requestAnimationFrame(tick);
+      else setSettled(true);
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
   }, [inView, reduced, duration]);
 
-  return { ref, progress: reduced ? 1 : drawn };
+  /* React renders only the two resting states, empty and full, so once the draw
+     settles its tree agrees with the DOM again and a later re-render for an
+     unrelated reason cannot snap the figure back to nothing. */
+  return { ref, progress: reduced || settled ? 1 : 0 };
 }
 
 function KzFigCaption({ children }: { children: string }) {
@@ -428,7 +446,13 @@ const KZ_FLOW_KINDS = {
 export function KzWebFlow({ nodes, title }: KzWebFlowProps) {
   const reduced = useKzReducedMotion();
   const wrapRef = useRef<HTMLElement | null>(null);
-  const [stacked, setStacked] = useState(false);
+  /* Mobile-first, matching how KzScrollFx picks its server snapshot: the
+     prerendered HTML is the stacked layout, so a phone paints the geometry it
+     is going to keep. Defaulting to the wide form meant the static HTML shipped
+     a 42px unreadable strip that then reflowed ~456px the moment the observer
+     reported — a layout shift on the first paint of every phone visit, on the
+     wide form nobody on a phone ever sees. */
+  const [stacked, setStacked] = useState(true);
   const uid = useId().replace(/:/g, "");
 
   /* Measured on the container, not the viewport, so a flow dropped into a narrow
@@ -577,23 +601,43 @@ export function KzWebFlow({ nodes, title }: KzWebFlowProps) {
 }
 
 export function KzDonut({ slices, title, centerLabel }: KzDonutProps) {
-  const { ref, progress } = useKzDrawIn();
+  const arcsRef = useRef<(SVGCircleElement | null)[]>([]);
 
   const total = slices.reduce((sum, slice) => sum + Math.max(0, slice.value), 0);
-  if (!slices.length || total <= 0) return null;
-
   const radius = 66;
   const circumference = 2 * Math.PI * radius;
-  const revealed = circumference * progress;
+  /* The hook below has to run before the empty-input bail-out can return, so the
+     geometry is measured against a safe total and discarded when there is
+     nothing to draw. */
+  const safeTotal = total > 0 ? total : 1;
+  const starts = slices.map(
+    (_, i) =>
+      (slices.slice(0, i).reduce((sum, slice) => sum + Math.max(0, slice.value), 0) / safeTotal) *
+      circumference
+  );
+  const lengths = slices.map((slice) =>
+    Math.max(0.5, (Math.max(0, slice.value) / safeTotal) * circumference - 2.5)
+  );
+  /* A single definition of the dash at a given progress, shared by the markup
+     React renders and by the frames written straight to the arcs, so the two
+     cannot drift apart. */
+  const dashArray = (i: number, drawnTo: number) => {
+    const drawn = Math.min(Math.max(circumference * drawnTo - starts[i], 0), lengths[i]);
+    return `${drawn} ${circumference - drawn}`;
+  };
+
+  const { ref, progress } = useKzDrawIn((drawnTo) => {
+    starts.forEach((_, i) => {
+      arcsRef.current[i]?.setAttribute("stroke-dasharray", dashArray(i, drawnTo));
+    });
+  });
+
+  if (!slices.length || total <= 0) return null;
+
   const centre = centerLabel ?? formatValue(total);
   const summary = `${title ?? "Share breakdown"}: ${slices
     .map((slice) => `${slice.label} ${formatPercent(slice.value, total)}`)
     .join(", ")}.`;
-  const starts = slices.map(
-    (_, i) =>
-      (slices.slice(0, i).reduce((sum, slice) => sum + Math.max(0, slice.value), 0) / total) *
-      circumference
-  );
 
   return (
     <figure style={{ margin: 0 }}>
@@ -627,13 +671,12 @@ export function KzDonut({ slices, title, centerLabel }: KzDonutProps) {
           <g transform="rotate(-90 100 100)">
             {slices.map((slice, i) => {
               const tone = seriesTone(i);
-              const share = Math.max(0, slice.value) / total;
-              const start = starts[i];
-              const length = Math.max(0.5, share * circumference - 2.5);
-              const drawn = Math.min(Math.max(revealed - start, 0), length);
               return (
                 <circle
                   key={`${i}-${slice.label}`}
+                  ref={(node) => {
+                    arcsRef.current[i] = node;
+                  }}
                   cx={100}
                   cy={100}
                   r={radius}
@@ -641,8 +684,8 @@ export function KzDonut({ slices, title, centerLabel }: KzDonutProps) {
                   stroke={tone.color}
                   strokeOpacity={tone.opacity}
                   strokeWidth={30}
-                  strokeDasharray={`${drawn} ${circumference - drawn}`}
-                  strokeDashoffset={-start}
+                  strokeDasharray={dashArray(i, progress)}
+                  strokeDashoffset={-starts[i]}
                 />
               );
             })}

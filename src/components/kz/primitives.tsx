@@ -3,7 +3,7 @@
 import Link from "next/link";
 import {
   KzPageHeroScene,
-  KzTechToken3D,
+  KzSpatialIcon3D,
   kindForLabel,
   type KzSpatialKind,
 } from "@/components/kz/KzSpatial3D";
@@ -28,13 +28,18 @@ export function KzSectionTitle({
   style?: React.CSSProperties;
   pin?: boolean;
 }) {
-  const pinName = typeof children === "string" ? children : "AI";
+  /* Was a KzTechToken3D, which stamps a monogram of whatever string it is
+     given — so "How an engagement runs" rendered as a cube reading HAE, and
+     every section heading on the site got a meaningless three-letter tile. The
+     same slot now carries the object the heading is actually about, routed
+     through the same kindForLabel the rest of the site uses. */
+  const pinLabel = typeof children === "string" ? children : "AI";
   return (
     <h2 className={`kz-section-title ${className}`} style={style}>
       {children}
       {pin && (
         <span className="kz3-title-pin" aria-hidden="true">
-          <KzTechToken3D name={pinName} category="Section marker" size={30} />
+          <KzSpatialIcon3D kind={kindForLabel(pinLabel)} size="1.15em" float={false} />
         </span>
       )}
     </h2>

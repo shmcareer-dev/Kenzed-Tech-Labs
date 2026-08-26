@@ -84,8 +84,7 @@ export function KzLiveProjects() {
                 maxWidth: "68ch",
                 margin: "0 0 22px",
                 fontSize: "1rem",
-                textAlign: "justify",
-              }}
+                              }}
             >
               Every programme ends on a live client project. Cohorts run from our Durgapur
               engineering centre under the same code review, tracing and release discipline our own
@@ -190,8 +189,7 @@ export function KzLiveProjects() {
                       margin: 0,
                       fontSize: "0.92rem",
                       color: "var(--mut)",
-                      textAlign: "justify",
-                    }}
+                                          }}
                   >
                     {program.summary}
                   </p>
@@ -276,8 +274,7 @@ export function KzLiveProjects() {
                 color: "var(--mut)",
                 margin: "0 0 18px",
                 fontSize: "1rem",
-                textAlign: "justify",
-              }}
+                              }}
             >
               Every trainee travels the same six stages. Nobody joins a client squad until the build
               lab says they are ready, and nobody reaches the register without a reviewed
@@ -315,8 +312,7 @@ export function KzLiveProjects() {
                 color: "var(--mut)",
                 margin: "0 0 24px",
                 fontSize: "1rem",
-                textAlign: "justify",
-              }}
+                              }}
             >
               Tell us where you are and what you want to build. The form opens a WhatsApp message to
               our training desk — send it, and we reply within one business day with the next cohort
@@ -396,8 +392,7 @@ export function KzLiveProjects() {
                 maxWidth: "74ch",
                 margin: "0 0 26px",
                 fontSize: "1rem",
-                textAlign: "justify",
-              }}
+                              }}
             >
               This is the credential record. Every live project run with trainees is listed with its
               period and status, and every trainee who contributed is named against the project they
@@ -456,8 +451,7 @@ export function KzLiveProjects() {
                   color: "var(--mut)",
                   margin: 0,
                   fontSize: "0.96rem",
-                  textAlign: "justify",
-                }}
+                                  }}
               >
                 Trainees are placed where the work is, not where the syllabus is convenient. That
                 means a cohort can end up on a foundry shop floor, a clinic network, or a municipal
@@ -574,8 +568,7 @@ export function KzLiveProjects() {
                         margin: 0,
                         fontSize: "0.9rem",
                         color: "var(--mut)",
-                        textAlign: "justify",
-                      }}
+                                              }}
                     >
                       {project.summary}
                     </p>
@@ -716,8 +709,7 @@ export function KzLiveProjects() {
                             fontSize: "0.82rem",
                             color: "var(--dim)",
                             lineHeight: 1.55,
-                            textAlign: "justify",
-                          }}
+                                                      }}
                         >
                           {performer.highlight}
                         </span>
@@ -805,8 +797,7 @@ export function KzLiveProjects() {
                   margin: 0,
                   fontSize: "0.92rem",
                   color: "var(--mut)",
-                  textAlign: "justify",
-                }}
+                                  }}
               >
                 Verifying a candidate? Send us the certificate ID and we will confirm the holder, the
                 project they worked on, and the dates — no charge, no account needed.

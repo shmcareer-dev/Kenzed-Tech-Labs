@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" role="img" aria-label="Kenzed Tech Lab">
+  <!--
+    The K-tile from KzWordmark, redrawn at icon scale: the near-black well, the
+    cyan halo, the diagonal slash and the K. Hard hex values on purpose — a
+    home-screen icon has no page behind it to inherit a theme from, and this
+    tile is intrinsically dark furniture in both themes.
+  -->
+  <defs>
+    <linearGradient id="k-well" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b1c30"/>
+      <stop offset="1" stop-color="#04101c"/>
+    </linearGradient>
+    <linearGradient id="k-rim" x1="0" y1="0" x2=".7" y2="1">
+      <stop offset="0" stop-color="#a8dcff" stop-opacity=".9"/>
+      <stop offset="1" stop-color="#4da3ff" stop-opacity=".35"/>
+    </linearGradient>
+    <radialGradient id="k-glow" cx=".34" cy=".26" r=".8">
+      <stop offset="0" stop-color="#5ecfe3" stop-opacity=".34"/>
+      <stop offset="1" stop-color="#4da3ff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect x="6" y="6" width="116" height="116" rx="30" fill="url(#k-well)"/>
+  <rect x="6" y="6" width="116" height="116" rx="30" fill="url(#k-glow)"/>
+  <rect x="6.5" y="6.5" width="115" height="115" rx="29.5" fill="none" stroke="url(#k-rim)" stroke-width="3"/>
+
+  <!-- The slash sits behind the letter, as it does in the header lockup. -->
+  <path d="M28 96 100 32" stroke="#5ecfe3" stroke-width="4" stroke-linecap="round" opacity=".82"/>
+
+  <path
+    d="M44 36v56M44 66 78 36M58 56l24 36"
+    fill="none"
+    stroke="#dff4ff"
+    stroke-width="11"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+</svg>

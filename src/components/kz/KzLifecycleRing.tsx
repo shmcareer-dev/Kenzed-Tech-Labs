@@ -173,7 +173,13 @@ const KZLR_CSS = `
   border-radius:50%;border:1px dashed color-mix(in srgb,var(--acc) 40%,transparent);
   animation:kzOrbit 120s linear infinite;
 }
-.kzlr-ring{position:absolute;inset:0;z-index:1;will-change:transform}
+.kzlr-ring{position:absolute;inset:0;z-index:1}
+/* will-change is a standing promise to keep a compositor layer alive, so the
+   scroll driver hands it over only while the section is on screen and scroll can
+   actually turn the ring. Unconditionally, as it was, the layer's GPU memory was
+   held for the life of the page — and on a phone the ring only moves on a rail
+   tap, where the transition below promotes it for its own duration anyway. */
+.kzlr-ring[data-turning="true"]{will-change:transform}
 .kzlr-pill{
   position:absolute;left:50%;top:50%;
   display:inline-flex;align-items:center;justify-content:center;
@@ -286,10 +292,15 @@ const KZLR_CSS = `
 /* Phone: no pinning and no giant circle. A compact centred dial sits above a
    full-width panel, and the rail above it is the control. */
 @media (max-width:899px){
-  .kzlr{--kzlr-d:min(230px,62vw);--kzlr-band:10px;--kzlr-node:44px}
+  /* Was min(230px,62vw), which spent ~256px of an 844px viewport — 30% of the
+     screen — on a disc containing about 34px of ink, and that ink repeated the
+     stage name shown by the highlighted pill directly above it and by the
+     kicker directly below. Two thirds the diameter keeps it legible as an
+     instrument without asking for a screenful. */
+  .kzlr{--kzlr-d:min(158px,42vw);--kzlr-band:9px;--kzlr-node:36px}
   /* The node straddles twelve o'clock and its halo reaches further still, so
      the dial needs headroom the rail above it will not fill. */
-  .kzlr-ringwrap{margin-top:26px}
+  .kzlr-ringwrap{margin-top:18px}
   .kzlr-ring{transition:transform .7s var(--kzlr-ease)}
   .kzlr-pill{min-height:0;width:9px;height:9px;padding:0;border-radius:50%;box-shadow:none}
   .kzlr-pill.is-on{box-shadow:0 0 14px -1px var(--kzlr-glow)}
@@ -494,6 +505,8 @@ export function KzLifecycleRing({
 
     const io = new IntersectionObserver((entries) => {
       visible = entries.some((entry) => entry.isIntersecting);
+      if (visible) ring.dataset.turning = "true";
+      else delete ring.dataset.turning;
       schedule();
     });
     io.observe(section);
@@ -502,6 +515,7 @@ export function KzLifecycleRing({
 
     return () => {
       io.disconnect();
+      delete ring.dataset.turning;
       window.removeEventListener("scroll", schedule);
       window.removeEventListener("resize", schedule);
       if (raf) cancelAnimationFrame(raf);

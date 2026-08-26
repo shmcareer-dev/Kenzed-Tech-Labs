@@ -7,6 +7,7 @@ import {
   useRef,
   useState,
   useSyncExternalStore,
+  type CSSProperties,
   type RefObject,
 } from "react";
 import { KzTechToken3D } from "@/components/kz/KzSpatial3D";
@@ -273,7 +274,7 @@ const KzDialFace = memo(function KzDialFace({
       />
 
       {/* The layer ring — everything in here turns under the marker. */}
-      <g ref={ringRef}>
+      <g ref={ringRef} className="kzsd-ring">
         <circle
           cx={KZSD_C}
           cy={KZSD_C}
@@ -408,24 +409,14 @@ export function KzStackDial({ groups }: KzStackDialProps) {
   const segRefs = useRef<(SVGGElement | null)[]>([]);
   const labelRefs = useRef<(SVGGElement | null)[]>([]);
   const activeRef = useRef(0);
+  const sizerRef = useRef<HTMLUListElement | null>(null);
   const [active, setActive] = useState(0);
   const [ghost, setGhost] = useState<number | null>(null);
+  const [deckHeight, setDeckHeight] = useState<number | null>(null);
 
   const count = groups.length;
   const categories = useMemo(() => groups.map(([category]) => category), [groups]);
   const totals = useMemo(() => groups.reduce((sum, [, items]) => sum + items.length, 0), [groups]);
-  /* A hidden copy of the tallest possible layer holds the panel open, so the
-     rows can be stacked on top of it without the page reflowing on every step
-     — which would also feed a moving height back into the scroll maths. */
-  const sizer = useMemo(() => {
-    let rows = 0;
-    let longest = "";
-    for (const [, items] of groups) {
-      rows = Math.max(rows, items.length);
-      for (const item of items) if (item.length > longest.length) longest = item;
-    }
-    return { rows, longest };
-  }, [groups]);
 
   useEffect(() => {
     /* Track the DIAL, not the whole block. Below 980px the panel stacks under
@@ -440,6 +431,10 @@ export function KzStackDial({ groups }: KzStackDialProps) {
     const sweep = step * (count - 1);
     let raf = 0;
     let visible = false;
+    /* Last angle actually written. A scroll event that moves the dial by less
+       than a fiftieth of a degree cannot change a pixel, and the whole body
+       below — eleven label reads included — was running for it anyway. */
+    let lastAngle = Number.NaN;
 
     const frame = () => {
       raf = 0;
@@ -451,17 +446,38 @@ export function KzStackDial({ groups }: KzStackDialProps) {
       const p = Math.min(1, Math.max(0, (raw - KZSD_ENTER) / KZSD_ACTIVE_SPAN));
       const angle = -p * sweep;
 
-      ringRef.current?.setAttribute("transform", `rotate(${angle.toFixed(2)} ${KZSD_C} ${KZSD_C})`);
+      if (Math.abs(angle - lastAngle) < 0.02) return;
+      lastAngle = angle;
+
+      /* A CSS transform, not the SVG `transform` attribute the ring used to
+         carry. The attribute goes through SVG's own geometry path, so every
+         frame re-rendered all eleven segments — line, tick, dot and label —
+         from scratch. The CSS property lets the browser take the same rotation
+         through its accelerated transform path instead. `transform-box` and
+         `transform-origin` are declared on .kzsd-ring in the stylesheet so the
+         centre of rotation stays the viewBox centre, exactly as the attribute's
+         explicit `200 200` did. */
+      if (ringRef.current) {
+        ringRef.current.style.transform = `rotate(${angle.toFixed(2)}deg)`;
+      }
       arcRef.current?.setAttribute("stroke-dashoffset", (100 - p * 100).toFixed(2));
 
-      /* Compared against the live attribute rather than a cache, so a face
-         re-render that resets these to their at-rest values self-heals on the
-         next frame instead of leaving a label upside down. */
-      labelRefs.current.forEach((node, i) => {
-        if (!node) return;
-        const flip = isFlipped(i * step + angle) ? "rotate(180)" : "rotate(0)";
-        if (node.getAttribute("transform") !== flip) node.setAttribute("transform", flip);
-      });
+      /* Only the labels whose flip state actually changed are touched. The
+         previous version compared against the live attribute on all eleven
+         every frame, which reads back from the DOM — and a read after the
+         writes above is the shape that forces a synchronous style resolve. A
+         re-render of the face resets `data-flip`, so the cache is stored on
+         the node rather than in a closure and still self-heals. */
+      const labels = labelRefs.current;
+      for (let i = 0; i < labels.length; i++) {
+        const node = labels[i];
+        if (!node) continue;
+        const flip = isFlipped(i * step + angle);
+        const want = flip ? "1" : "0";
+        if (node.dataset.flip === want) continue;
+        node.dataset.flip = want;
+        node.setAttribute("transform", flip ? "rotate(180)" : "rotate(0)");
+      }
 
       const next = activeIndexAt(angle, count);
       const prev = activeRef.current;
@@ -472,7 +488,7 @@ export function KzStackDial({ groups }: KzStackDialProps) {
         setActive(next);
       }
       const on = segRefs.current[next];
-      if (on && on.getAttribute("data-on") !== "1") on.setAttribute("data-on", "1");
+      if (on && on.dataset.on !== "1") on.dataset.on = "1";
     };
 
     /* Coalesced: the passive listener only ever queues a frame, and every read
@@ -506,6 +522,23 @@ export function KzStackDial({ groups }: KzStackDialProps) {
     const timer = window.setTimeout(() => setGhost(null), KZSD_GHOST_MS);
     return () => window.clearTimeout(timer);
   }, [ghost]);
+
+  /* The panel used to be held open at the height of the LONGEST layer, so a
+     five-tool layer left ~200px of dead card below its last row — invisible
+     beside the 560px dial on a desktop, a plain hole on a phone where the
+     panel is full width. The hidden sizer now carries the ACTIVE layer, which
+     is the exact height the deck wants, and that height is transitioned rather
+     than snapped so the card resizes instead of jumping. */
+  useEffect(() => {
+    const el = sizerRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver((entries) => {
+      const next = entries[0]?.contentRect.height ?? 0;
+      if (next > 0) setDeckHeight((prev) => (prev !== null && Math.abs(prev - next) < 0.5 ? prev : next));
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   if (!count) return null;
 
@@ -594,13 +627,24 @@ export function KzStackDial({ groups }: KzStackDialProps) {
             <span className="kzsd-head-static">Tools in this layer</span>
           </header>
 
-          <div className="kzsd-deck">
-            <ul className="kzsd-list kzsd-sizer">
-              {Array.from({ length: sizer.rows }, (_, i) => (
-                <li key={i}>
-                  <span className="kzsd-n">00</span>
-                  <KzTechToken3D name={sizer.longest} category={category} size={30} />
-                  <span className="kzsd-t">{sizer.longest}</span>
+          <div
+            className="kzsd-deck"
+            data-measured={deckHeight === null ? undefined : "1"}
+            style={
+              deckHeight === null
+                ? undefined
+                : ({ "--kzsd-h": `${Math.round(deckHeight)}px` } as CSSProperties)
+            }
+          >
+            {/* Mirrors the active layer with no tokens and no animation: it
+                exists only so the deck has a height to lay out against, and
+                the tokens would cost eleven extra SVG trees per turn. */}
+            <ul className="kzsd-list kzsd-sizer" ref={sizerRef} aria-hidden="true">
+              {items.map((tool, i) => (
+                <li key={tool}>
+                  <span className="kzsd-n">{kzsdPad(i + 1)}</span>
+                  <span className="kzsd-token-slot" />
+                  <span className="kzsd-t">{tool}</span>
                 </li>
               ))}
             </ul>
@@ -670,6 +714,10 @@ const KZSD_CSS = `
   }
 }
 .kzsd-dial svg{display:block;width:100%;height:auto}
+/* The scroll driver writes .kzsd-ring's rotation as a CSS transform. Without
+   these two, a CSS rotation on an SVG group turns about the origin of the
+   nearest viewport rather than about the dial's centre. */
+.kzsd-ring{transform-box:view-box;transform-origin:200px 200px}
 
 .kzsd-seg text{fill:var(--mut);transition:fill .28s ease}
 .kzsd-seg .kzsd-major{stroke:var(--line2);opacity:.7;transition:stroke .28s ease,opacity .28s ease}
@@ -754,7 +802,21 @@ const KZSD_CSS = `
   overflow-wrap:anywhere;
 }
 
-.kzsd-deck{position:relative}
+.kzsd-deck{
+  position:relative;
+  /* The deck is the one box on the page whose height changes mid-scroll; let
+     the browser pick anything else as its scroll anchor. */
+  overflow-anchor:none;
+}
+/* Before the first measurement the hidden sizer sits in flow and gives the
+   deck its height, so the panel is correct on the server and without JS. From
+   the first ResizeObserver callback on, the height is explicit and eased, and
+   the sizer steps out of flow. */
+.kzsd-deck[data-measured="1"]{
+  height:var(--kzsd-h);
+  transition:height 340ms cubic-bezier(.22,.61,.36,1);
+}
+.kzsd-deck[data-measured="1"] .kzsd-sizer{position:absolute;inset-inline:0;top:0}
 .kzsd-list{list-style:none;margin:0;padding:0}
 .kzsd-list li{
   display:flex;
@@ -771,6 +833,9 @@ const KZSD_CSS = `
   }
 }
 .kzsd-list li:last-child{border-bottom:0}
+/* Stands in for the token inside the hidden sizer so the row measures at the
+   same height without instantiating a second SVG per tool. */
+.kzsd-token-slot{flex:0 0 auto;width:30px;height:30px}
 .kzsd-n{
   flex:0 0 auto;
   width:2.2em;
@@ -787,10 +852,13 @@ const KZSD_CSS = `
   color:var(--ink);
   overflow-wrap:anywhere;
 }
-/* Holds the panel open at the height of the longest layer so stepping through
-   the stack never reflows the page. */
-.kzsd-sizer{visibility:hidden}
-.kzsd-layer{position:absolute;inset:0}
+/* Measured, never seen. visibility:hidden rather than display:none, because a
+   display-none subtree has no height to measure. */
+.kzsd-sizer{visibility:hidden;pointer-events:none}
+/* Top-anchored rather than inset:0 so a layer keeps its natural height while
+   the deck eases to it — an outgoing taller layer then fades out at full
+   height instead of being squashed into the incoming one's box. */
+.kzsd-layer{position:absolute;inset-inline:0;top:0}
 
 @keyframes kzsd-row{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
 @keyframes kzsd-out{from{opacity:1}to{opacity:0}}
@@ -820,5 +888,6 @@ const KZSD_CSS = `
 @media (prefers-reduced-motion:reduce){
   .kzsd-seg text,.kzsd-seg .kzsd-major,.kzsd-seg .kzsd-dot{transition:none}
   .kzsd-layer li,.kzsd-head-cat,.kzsd-hub-name,.kzsd-ghost{animation:none}
+  .kzsd-deck[data-measured="1"]{transition:none}
 }
 `;

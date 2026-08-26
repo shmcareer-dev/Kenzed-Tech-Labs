@@ -18,6 +18,12 @@ const routes: { path: string; priority: number; changeFrequency: "weekly" | "mon
   { path: "/process", priority: 0.6, changeFrequency: "monthly" },
   { path: "/team", priority: 0.6, changeFrequency: "monthly" },
   { path: "/contact", priority: 0.8, changeFrequency: "monthly" },
+  /* Low priority but indexed on purpose: a legal shelf that search engines
+     cannot see is a trust signal nobody receives. */
+  { path: "/terms", priority: 0.3, changeFrequency: "monthly" },
+  { path: "/privacy", priority: 0.3, changeFrequency: "monthly" },
+  { path: "/cookies", priority: 0.2, changeFrequency: "monthly" },
+  { path: "/refund", priority: 0.3, changeFrequency: "monthly" },
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {

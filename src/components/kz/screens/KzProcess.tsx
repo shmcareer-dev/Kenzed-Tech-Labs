@@ -6,6 +6,18 @@ import { KzSpatialIcon3D, kindForLabel } from "@/components/kz/KzSpatial3D";
 import { KzPageHero } from "@/components/kz/primitives";
 import { kzProcess } from "@/content/kz";
 
+const KZP_CSS = `
+.kzp-row{display:grid;gap:10px}
+.kzp-mark{display:flex;align-items:center;gap:8px}
+@media (min-width:620px){
+  .kzp-row{
+    grid-template-columns:clamp(72px,14vw,130px) minmax(0,1fr);
+    gap:clamp(14px,3vw,40px);
+    align-items:start;
+  }
+}
+`;
+
 export function KzProcess() {
   return (
     <div id="top" style={{ position: "relative" }}>
@@ -50,20 +62,24 @@ export function KzProcess() {
             />
           </div>
 
+          {/* The marker column used to be `minmax(86px, 130px)`. A non-flexible
+              track with a definite maximum is grown to that maximum BEFORE the
+              1fr track is sized, so at 390px the row resolved to 130px + 186px
+              — 41% of a phone screen spent on a decorative numeral, and the
+              copy set to a 24-character measure beside it. Below 620px the row
+              stacks instead; above it, the gutter scales with the viewport. */}
+          <style>{KZP_CSS}</style>
           {kzProcess.map(([t, d], i) => (
             <KzReveal key={t} delay={i % 3}>
               <div
                 style={{
-                  display: "grid",
-                  gridTemplateColumns: "minmax(86px, 130px) 1fr",
-                  gap: "clamp(14px, 3vw, 40px)",
                   padding: "clamp(24px, 4vw, 38px) 12px",
                   borderTop: "1px solid var(--line)",
                   transition: "background .3s",
                 }}
-                className="kz-hover-row"
+                className="kz-hover-row kzp-row"
               >
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <div className="kzp-mark">
                   <KzSpatialIcon3D
                     kind={kindForLabel(t)}
                     size={44}

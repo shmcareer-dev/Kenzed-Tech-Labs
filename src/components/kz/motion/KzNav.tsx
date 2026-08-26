@@ -376,10 +376,31 @@ const KZ_NAV_CSS = `
   transition:color .2s ${KZ_EASE_CSS},border-color .2s ${KZ_EASE_CSS};
 }
 .kzcp-trigger:hover{color:var(--ink);border-color:var(--line2)}
-/* The trigger advertises a keyboard shortcut and the palette is driven by
-   Cmd/Ctrl+K, so it is meaningless on a touch device — where it also collided
-   with the hero stat block. Show it only where a real keyboard is likely. */
-@media (max-width:900px),(pointer:coarse){.kzcp-trigger{display:none}}
+/* This used to be a blanket display:none below 900px and on any coarse
+   pointer — which took the palette away from phones entirely AND left the
+   floating dock in the layout as a 0x0 fixed element, because the dock only
+   hides itself from 921px up. Site search is worth more on a phone than on a
+   desktop, so the trigger survives; it just stops pretending there is a
+   keyboard. The header pill keeps its own copy above 920px, where the pill
+   still shows a link row to sit it in. */
+@media (pointer:coarse){
+  .kz-palette-dock .kzcp-trigger{
+    width:46px;height:46px;min-height:46px;padding:0;gap:0;
+    justify-content:center;border-radius:14px;
+    background:color-mix(in srgb,var(--bg2) 92%,transparent);
+    box-shadow:0 10px 26px -18px rgba(0,0,0,.9);
+  }
+  .kz-palette-dock .kzcp-trigger .kzcp-glyph{font-size:1.15rem;line-height:1}
+  .kz-palette-dock .kzcp-trigger .kzcp-label{
+    /* Hidden visually, still read out: the button would otherwise announce
+       itself as a lone magnifier glyph. */
+    position:absolute;width:1px;height:1px;padding:0;margin:-1px;
+    overflow:hidden;clip-path:inset(50%);white-space:nowrap;
+  }
+}
+/* Inside the header pill the trigger is a text chip, and the pill hides its
+   whole link row below 920px, so the header copy goes with it. */
+@media (max-width:920px){.kzhdr .kzcp-trigger{display:none}}
 .kzcp-kbd{
   display:inline-flex;align-items:center;padding:2px 7px;border-radius:6px;
   border:1px solid var(--line);color:var(--dim);font-size:.6rem;letter-spacing:.08em;
@@ -520,9 +541,50 @@ export function KzStickyCta({
   const [shown, setShown] = useState(false);
   const [dismissed, setDismissed] = useState(false);
 
+  // `showAt` is a fraction of the scrollable range, and the old code recovered
+  // that range from `documentElement.scrollHeight` inside the scroll handler —
+  // a read the engine cannot cache, so every scroll frame laid out the whole
+  // document. It then called setShown unconditionally, so React was re-entered
+  // on every frame to be told the same boolean. The range is measured here
+  // instead, and the handler compares one scalar and a ref.
+  const thresholdRef = useRef(Number.POSITIVE_INFINITY);
+  const shownRef = useRef(false);
+
+  useEffect(() => {
+    const measure = () => {
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      // A page shorter than the viewport never reaches the mark; Infinity says
+      // so without the per-frame handler needing a second guard.
+      thresholdRef.current = max > 0 ? max * showAt : Number.POSITIVE_INFINITY;
+    };
+    measure();
+
+    // Height changes after mount — images landing, a section expanding, the
+    // viewport rotating — arrive here rather than as scroll events, and a stale
+    // threshold would raise the bar at the wrong point in the page.
+    const observer = new ResizeObserver(measure);
+    observer.observe(document.documentElement);
+
+    // The webfont swap reflows every block, so the range measured against
+    // fallback metrics is not the final one.
+    let live = true;
+    document.fonts?.ready.then(() => {
+      if (live) measure();
+    });
+
+    window.addEventListener("resize", measure, { passive: true });
+    return () => {
+      live = false;
+      observer.disconnect();
+      window.removeEventListener("resize", measure);
+    };
+  }, [showAt]);
+
   useKzScroll((y) => {
-    const max = document.documentElement.scrollHeight - window.innerHeight;
-    setShown(max > 0 && y / max >= showAt);
+    const next = y >= thresholdRef.current;
+    if (next === shownRef.current) return;
+    shownRef.current = next;
+    setShown(next);
   });
 
   const dismiss = useCallback(() => {
@@ -748,6 +810,12 @@ export const KZ_SITE_COMMANDS: KzCommandItem[] = [
   { id: "contact", label: "Contact", href: "/contact", hint: "09", group: "Pages", keywords: ["email", "call", "enquiry"] },
   { id: "industries", label: "Industries", href: "/industries", group: "Pages", keywords: ["sectors", "verticals"] },
   { id: "team", label: "Team", href: "/team", group: "Pages", keywords: ["people", "engineers"] },
+  /* The legal shelf is the one part of a site people search for by name rather
+     than navigate to, which is exactly what a command palette is for. */
+  { id: "privacy", label: "Privacy Policy", href: "/privacy", group: "Legal", keywords: ["data", "gdpr", "dpdp", "cookies"] },
+  { id: "terms", label: "Terms & Conditions", href: "/terms", group: "Legal", keywords: ["legal", "agreement", "tos"] },
+  { id: "cookies", label: "Cookie Policy", href: "/cookies", group: "Legal", keywords: ["tracking", "storage", "consent"] },
+  { id: "refund", label: "Refund & Cancellation", href: "/refund", group: "Legal", keywords: ["cancel", "money back", "billing"] },
 ];
 
 export interface KzCommandPaletteProps {
@@ -886,8 +954,8 @@ export function KzCommandPalette({
           onPointerEnter={() => void importCommandList()}
           onFocus={() => void importCommandList()}
         >
-          <span aria-hidden="true">⌕</span>
-          <span>{triggerLabel}</span>
+          <span className="kzcp-glyph" aria-hidden="true">⌕</span>
+          <span className="kzcp-label">{triggerLabel}</span>
           <span className="kzcp-kbd" aria-hidden="true">
             ⌘K
           </span>

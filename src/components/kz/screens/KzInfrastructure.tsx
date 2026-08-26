@@ -2,7 +2,7 @@
 
 import { KzReveal } from "@/components/kz/KzReveal";
 import { KzScrollSpy } from "@/components/kz/KzScrollSpy";
-import { KzSpatialIcon3D, kindForLabel } from "@/components/kz/KzSpatial3D";
+import { KzDecorPin, KzSpatialIcon3D, kindForLabel } from "@/components/kz/KzSpatial3D";
 import { KzPageHero, KzSectionTitle } from "@/components/kz/primitives";
 import { kzInfrastructure, kzInfraWhy, kzStatusRows } from "@/content/kz";
 
@@ -25,7 +25,13 @@ export function KzInfrastructure() {
       />
 
       <section id="facility" style={{ padding: "0 0 clamp(50px, 7vw, 80px)", background: "var(--bg)" }}>
-        <div className="kz-wrap">
+        <div className="kz-wrap" style={{ position: "relative" }}>
+          <KzDecorPin
+            kind="server"
+            label="On-prem compute"
+            size={58}
+            className="kz-section-pin"
+          />
           <KzReveal delay={0}>
             <div
               style={{
@@ -89,7 +95,7 @@ export function KzInfrastructure() {
                 marginBottom: 16,
               }}
             >
-              {kzStatusRows.map(([k, v, c]) => (
+              {kzStatusRows.map(([k, v, c], i) => (
                 <div
                   key={k}
                   style={{
@@ -98,7 +104,13 @@ export function KzInfrastructure() {
                     justifyContent: "space-between",
                     gap: 12,
                     padding: "14px 0",
-                    borderBottom: "1px solid var(--line)",
+                    /* A divider ABOVE each row but the first, rather than below
+                       each row: below, the last row's line landed a hairline
+                       inside the card's own border and read as a double edge —
+                       and in the single-column phone layout that is every
+                       column's last row. `:last-child` cannot be expressed as
+                       an inline style, so the index carries it. */
+                    borderTop: i === 0 ? undefined : "1px solid var(--line)",
                   }}
                 >
                   <span

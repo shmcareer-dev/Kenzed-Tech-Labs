@@ -2,7 +2,7 @@
 
 import { KzReveal } from "@/components/kz/KzReveal";
 import { KzScrollSpy } from "@/components/kz/KzScrollSpy";
-import { KzSpatialIcon3D, kindForLabel } from "@/components/kz/KzSpatial3D";
+import { KzDecorPin, KzSpatialIcon3D, kindForLabel } from "@/components/kz/KzSpatial3D";
 import { KzPageHero, KzSectionTitle } from "@/components/kz/primitives";
 import { kzIndustries } from "@/content/kz";
 
@@ -25,7 +25,14 @@ export function KzIndustries() {
       </div>
 
       <section id="industries" style={{ padding: "0 0 clamp(70px, 10vw, 120px)", background: "var(--bg)" }}>
-        <div className="kz-wrap">
+        <div className="kz-wrap" style={{ position: "relative" }}>
+          <KzDecorPin
+            kind="globe"
+            label="Eight sectors"
+            size={58}
+            tone="violet"
+            className="kz-section-pin"
+          />
           <KzReveal delay={0}>
             <KzSectionTitle style={{ marginBottom: 10 }}>Industries we serve</KzSectionTitle>
             <p

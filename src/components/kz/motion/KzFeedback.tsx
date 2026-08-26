@@ -80,6 +80,21 @@ function kzEaseOutExpo(t: number) {
   return t >= 1 ? 1 : 1 - Math.pow(2, -10 * t);
 }
 
+/* Both the rendered markup and the frame loop below go through here, so the
+   value the count lands on is character for character the one React renders. */
+function kzCountText(
+  value: number,
+  decimals: number,
+  locale: string,
+  prefix: string,
+  suffix: string
+) {
+  return `${prefix}${value.toLocaleString(locale, {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  })}${suffix}`;
+}
+
 /** Renders the final value in static HTML, then animates only after entering view. */
 export function KzCountUp({
   to,
@@ -94,23 +109,30 @@ export function KzCountUp({
   style,
 }: KzCountUpProps) {
   const reduced = useReducedMotion() === true;
-  const [inFlight, setInFlight] = useState<number | null>(null);
   const ref = useRef<HTMLSpanElement | null>(null);
 
   useEffect(() => {
     if (reduced) return;
+    const el = ref.current;
+    if (!el) return;
 
     let frame = 0;
     const run = () => {
       const start = performance.now();
       const step = (now: number) => {
         const t = Math.min((now - start) / duration, 1);
-        if (t < 1) {
-          setInFlight(from + (to - from) * kzEaseOutExpo(t));
-          frame = requestAnimationFrame(step);
-        } else {
-          setInFlight(null);
-        }
+        /* Each frame is written straight onto the text node. The running value
+           used to live in state, so every one of the ~48 frames cost a render
+           and a commit, and the hero mounts one of these per stat: four counts
+           entering React together on the frame the panel scrolls into view. */
+        el.textContent = kzCountText(
+          t < 1 ? from + (to - from) * kzEaseOutExpo(t) : to,
+          decimals,
+          locale,
+          prefix,
+          suffix
+        );
+        frame = t < 1 ? requestAnimationFrame(step) : 0;
       };
       frame = requestAnimationFrame(step);
     };
@@ -120,8 +142,6 @@ export function KzCountUp({
       return () => cancelAnimationFrame(frame);
     }
 
-    const el = ref.current;
-    if (!el) return;
     let firstReport = true;
     const observer = new IntersectionObserver(
       (entries) => {
@@ -143,20 +163,17 @@ export function KzCountUp({
       observer.disconnect();
       if (frame !== 0) cancelAnimationFrame(frame);
     };
-  }, [duration, from, reduced, startOnView, to]);
+  }, [decimals, duration, from, locale, prefix, reduced, startOnView, suffix, to]);
 
-  const text = (inFlight ?? to).toLocaleString(locale, {
-    minimumFractionDigits: decimals,
-    maximumFractionDigits: decimals,
-  });
-
+  /* Prefix, number and suffix are joined into one child so the span carries a
+     single text node: that is the node React updates through textContent, and
+     the frame loop above writes to the very same one rather than to text nodes
+     React still believes it owns. */
   return (
     <>
       <KzFeedbackStyles />
       <span ref={ref} className={`kzfb-num ${className}`.trim()} style={style}>
-        {prefix}
-        {text}
-        {suffix}
+        {kzCountText(to, decimals, locale, prefix, suffix)}
       </span>
     </>
   );

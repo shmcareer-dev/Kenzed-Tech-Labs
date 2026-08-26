@@ -11,8 +11,8 @@ import { KzSmoothScroll } from "@/components/kz/motion/KzSmoothScroll";
 import { KzScrollProgress } from "@/components/kz/motion/KzScrollFx";
 import { KzCustomCursor } from "@/components/kz/motion/KzPointer";
 import { KzCommandPalette, KzPageTransition } from "@/components/kz/motion/KzNav";
-import { site } from "@/content/site";
-import { organizationSchema } from "@/lib/seo";
+import { asset, site } from "@/content/site";
+import { OG_IMAGE, organizationSchema } from "@/lib/seo";
 
 import "./globals.css";
 
@@ -57,7 +57,22 @@ export const metadata: Metadata = {
   authors: [{ name: site.name, url: site.url }],
   creator: site.name,
   robots: { index: true, follow: true },
-  icons: { icon: "/favicon.ico" },
+  icons: {
+    icon: [
+      { url: asset("/favicon.ico"), sizes: "48x48" },
+      { url: asset("/icon.svg"), type: "image/svg+xml" },
+    ],
+    apple: asset("/icon.svg"),
+  },
+  manifest: "/manifest.webmanifest",
+  openGraph: {
+    type: "website",
+    siteName: site.name,
+    locale: "en_IN",
+    url: site.url,
+    images: [OG_IMAGE],
+  },
+  twitter: { card: "summary_large_image", images: [OG_IMAGE.url] },
 };
 
 export default function RootLayout({

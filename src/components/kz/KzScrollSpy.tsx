@@ -26,13 +26,20 @@ const SPY_CSS = `
 .kzss a{display:grid;grid-template-columns:16px 18px auto;align-items:center;min-height:28px;color:var(--dim);font-family:var(--font-mono);font-size:7px;font-weight:500;letter-spacing:var(--tr-mono-sm);text-decoration:none}
 .kzss a span{opacity:0;transition:opacity .25s cubic-bezier(0.22,1,0.36,1)}
 .kzss a i{width:8px;height:1px;background:var(--dim);transition:width .3s cubic-bezier(0.22,1,0.36,1),background .3s cubic-bezier(0.22,1,0.36,1),box-shadow .3s cubic-bezier(0.22,1,0.36,1)}
-.kzss a b{opacity:0;transform:translateX(-5px);font-weight:500;transition:opacity .25s cubic-bezier(0.22,1,0.36,1),transform .25s cubic-bezier(0.22,1,0.36,1)}
+/* Truncated rather than allowed to set its own width: the label is whatever
+   the page passed as a section name, and a long one grew straight across the
+   left edge of the content column. */
+.kzss a b{opacity:0;transform:translateX(-5px);font-weight:500;max-width:11ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;transition:opacity .25s cubic-bezier(0.22,1,0.36,1),transform .25s cubic-bezier(0.22,1,0.36,1)}
 .kzss a:hover span,.kzss a:hover b,.kzss a[aria-current="location"] span,.kzss a[aria-current="location"] b{opacity:1;transform:none}
 .kzss a[aria-current="location"]{color:var(--mut)}
 .kzss a[aria-current="location"] i{width:17px;background:var(--acc3);box-shadow:0 0 9px var(--accglow)}
-/* The rail competes with content for horizontal room; below 920px it goes
-   entirely (display:none also removes it from the tab order). */
-@media (max-width:920px){.kzss{display:none}}
+/* The rail competes with content for horizontal room, and .kz-wrap caps at
+   1280px with a 36px gutter — so a rail parked at left:16px only clears the
+   copy once the viewport is wide enough to leave a real margin outside that
+   cap. Below 1400px the two were overlapping: at 1280px exactly, the section
+   label sat directly on top of the first line of every page lead.
+   display:none also removes it from the tab order. */
+@media (max-width:1399px){.kzss{display:none}}
 @media (prefers-reduced-motion:reduce){.kzss a span,.kzss a i,.kzss a b{transition:none}}
 `;
 

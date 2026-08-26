@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { LEGAL_ISO } from "@/content/legal";
 import { locations, site } from "@/content/site";
 
 /**
@@ -33,14 +34,26 @@ export function pageMetadata({
       siteName: site.name,
       type: "website",
       locale: "en_IN",
+      images: [OG_IMAGE],
     },
     twitter: {
+      /* summary_large_image was already declared, but with no image behind it
+         — so every share of this site rendered as a bare grey card. */
       card: "summary_large_image",
       title,
       description,
+      images: [OG_IMAGE.url],
     },
   };
 }
+
+/** The share card, rendered to public/og.png from the brand lockup. */
+export const OG_IMAGE = {
+  url: "/og.png",
+  width: 1200,
+  height: 630,
+  alt: `${site.name} — ${site.tagline}`,
+};
 
 /** Organization + LocalBusiness graph, emitted once in the root layout. */
 export function organizationSchema() {
@@ -108,6 +121,26 @@ export function serviceSchema({
     provider: { "@type": "Organization", name: site.name, url: site.url },
     areaServed: ["India", "Worldwide"],
     url: new URL(path, site.url).toString(),
+  };
+}
+
+/** A legal document. `dateModified` is what search engines surface next to a
+    policy result, and it is the one fact a reader checks first. */
+export function legalPageSchema(doc: {
+  slug: string;
+  title: string;
+  metaDescription: string;
+}) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    name: doc.title,
+    description: doc.metaDescription,
+    url: new URL(`/${doc.slug}`, site.url).toString(),
+    inLanguage: "en",
+    dateModified: LEGAL_ISO,
+    isPartOf: { "@type": "WebSite", name: site.name, url: site.url },
+    publisher: { "@type": "Organization", name: site.legalName, url: site.url },
   };
 }
 

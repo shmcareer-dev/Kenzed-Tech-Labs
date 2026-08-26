@@ -74,8 +74,14 @@
   --bg2: #0b1119;
   --ink: #ffffff;
   --mut: #a8b3c4;
-  --dim: #7d8a9e;
-  --line: #1b2534;
+  /* --dim carries placeholders, captions and disabled labels. The old #7d8a9e
+     held barely 5.8:1 on this canvas, which survives a desktop panel and
+     dissolves on a phone held at arm's length. */
+  --dim: #8c99ad;
+  /* Hairlines are the entire edge language of the design, and #1b2534 measured
+     1.29:1 against --bg — under the threshold where a 1px line resolves at
+     all, so card and tile borders read as a smudge rather than an edge. */
+  --line: #253145;
   --line2: #556d8f;
   /* Panels stay translucent rather than the flat #0e1520 of the reference
      stills, because the isometric scene sits behind main and has to keep
@@ -121,8 +127,11 @@
   --bg2: #ffffff;
   --ink: #0c1424;
   --mut: #49566f;
-  --dim: #939db2;
-  --line: rgba(12, 20, 36, 0.13);
+  /* Same reasoning as the dark block, but the light value was the worse of the
+     two: #939db2 measured 2.5:1 against this canvas, under the floor for the
+     placeholder text that reads from this token. */
+  --dim: #6c7791;
+  --line: rgba(12, 20, 36, 0.17);
   --line2: rgba(12, 20, 36, 0.3);
   --card: #ffffff;
   --card2: #eef0f5;
@@ -351,7 +360,10 @@
   [role="button"]:focus-visible {
     outline: 2px solid var(--acc);
     outline-offset: 3px;
-    box-shadow: 0 0 0 5px color-mix(in srgb, var(--acc) 14%, transparent);
+    /* A 5px halo at 14% is a wash, not a ring: the focused element ends up
+       with a soft cloud around it instead of a stated edge. Tighter and
+       stronger reads as deliberate at the same visual weight. */
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--acc) 24%, transparent);
   }
 
   /* Embedded media shrinks to the column instead of setting the page width. */
@@ -478,14 +490,24 @@
       linear-gradient(180deg, var(--bg), color-mix(in srgb, var(--bg2) 76%, var(--bg)));
   }
 
+  /* A radial gradient falls off on its own, so this bloom needs no blur
+     filter — KzFooter's glow is built the same way. The old blur(54px) made
+     Chrome rasterise a surface much larger than the ellipse and run a two-pass
+     Gaussian over it, on every route that has a page hero. The box is a little
+     wider and taller than the filtered version because the blur used to bleed
+     its falloff outside the element's own bounds; the stops keep a flat core
+     so the centre does not read thinner than the filtered original. */
   .kz-page-hero::after {
     content: "";
     position: absolute;
-    inset: auto -10% -54% 44%;
-    height: 76%;
-    border-radius: 50%;
-    background: color-mix(in srgb, var(--acc2) 8%, transparent);
-    filter: blur(54px);
+    inset: auto -16% -58% 38%;
+    height: 86%;
+    background: radial-gradient(
+      closest-side,
+      color-mix(in srgb, var(--acc2) 10%, transparent),
+      color-mix(in srgb, var(--acc2) 7%, transparent) 45%,
+      transparent
+    );
     pointer-events: none;
   }
 
@@ -493,10 +515,14 @@
     position: absolute;
     inset: 0;
     pointer-events: none;
-    opacity: .2;
+    /* The tint used to be stated twice — a 22% colour-mix inside a .2 element
+       opacity — which multiplied out to 4% alpha, below the level where a 1px
+       line resolves, so the grid antialiased into haze instead of drawing.
+       One number carries it now, and losing the opacity property also loses
+       the stacking context it forced on a full-bleed overlay. */
     background-image:
-      linear-gradient(color-mix(in srgb, var(--acc) 22%, transparent) 1px, transparent 1px),
-      linear-gradient(90deg, color-mix(in srgb, var(--acc) 22%, transparent) 1px, transparent 1px);
+      linear-gradient(color-mix(in srgb, var(--acc) 8%, transparent) 1px, transparent 1px),
+      linear-gradient(90deg, color-mix(in srgb, var(--acc) 8%, transparent) 1px, transparent 1px);
     background-size: 42px 42px;
     -webkit-mask-image: linear-gradient(to bottom right, transparent, #000 32%, transparent 86%);
     mask-image: linear-gradient(to bottom right, transparent, #000 32%, transparent 86%);
@@ -543,18 +569,15 @@
 
   /* Historically a gradient clip. The design replaces gradient text with a
      flat cyan and a soft backlight; the class name survives so none of the
-     component call sites need editing — only the treatment behind it. */
+     component call sites need editing — only the treatment behind it. The
+     shimmer went with the gradient: its keyframes animated background-position
+     against a background-image that no longer exists, so it painted literally
+     nothing while still forcing a style recalc and a paint invalidation on the
+     largest type on the page every frame, on-screen or not, forever. */
   .kz-grad-text {
     color: var(--acc3);
     font-style: normal;
     text-shadow: var(--accent-glow-text);
-    background-size: 200% auto;
-    animation: kzGradShimmer 6s ease-in-out infinite;
-  }
-
-  @keyframes kzGradShimmer {
-    0%, 100% { background-position: 0% center; }
-    50% { background-position: 100% center; }
   }
 
   .kz-eyebrow {
@@ -642,7 +665,9 @@
   .kz-section-glow {
     height: 1px;
     background: linear-gradient(90deg, transparent 5%, color-mix(in srgb, var(--acc) 8%, transparent) 25%, color-mix(in srgb, var(--acc) 22%, transparent) 50%, color-mix(in srgb, var(--acc) 8%, transparent) 75%, transparent 95%);
-    box-shadow: 0 0 18px 1px color-mix(in srgb, var(--acc) 12%, transparent);
+    /* An 18px blur with 1px of spread around a 1px rule smears the rule it is
+       meant to light: the hairline is the thing you are supposed to see. */
+    box-shadow: 0 0 12px color-mix(in srgb, var(--acc) 16%, transparent);
     border: none;
     margin: 0;
   }
@@ -905,6 +930,62 @@
     flex-direction: row;
     flex-wrap: wrap;
     gap: 14px;
+  }
+}
+
+/* Backdrop blur is the most expensive thing the fixed chrome does on a phone:
+   each blurred element needs its own render surface plus a readback of
+   everything behind it, recomputed as the page scrolls under it. Trading the
+   frosting for near-opacity costs nothing legible once the panel is solid
+   enough, so touch gets flat panels and keeps the contrast the blur was
+   buying.
+
+   These rules sit OUTSIDE any @layer on purpose, and that is what makes them
+   win: an unlayered declaration outranks a layered one regardless of
+   specificity, so this beats .kz-btn-ghost in @layer components above. The
+   :root prefix is for the other four, which live in component <style> tags
+   that render after this sheet and would otherwise win on document order. */
+@media (pointer: coarse) {
+  :root .kz-btn-ghost,
+  :root .kzbt,
+  :root .kzcta,
+  :root .kzbtt,
+  :root .kz3-pin::before {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  /* Each panel keeps its own tint and only gains alpha. --btn-ghost-bg is not
+     quite the canvas colour in either theme, so mixing toward --bg does move
+     the hue — by one to three parts in 255 once composited, which is below
+     what the eye resolves against these backgrounds. */
+  :root .kz-btn-ghost {
+    background: color-mix(in srgb, var(--btn-ghost-bg) 62%, var(--bg));
+  }
+
+  :root .kzbt {
+    background: color-mix(in srgb, var(--bg2) 97%, transparent);
+  }
+
+  :root .kzcta,
+  :root .kzbtt {
+    background: color-mix(in srgb, var(--bg) 96%, transparent);
+  }
+
+  :root .kz3-pin::before {
+    background: color-mix(in srgb, var(--bg2) 96%, transparent);
+  }
+}
+
+/* A stylus, a hybrid laptop and a touchscreen desktop are coarse AND hoverable.
+   The unlayered rule above outranks the layered :hover background in
+   @layer components, so without this the ghost button silently lost its hover
+   fill on exactly those devices. Restated here, unlayered, so it wins back —
+   and still inside (hover: hover), so a phone never latches a hover state on
+   tap, which is what that guard exists for everywhere else in this file. */
+@media (pointer: coarse) and (hover: hover) {
+  :root .kz-btn-ghost:hover {
+    background: color-mix(in srgb, var(--btn-ghost-bg-hover) 62%, var(--bg));
   }
 }
 

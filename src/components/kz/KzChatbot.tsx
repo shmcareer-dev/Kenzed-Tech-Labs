@@ -2,13 +2,12 @@
 
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 
-import { site } from "@/content/site";
+import { phoneDigits, phoneDisplay, phoneHref, site } from "@/content/site";
 import { KzIcon } from "./KzIcon";
 
 /** Set once the launcher has been opened, so repeat visitors stop seeing the pulse. */
 const STORAGE_KEY = "kz-chat-seen";
 
-const phoneDigits = site.phone.replace(/\D/g, "");
 
 const FOCUSABLE =
   'button:not([disabled]), a[href], input:not([disabled]), [tabindex]:not([tabindex="-1"])';
@@ -272,8 +271,7 @@ export function KzChatbot() {
                 fontSize: "0.9rem",
                 lineHeight: 1.65,
                 color: "var(--mut)",
-                textAlign: "justify",
-              }}
+                              }}
             >
               Ask our team — we reply within one business day. Pick a topic or type your question,
               and we&apos;ll open WhatsApp with your message ready to send.
@@ -331,7 +329,7 @@ export function KzChatbot() {
             )}
 
             <a
-              href={`tel:+${phoneDigits}`}
+              href={phoneHref}
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -345,7 +343,7 @@ export function KzChatbot() {
               }}
             >
               <KzIcon name="phone" size={15} stroke="currentColor" />
-              {site.phone}
+              {phoneDisplay}
             </a>
           </div>
         </div>

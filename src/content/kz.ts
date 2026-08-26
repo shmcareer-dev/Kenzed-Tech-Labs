@@ -7,6 +7,7 @@
 import type { KzIconKey } from "@/components/kz/KzIcon";
 import type { KzLifecycleStageDetail } from "@/components/kz/KzLifecycleRing";
 import type { KzGraphCardSpec, KzStoryCard } from "@/components/kz/KzShowcase";
+import { site, phoneDisplay } from "@/content/site";
 
 export type KzService = {
   icon: KzIconKey;
@@ -284,7 +285,7 @@ export const kzLocations: [KzIconKey, string, string][] = [
   [
     "phone",
     "Talk to us",
-    "+91 76990 02237 · kenzedtechlab@gmail.com · kenzed.in",
+    `${phoneDisplay} · ${site.email} · kenzed.in`,
   ],
 ];
 

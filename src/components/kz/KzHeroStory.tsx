@@ -26,7 +26,7 @@ import { KzButton } from "@/components/kz/primitives";
 import { KzMagnetic } from "@/components/kz/motion/KzPointer";
 import { KzCountUp } from "@/components/kz/motion/KzFeedback";
 import { kzStats } from "@/content/kz";
-import { site } from "@/content/site";
+import { asset, site } from "@/content/site";
 
 /** Capabilities repeated across the seamless hero ribbon. */
 const KZ_RIBBON_ITEMS = [
@@ -55,6 +55,16 @@ const KZ_PARTICLES = Array.from({ length: 20 }, (_, index) => ({
   delay: `${(index % 8) * -0.72}s`,
 }));
 
+/**
+ * The phone layout query, shared by the stylesheet's phone block below and by
+ * the scroll driver. The two must agree exactly: the phone block flattens the
+ * story into ordinary flow and nothing there consumes `--progress`, so a
+ * driver working from a different breakpoint would scrub a layout that has
+ * already stopped listening.
+ */
+const KZ_PHONE_QUERY =
+  "(max-width:767px), (max-width:920px) and (max-height:560px) and (pointer:coarse)";
+
 /* ==========================================================================
    Styles. Injected the same way KzFeedback injects its sheet: React 19
    dedupes by href + precedence. Colours read from the theme tokens; the only
@@ -78,8 +88,13 @@ const KZ_HERO_STORY_CSS = `
   opacity:0;filter:blur(18px) saturate(.7) brightness(.78);
   transform:translate3d(calc(var(--pointer-x)*-8px),calc((var(--progress)*-10vh) + (var(--pointer-y)*-5px)),0) scale(calc(1.015 + var(--progress)*.085));
   transition:opacity .7s var(--kzhs-ease),filter .8s var(--kzhs-ease);
-  will-change:transform;
 }
+/* The frame is the only layer worth promoting, but it scrubs for exactly the
+   235svh the story occupies. An unconditional will-change kept a full-viewport
+   composited layer — and the memory its blurred raster costs — alive for the
+   whole life of the page, so the driver now flags it only while the story is
+   on screen and actually being scrubbed. */
+.kzhs-story[data-kzhs-live="true"] .kzhs-frame{will-change:transform}
 .kzhs-frame.is-loaded{opacity:1;filter:blur(0) saturate(.83) contrast(1.07) brightness(.86)}
 .kzhs-frame.is-loaded::after{content:'';position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(105deg,transparent 38%,rgba(255,255,255,.035) 46%,rgba(255,255,255,.045) 50%,rgba(255,255,255,.035) 54%,transparent 62%);background-size:250% 100%;mix-blend-mode:soft-light;animation:kzhsShimmer 60s linear infinite}
 @keyframes kzhsShimmer{0%{background-position:250% center}100%{background-position:-250% center}}
@@ -253,6 +268,17 @@ const KZ_HERO_STORY_CSS = `
 .kzhs-ribbon-track i{width:4px;height:4px;transform:rotate(45deg);border:1px solid var(--acc3);box-shadow:0 0 12px 3px color-mix(in srgb,var(--acc3) 65%,transparent);animation:kzhsDiamond 4s linear infinite}
 @keyframes kzhsDiamond{to{transform:rotate(405deg)}}
 @keyframes kzhsMarquee{to{transform:translateX(-50%)}}
+/* KzAmbient's data-kz-run gate, restated here because its sheet only ships
+   when an ambient layer happens to render on the page and the ribbon must not
+   depend on that. Without it the marquee and its 24 glowing diamonds ran for
+   the life of the page — behind the fold and behind a hidden tab alike. */
+.kzhs-ribbon[data-kz-run="0"] .kzhs-ribbon-track,
+.kzhs-ribbon[data-kz-run="0"] .kzhs-ribbon-track i{animation-play-state:paused}
+/* A rotating 4px glow dot is below the threshold of legibility on a touch
+   screen, and there are 24 of them, each repainting its own box-shadow. */
+@media (pointer:coarse){
+  .kzhs-ribbon-track i{animation:none}
+}
 
 @media (max-width:920px){
   .kzhs-copy{width:min(710px,calc(100vw - 48px))}
@@ -284,30 +310,52 @@ const KZ_HERO_STORY_CSS = `
    then put the heading and actions in ordinary document flow below it. This
    intentionally removes the desktop scroll-story on phones: no crop, no
    hidden half of the illustration, and no 210svh spacer to swipe through. */
-@media (max-width:767px), (max-width:920px) and (max-height:560px) and (pointer:coarse){
+@media ${KZ_PHONE_QUERY}{
   .kzhs-story{height:auto;--progress:0}
   .kzhs-sticky{
     position:relative;top:auto;height:auto;min-height:0;overflow:hidden;
     display:flex;flex-direction:column;padding:76px 0 0;
   }
+  /* The blur-up is opacity-only here. The desktop treatment interpolates a
+     blur() across an 800ms transition, which on a phone means a fresh Gaussian
+     pass over a viewport-wide 16:9 image — around 1070x600 device pixels —
+     every frame, and it starts precisely while React is hydrating. Resting at
+     the loaded grade means no filter value ever interpolates. */
   .kzhs-frame{
     position:relative;z-index:0;inset:auto;order:0;width:100%;aspect-ratio:16/9;
-    flex:none;opacity:0;transform:none;filter:blur(14px) saturate(.72) brightness(.82);
+    flex:none;opacity:0;transform:none;
+    filter:saturate(.92) contrast(1.06) brightness(.92);
+    transition:opacity .7s var(--kzhs-ease);
     will-change:auto;background:#02070c;
     -webkit-mask-image:linear-gradient(to bottom,#000 55%,transparent 100%);
     mask-image:linear-gradient(to bottom,#000 55%,transparent 100%);
   }
-  .kzhs-frame.is-loaded{opacity:1;filter:blur(0) saturate(.92) contrast(1.06) brightness(.92)}
+  /* Restates the filter because the unscoped .kzhs-frame.is-loaded above
+     carries two classes to this rule's one and would otherwise win, settling
+     the phone on the desktop grade — which is what filter is doing on the
+     resting rule just above too. Both endpoints must name the SAME filter, or
+     the transition has something to interpolate and the Gaussian is back. */
+  .kzhs-frame.is-loaded{opacity:1;filter:saturate(.92) contrast(1.06) brightness(.92)}
   .kzhs-frame.is-loaded::after{display:none}
   .kzhs-frame img{object-fit:contain!important;object-position:center!important}
   [data-kz-theme="light"] .kzhs-frame{display:block}
   .kzhs-scene,.kzhs-grid,.kzhs-vignette,.kzhs-particles,
   .kzhs-marker,.kzhs-scan,.kzhs-notes,.kzhs-meter{display:none}
+  /* No backdrop-filter here. A blurred backdrop whose contents never stop
+     moving cannot be rasterised once and reused, so the marquee made the
+     compositor re-resolve the blurred region every frame; the gradient below
+     already carries the separation the blur was doing. */
   .kzhs-ribbon{
     position:relative;left:auto;right:auto;bottom:auto;order:1;height:36px;flex:none;
     margin-top:-22px;z-index:3;border-top:none;
     background:linear-gradient(180deg,transparent,color-mix(in srgb,var(--bg) 58%,transparent) 30%,color-mix(in srgb,var(--bg) 82%,transparent));
-    backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+    /* The whole point of the phone treatment: the base rule's blur has to be
+       cancelled, not merely reduced. A backdrop-filter whose own contents move
+       continuously — and this one carries a permanent marquee — makes the
+       compositor re-resolve the blurred region every single frame, because the
+       blur is not a raster it can reuse. */
+    -webkit-backdrop-filter:none;
+    backdrop-filter:none;
   }
   .kzhs-ribbon-track span{padding:0 19px;font-size:8px}
   .kzhs-ribbon-track{animation-duration:44s}
@@ -330,8 +378,15 @@ const KZ_HERO_STORY_CSS = `
     opacity:1;transform:none;pointer-events:auto;border-radius:16px;
   }
   .kzhs-stats{gap:14px 10px;margin-top:6px}
-  .kzhs-stat{min-height:94px;padding:4px 4px 4px 12px}
-  .kzhs-stat-num{font-size:clamp(2.15rem,11vw,3rem)}
+  /* align-content:start so a short cell does not inherit the slack of a taller
+     one beside it — the 2x2 grid was giving every cell the height of its
+     row's tallest, which showed as a void under the one-line labels. */
+  .kzhs-stat{min-height:0;padding:4px 4px 4px 12px;align-content:start}
+  /* 11vw put "99.98%" at ~154px inside a ~134px cell, so the percent sign
+     orphaned onto a second line and took the whole row with it. Sized to fit
+     the widest figure in kzStats, and nowrap so a longer one clips rather
+     than silently re-breaking the grid. */
+  .kzhs-stat-num{font-size:clamp(1.85rem,8.4vw,3rem);white-space:nowrap}
   .kzhs-stat-label{margin-top:8px;font-size:.66rem;line-height:1.38}
 }
 `;
@@ -339,6 +394,7 @@ const KZ_HERO_STORY_CSS = `
 export function KzHeroStory() {
   const storyRef = useRef<HTMLElement | null>(null);
   const frameRef = useRef<HTMLDivElement | null>(null);
+  const ribbonRef = useRef<HTMLDivElement | null>(null);
   const [artReady, setArtReady] = useState(false);
 
   /* onLoad can never fire for an image the browser finished before hydration,
@@ -356,11 +412,14 @@ export function KzHeroStory() {
     const story = storyRef.current;
     if (!story) return;
 
+    const phone = window.matchMedia(KZ_PHONE_QUERY);
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     let frame = 0;
     let current = 0;
     let target = 0;
     let past = false;
+    let onScreen = false;
+    let bound = false;
 
     const measure = () => {
       const rect = story.getBoundingClientRect();
@@ -369,6 +428,10 @@ export function KzHeroStory() {
     };
 
     const render = () => {
+      /* Measuring here rather than in the listener is the point: the two reads
+         above force layout, and from the listener they did so synchronously on
+         every scroll event instead of once per painted frame. */
+      measure();
       current = reduced ? target : current + (target - current) * 0.09;
       story.style.setProperty("--progress", current.toFixed(4));
       const nextPast = current > 0.5;
@@ -376,23 +439,70 @@ export function KzHeroStory() {
         past = nextPast;
         story.dataset.kzhsPast = String(nextPast);
       }
-      if (Math.abs(target - current) > 0.001) frame = window.requestAnimationFrame(render);
+      /* Against a lerp factor of 0.09, the old 0.001 exit threshold kept the
+         chain alive for some 70 frames after the finger left, resolving
+         differences finer than a pixel can show; 0.004 settles in about 20. */
+      if (Math.abs(target - current) > 0.004) frame = window.requestAnimationFrame(render);
       else frame = 0;
     };
 
-    const queueRender = () => {
-      measure();
+    const schedule = () => {
       if (!frame) frame = window.requestAnimationFrame(render);
     };
 
-    measure();
-    current = target;
-    story.style.setProperty("--progress", current.toFixed(4));
-    window.addEventListener("scroll", queueRender, { passive: true });
-    window.addEventListener("resize", queueRender, { passive: true });
+    const bind = () => {
+      if (bound) return;
+      bound = true;
+      window.addEventListener("scroll", schedule, { passive: true });
+      window.addEventListener("resize", schedule, { passive: true });
+      schedule();
+    };
+
+    const unbind = () => {
+      if (!bound) return;
+      bound = false;
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+    };
+
+    /* Two reasons the driver stands down. On phones the story is flattened and
+       nothing consumes --progress, yet render() writes it as an inline style,
+       which beats the stylesheet's `--progress:0` — so it really did animate
+       there, invalidating style for the entire hero subtree every frame
+       (custom properties inherit) to move zero pixels. And once the story has
+       scrolled away it was still measuring the hero on every scroll event from
+       the footer down; the observer ends that. The query is watched rather
+       than read once so a window dragged across the breakpoint, or a rotation,
+       hands the story back to the driver. */
+    const sync = () => {
+      const live = onScreen && !phone.matches;
+      if (live) bind();
+      else unbind();
+      story.dataset.kzhsLive = String(live && !reduced);
+    };
+
+    /* A reload part-way down the story has to paint at the progress it is
+       already at instead of lerping up from zero. */
+    if (!phone.matches) {
+      measure();
+      current = target;
+      story.style.setProperty("--progress", current.toFixed(4));
+    }
+
+    const io = new IntersectionObserver(
+      (entries) => {
+        onScreen = entries[entries.length - 1].isIntersecting;
+        sync();
+      },
+      { rootMargin: "160px 0px" }
+    );
+    io.observe(story);
+    phone.addEventListener("change", sync);
+
     return () => {
-      window.removeEventListener("scroll", queueRender);
-      window.removeEventListener("resize", queueRender);
+      io.disconnect();
+      phone.removeEventListener("change", sync);
+      unbind();
       if (frame) window.cancelAnimationFrame(frame);
     };
   }, []);
@@ -418,6 +528,36 @@ export function KzHeroStory() {
     return () => window.removeEventListener("pointermove", move);
   }, []);
 
+  /* The ribbon is the one looping animation that survives into the phone
+     layout, and it had nothing stopping it: the marquee kept running behind
+     the fold and behind a hidden tab for as long as the page was open. This is
+     KzAmbient's data-kz-run contract — the same attribute, the same two
+     conditions — driven from here because that hook is private to it. */
+  useEffect(() => {
+    const ribbon = ribbonRef.current;
+    if (!ribbon) return;
+
+    let onScreen = false;
+    const sync = () => {
+      ribbon.setAttribute("data-kz-run", onScreen && !document.hidden ? "1" : "0");
+    };
+
+    const io = new IntersectionObserver(
+      (entries) => {
+        onScreen = entries[entries.length - 1].isIntersecting;
+        sync();
+      },
+      { rootMargin: "160px 0px" }
+    );
+    io.observe(ribbon);
+    document.addEventListener("visibilitychange", sync);
+
+    return () => {
+      io.disconnect();
+      document.removeEventListener("visibilitychange", sync);
+    };
+  }, []);
+
   return (
     <section ref={storyRef} id="top" className="kzhs-story" aria-label="Kenzed Tech Lab">
       <style href="kz-hero-story" precedence="default" dangerouslySetInnerHTML={{ __html: KZ_HERO_STORY_CSS }} />
@@ -425,7 +565,7 @@ export function KzHeroStory() {
         {/* The art is scenery — every fact it illustrates is in the copy. */}
         <div ref={frameRef} className={`kzhs-frame${artReady ? " is-loaded" : ""}`} aria-hidden="true">
           <Image
-            src="/kenzed-hidden-stack.webp"
+            src={asset("/kenzed-hidden-stack.webp")}
             alt=""
             fill
             priority
@@ -515,7 +655,10 @@ export function KzHeroStory() {
           <strong>00 — 100</strong>
         </div>
 
-        <div className="kzhs-ribbon">
+        {/* Starts paused, as KzAmbient's layers do: the marquee then costs the
+            compositor nothing during the hydration window, and the observer
+            starts it on the first frame after. */}
+        <div ref={ribbonRef} className="kzhs-ribbon" data-kz-run="0">
           <div className="kzhs-ribbon-track">
             {KZ_RIBBON_ITEMS.map((item) => (
               <span key={item}>

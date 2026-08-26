@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 
 import { KzWebFlow, type KzFlowNode } from "@/components/kz/KzDiagrams";
 import { KzScrollSpy } from "@/components/kz/KzScrollSpy";
@@ -9,7 +8,7 @@ import { KzSpatialIcon3D, KzTechToken3D, kindForLabel } from "@/components/kz/Kz
 import { KzGridPattern } from "@/components/kz/motion/KzAmbient";
 import { KzFadeUp } from "@/components/kz/motion/KzEntrance";
 import { KzSlidingTabs, type KzTabItem } from "@/components/kz/motion/KzNav";
-import { KZ_HOVER_GROUP, KzArrowNudge, KzTilt3D, KzMagnetic } from "@/components/kz/motion/KzPointer";
+import { KZ_HOVER_GROUP, KzArrowNudge, KzTilt3D } from "@/components/kz/motion/KzPointer";
 import { KzButton, KzPageHero, KzSectionTitle, KzEyebrow } from "@/components/kz/primitives";
 import { productCategories, products, type Product, type ProductTier } from "@/content/products";
 import { KzProductLeadModal } from "@/components/kz/KzProductLeadModal";

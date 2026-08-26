@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
 
-import { site } from "@/content/site";
+import { legalNav } from "@/content/legal";
+import { phoneDigits, phoneDisplay, phoneHref, site } from "@/content/site";
 
 import { KzLogo } from "./KzIcon";
 import { KzReveal } from "./KzReveal";
@@ -16,7 +17,14 @@ import { KzReveal } from "./KzReveal";
  */
 const FOOTER_CSS = `
 .kzf{position:relative;z-index:1;overflow:hidden;border-top:1px solid var(--line);background:var(--bg)}
-.kzf-inner{position:relative;padding:clamp(46px,7vw,72px) 0 26px}
+/* padding-BLOCK, not the padding shorthand. This sheet is unlayered, and an
+   unlayered declaration beats anything inside a cascade layer whatever its
+   specificity — so the shorthand's 0 was overriding the padding-inline that
+   .kz-wrap sets from @layer components, and the footer was rendering flush to
+   both screen edges on every page while every other section kept its 18px
+   gutter. It also widened .kzf-cols enough to fit a second column on a phone,
+   which is where the ~220px hole in the bottom-right corner came from. */
+.kzf-inner{position:relative;padding-block:clamp(46px,7vw,72px) 26px}
 
 /* Decorative bloom. A radial gradient falls off on its own, so it needs no
    blur filter: it paints once and the float only recomposites its layer. */
@@ -32,7 +40,10 @@ const FOOTER_CSS = `
 
 .kzf-top{display:grid;gap:clamp(30px,5vw,40px);grid-template-columns:minmax(0,1fr)}
 @media (min-width:1120px){.kzf-top{grid-template-columns:minmax(0,1fr) 330px;gap:48px}}
-.kzf-cols{display:grid;gap:28px;grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr))}
+.kzf-cols{display:grid;gap:28px;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr))}
+/* Explicit rather than left to auto-fit arithmetic: a five-column footer that
+   resolves to two ragged tracks on a phone is worse than one clean column. */
+@media (max-width:560px){.kzf-cols{grid-template-columns:minmax(0,1fr);gap:22px}}
 .kzf-group{display:flex;flex-direction:column;align-items:flex-start;min-width:0}
 .kzf-head{margin:0 0 10px;font-family:var(--font-mono);font-size:.68rem;font-weight:500;letter-spacing:.16em;text-transform:uppercase;text-align:left;color:var(--acc)}
 
@@ -65,18 +76,32 @@ const FOOTER_CSS = `
 .kzf-msg{margin:10px 0 0;font-size:.78rem;line-height:1.5;text-align:left;color:var(--ink)}
 .kzf-msg-ok{color:var(--acc3)}
 
-.kzf-markwrap{overflow:hidden;margin-top:clamp(34px,6vw,56px)}
+.kzf-markwrap{overflow:hidden;margin-top:clamp(34px,6vw,56px);container-type:inline-size}
 /* 700, not 400: this is a stroked outline, and a lighter weight leaves too
    little counter for the stroke to describe a legible letterform at this
    size. Geist sets wider than the Space Grotesk it replaced, so the size
    ceiling comes down to 6rem and the tracking goes slightly negative — the
    old positive tracking would read as spaced capitals in the wider face. */
-.kzf-mark{display:block;font-family:var(--font-display);font-weight:700;font-size:clamp(1.4rem,7.4vw,6rem);line-height:1.06;letter-spacing:-.02em;text-align:left;white-space:nowrap;color:var(--line);will-change:transform,opacity}
+.kzf-mark{display:block;font-family:var(--font-display);font-weight:700;/* 7.4cqi, not 7.4vw: the wordmark is nowrap inside overflow:hidden, and
+     sizing it off the viewport meant it was exactly viewport-wide — so the
+     moment the gutter above was restored it would have clipped. Container
+     units measure the box it actually sits in. */
+  font-size:clamp(1.4rem,7.7cqi,6rem);line-height:1.06;letter-spacing:-.02em;text-align:left;white-space:nowrap;color:var(--line);will-change:transform,opacity}
 /* Outline treatment. The colour above stays as the fill for engines without
    text-stroke, so the wordmark is never invisible. */
 @supports (-webkit-text-stroke-width:1px){.kzf-mark{color:transparent;-webkit-text-stroke-width:clamp(1px,.16vw,2px);-webkit-text-stroke-color:var(--line2)}}
 
-.kzf-status{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 22px;margin-top:clamp(20px,3vw,30px);padding-top:16px;border-top:1px solid var(--line)}
+/* The last row of the last section on the page, which is exactly where the
+   fixed chat launcher, the back-to-top control and the palette dock all live.
+   Scrolled to the bottom they were sitting on top of the copyright line and
+   the legal links. The reserve is horizontal on wide screens, where the row
+   runs edge to edge, and vertical on a phone, where it stacks. */
+.kzf-status{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 22px;margin-top:clamp(20px,3vw,30px);padding-top:16px;padding-bottom:calc(72px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line)}
+@media (min-width:640px){
+  .kzf-status{padding-bottom:8px}
+  .kzf-ops{padding-inline-start:64px}
+  .kzf-meta{padding-inline-end:104px}
+}
 .kzf-ops{display:inline-flex;align-items:center;gap:10px;min-height:44px;font-family:var(--font-mono);font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;text-align:left;color:var(--mut)}
 .kzf-dotwrap{position:relative;display:grid;place-items:center;flex:none;width:10px;height:10px}
 .kzf-dot{width:8px;height:8px;border-radius:999px;background:var(--acc3)}
@@ -114,10 +139,10 @@ const footCo = [
   { label: "Contact", href: "/contact" },
 ];
 
-/* site.phone is the single source for the number; the contact form derives its
-   wa.me target from it the same way. */
-const phoneDigits = site.phone.replace(/\D/g, "");
-const phoneLabel = site.phone.replace(/-/g, " ");
+/* site.ts owns the number AND its two renderings. The footer used to strip the
+   storage hyphen itself, which produced an ungrouped ten-digit block sitting
+   next to the header's grouped form on the same page. Nowhere but site.ts may
+   re-derive either — a grep for the digits should find exactly one file. */
 const siteLabel = site.url.replace(/^https?:\/\//, "");
 const legalHref = `mailto:${site.email}?subject=${encodeURIComponent(
   `Legal & privacy enquiry — ${site.name}`
@@ -279,9 +304,21 @@ export function KzFooter() {
 
             <KzReveal delay={3}>
               <div className="kzf-group">
+                <h2 className="kzf-head">Legal</h2>
+                {legalNav.map((entry) => (
+                  <Link key={entry.href} href={entry.href} className="kzf-link">
+                    {entry.label}
+                    <span className="kzf-ul" aria-hidden="true" />
+                  </Link>
+                ))}
+              </div>
+            </KzReveal>
+
+            <KzReveal delay={4}>
+              <div className="kzf-group">
                 <h2 className="kzf-head">Get in touch</h2>
-                <a href={`tel:+${phoneDigits}`} className="kzf-link">
-                  {phoneLabel}
+                <a href={phoneHref} className="kzf-link">
+                  {phoneDisplay}
                   <span className="kzf-ul" aria-hidden="true" />
                 </a>
                 <a href={`mailto:${site.email}`} className="kzf-link">
@@ -297,7 +334,7 @@ export function KzFooter() {
             </KzReveal>
           </div>
 
-          <KzReveal delay={4}>
+          <KzReveal delay={5}>
             <div className="kzf-news">
               <h2 className="kzf-head">Newsletter</h2>
               <p className="kzf-news-copy">
@@ -358,8 +395,19 @@ export function KzFooter() {
             <span className="kzf-copy">
               © {year} {site.legalName} · Rajbandh, Durgapur – 713212, West Bengal
             </span>
+            {/* Was a single mailto reading "Legal & privacy". A visitor
+                looking for the privacy policy at the foot of the page expects
+                the policy, not a compose window. */}
+            <Link href="/privacy" className="kzf-link kzf-legal">
+              Privacy
+              <span className="kzf-ul" aria-hidden="true" />
+            </Link>
+            <Link href="/terms" className="kzf-link kzf-legal">
+              Terms
+              <span className="kzf-ul" aria-hidden="true" />
+            </Link>
             <a href={legalHref} className="kzf-link kzf-legal">
-              Legal &amp; privacy
+              Legal enquiries
               <span className="kzf-ul" aria-hidden="true" />
             </a>
           </span>

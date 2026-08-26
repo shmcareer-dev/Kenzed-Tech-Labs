@@ -19,6 +19,9 @@ import Lenis from "lenis";
 
 import { KZ_REDUCED_MOTION_QUERY } from "./KzScrollFx";
 
+/** Touch, pen and TV remotes — anything whose primary pointer cannot hover. */
+const KZ_COARSE_POINTER_QUERY = "(pointer: coarse)";
+
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
@@ -40,13 +43,24 @@ export interface KzSmoothScrollProps {
  * It NO-OPS ENTIRELY under prefers-reduced-motion: no Lenis instance, no ticker
  * hook, no scroll listener, native scrolling untouched. Smooth-scroll hijacking
  * is one of the strongest nausea triggers there is, and a damped page also
- * breaks assistive tech that drives scrollTop directly. The media query is
- * watched live, so toggling the OS setting installs or tears down the whole
- * thing without a reload.
+ * breaks assistive tech that drives scrollTop directly.
+ *
+ * It also no-ops entirely on a coarse pointer — the `syncTouch` argument below
+ * carried to its conclusion. If the OS fling owns momentum, rubber-band and
+ * interruption, a Lenis instance on a phone damps nothing; all it leaves behind
+ * is a rAF loop calling `lenis.raf()` every frame plus a full
+ * ScrollTrigger.update() running inside each scroll event — per-frame
+ * main-thread work that keeps the browser off its compositor-only scrolling
+ * path for the whole session. Without it, ScrollTrigger falls back to its own
+ * ticker-batched update and touch scrolling costs no JS at all.
+ *
+ * Both queries are watched live, so toggling the OS setting — or plugging a
+ * mouse into a tablet — installs or tears down the whole thing without a reload.
  */
 export function KzSmoothScroll({ children, lerp = 0.085, wheelMultiplier = 1.15 }: KzSmoothScrollProps) {
   useEffect(() => {
     const media = window.matchMedia(KZ_REDUCED_MOTION_QUERY);
+    const coarse = window.matchMedia(KZ_COARSE_POINTER_QUERY);
     const root = document.documentElement;
 
     let lenis: Lenis | null = null;
@@ -117,15 +131,17 @@ export function KzSmoothScroll({ children, lerp = 0.085, wheelMultiplier = 1.15 
     };
 
     const sync = () => {
-      if (media.matches) stop();
+      if (media.matches || coarse.matches) stop();
       else start();
     };
 
     sync();
     media.addEventListener("change", sync);
+    coarse.addEventListener("change", sync);
 
     return () => {
       media.removeEventListener("change", sync);
+      coarse.removeEventListener("change", sync);
       stop();
     };
   }, [lerp, wheelMultiplier]);

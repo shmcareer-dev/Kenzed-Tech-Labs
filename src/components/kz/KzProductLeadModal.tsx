@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { site } from "@/content/site";
 import { KzButton } from "@/components/kz/primitives";
 
@@ -16,7 +16,6 @@ export function KzProductLeadModal({
   isOpen,
   onClose,
   productName = "Product Enquiry",
-  productSlug = "general",
   tierName,
 }: KzProductLeadModalProps) {
   const [name, setName] = useState("");
@@ -28,18 +27,26 @@ export function KzProductLeadModal({
   const [busy, setBusy] = useState(false);
   const dialogRef = useRef<HTMLDivElement | null>(null);
 
+  /* Resetting on the way OUT rather than on the way in. The reset used to sit
+     at the top of the body-scroll effect below, which fired two setState calls
+     synchronously from an effect body — a cascading render for a dialog that
+     is about to render nothing anyway. Every path that closes this modal runs
+     through here: the header button, the backdrop, Escape, and the button on
+     the success panel. */
+  const close = useCallback(() => {
+    setSubmitted(false);
+    setBusy(false);
+    onClose();
+  }, [onClose]);
+
   useEffect(() => {
-    if (!isOpen) {
-      setSubmitted(false);
-      setBusy(false);
-      return;
-    }
+    if (!isOpen) return;
 
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") close();
     };
     window.addEventListener("keydown", handleKeyDown);
 
@@ -47,7 +54,7 @@ export function KzProductLeadModal({
       document.body.style.overflow = prevOverflow;
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, close]);
 
   if (!isOpen) return null;
 
@@ -118,7 +125,7 @@ export function KzProductLeadModal({
         animation: "kzLeadFadeIn 0.25s cubic-bezier(0.22, 1, 0.36, 1)",
       }}
       onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
+        if (e.target === e.currentTarget) close();
       }}
     >
       <style>{`
@@ -163,7 +170,7 @@ export function KzProductLeadModal({
       >
         {/* Close button */}
         <button
-          onClick={onClose}
+          onClick={close}
           aria-label="Close enquiry modal"
           style={{
             position: "absolute",
@@ -220,7 +227,7 @@ export function KzProductLeadModal({
               Thank you for enquiring about <strong>{productName}</strong>. Our engineering and delivery team will review your requirements and get back to you within 24 hours.
             </p>
             <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
-              <KzButton onClick={onClose} variant="primary">
+              <KzButton onClick={close} variant="primary">
                 Done
               </KzButton>
               <KzButton

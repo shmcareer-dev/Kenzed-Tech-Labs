@@ -8,10 +8,11 @@ import { KzHoverLift } from "@/components/kz/motion/KzPointer";
 import { KzPageHero } from "@/components/kz/primitives";
 import { KzContactForm } from "@/components/kz/KzContactForm";
 import { kzLocations } from "@/content/kz";
+import { site, emailHref, phoneDisplay, phoneHref } from "@/content/site";
 
 const contactLinks: [string, string, string?][] = [
-  ["+91 76990 02237", "tel:+917699002237"],
-  ["kenzedtechlab@gmail.com", "mailto:kenzedtechlab@gmail.com"],
+  [phoneDisplay, phoneHref],
+  [site.email, emailHref],
   ["kenzed.in", "https://kenzed.in", "_blank"],
 ];
 

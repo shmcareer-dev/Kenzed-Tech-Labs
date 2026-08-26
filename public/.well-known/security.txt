@@ -1,0 +1,13 @@
+# Kenzed Tech Lab — security contact
+# https://securitytxt.org/
+
+Contact: mailto:kenzedTechlab@gmail.com
+Expires: 2027-08-26T00:00:00.000Z
+Preferred-Languages: en
+Canonical: https://kenzed.in/.well-known/security.txt
+Policy: https://kenzed.in/terms#site-use
+
+# Report a vulnerability in this site or in a system we operate and we will
+# acknowledge within one business day. We will not pursue anyone who reports
+# in good faith and does not access, alter or exfiltrate data belonging to
+# others. Please give us a reasonable window to fix before disclosing.

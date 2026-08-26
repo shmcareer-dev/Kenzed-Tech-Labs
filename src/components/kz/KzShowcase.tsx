@@ -236,26 +236,61 @@ export function KzStoryCarousel({
   const [atStart, setAtStart] = useState(true);
   const [atEnd, setAtEnd] = useState(false);
 
-  const sync = useCallback(() => {
+  /* What the scroll handler last published. A flick crosses a card boundary
+     every few frames, and the bail-out React does when a value is unchanged
+     still costs a render pass, so the comparison happens out here instead. */
+  const activeRef = useRef(0);
+  const atStartRef = useRef(true);
+  const atEndRef = useRef(false);
+  /* Card positions and the scrollable distance are layout, so they are read once
+     per resize rather than once per frame: sync() used to call
+     getBoundingClientRect() on the scroller and on every card, then read
+     scrollWidth, which forces a layout of the whole strip mid-drag. */
+  const offsetsRef = useRef<number[]>([]);
+  const maxScrollRef = useRef(0);
+
+  const measure = useCallback(() => {
     const el = scrollerRef.current;
     if (!el) return;
     const items = Array.from(el.querySelectorAll<HTMLElement>("[data-kz-story]"));
-    const base = el.getBoundingClientRect().left;
+    /* Relative to the first card, which is where a scrollLeft of 0 leaves it, so
+       an offset can be compared against scrollLeft directly. offsetLeft ignores
+       ancestor scrolling, so these stay valid while the strip moves. */
+    const base = items[0]?.offsetLeft ?? 0;
+    offsetsRef.current = items.map((item) => item.offsetLeft - base);
+    maxScrollRef.current = el.scrollWidth - el.clientWidth;
+  }, []);
+
+  const sync = useCallback(() => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    /* scrollLeft is a scalar read that costs no layout, which is the whole point
+       of measuring the cards up front. */
+    const left = el.scrollLeft;
+    const offsets = offsetsRef.current;
     let best = 0;
     let bestDistance = Number.POSITIVE_INFINITY;
-    items.forEach((item, i) => {
-      const distance = Math.abs(item.getBoundingClientRect().left - base);
+    for (let i = 0; i < offsets.length; i += 1) {
+      const distance = Math.abs(offsets[i] - left);
       if (distance < bestDistance) {
         bestDistance = distance;
         best = i;
       }
-    });
-    const max = el.scrollWidth - el.clientWidth;
-    /* Primitive state only: React bails out of the re-render when nothing
-       changed, so a 60fps scroll costs one comparison per frame. */
-    setActive(best);
-    setAtStart(el.scrollLeft <= 1);
-    setAtEnd(el.scrollLeft >= max - 1);
+    }
+    if (best !== activeRef.current) {
+      activeRef.current = best;
+      setActive(best);
+    }
+    const startNow = left <= 1;
+    if (startNow !== atStartRef.current) {
+      atStartRef.current = startNow;
+      setAtStart(startNow);
+    }
+    const endNow = left >= maxScrollRef.current - 1;
+    if (endNow !== atEndRef.current) {
+      atEndRef.current = endNow;
+      setAtEnd(endNow);
+    }
   }, []);
 
   useEffect(() => {
@@ -272,23 +307,32 @@ export function KzStoryCarousel({
   useEffect(() => {
     const el = scrollerRef.current;
     if (!el || !visible) return;
+    measure();
     sync();
     let frame = 0;
-    const onChange = () => {
+    const onScroll = () => {
       if (frame) return;
       frame = requestAnimationFrame(() => {
         frame = 0;
         sync();
       });
     };
-    el.addEventListener("scroll", onChange, { passive: true });
-    window.addEventListener("resize", onChange, { passive: true });
+    /* This stands in for the old window resize listener too: a card is either a
+       fixed 340px or a share of the viewport, and at the widths where the share
+       wins the scroller is the full width of the screen, so nothing can move the
+       cards without resizing the scroller as well. */
+    const ro = new ResizeObserver(() => {
+      measure();
+      sync();
+    });
+    ro.observe(el);
+    el.addEventListener("scroll", onScroll, { passive: true });
     return () => {
-      el.removeEventListener("scroll", onChange);
-      window.removeEventListener("resize", onChange);
+      ro.disconnect();
+      el.removeEventListener("scroll", onScroll);
       if (frame) cancelAnimationFrame(frame);
     };
-  }, [visible, sync]);
+  }, [measure, sync, visible]);
 
   const scrollToIndex = useCallback(
     (index: number) => {

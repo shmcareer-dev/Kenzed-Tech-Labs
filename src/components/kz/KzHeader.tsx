@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import { KzWordmark } from "./KzWordmark";
 import { useKzTheme } from "./KzThemeProvider";
 import { KZ_EASE_CSS, KzCommandPalette } from "./motion/KzNav";
+import { site, emailHref, phoneDisplay, phoneHref } from "@/content/site";
 
 const nav = [
   { href: "/", label: "Home", num: "01" },
@@ -55,8 +56,13 @@ const KZ_HDR_CSS = `
   backdrop-filter:blur(20px) saturate(130%);
   -webkit-backdrop-filter:blur(20px) saturate(130%);
   transform:translate3d(-50%,0,0);
-  transition:height .35s ${KZ_EASE_CSS},top .35s ${KZ_EASE_CSS},
-    transform .38s ${KZ_EASE_CSS},background .3s ${KZ_EASE_CSS};
+  /* height and top were transitioned here too. Neither one composites, so every
+     frame of the compact step ran layout and paint, and the blur behind the pill
+     was re-evaluated over a box that was still resizing — all to tween a handful
+     of pixels, on the first flick of a page load while hydration and image decode
+     still own the main thread. The step snaps now, and the list is left with two
+     properties the compositor can carry on its own. */
+  transition:transform .38s ${KZ_EASE_CSS},background .3s ${KZ_EASE_CSS};
 }
 /* color-mix keeps the "more opaque when compact" step reading from --bg, so
    the light theme gets a paler pill instead of a hardcoded dark one. */
@@ -156,6 +162,16 @@ const KZ_HDR_CSS = `
   .kzhdr[data-compact="true"]{top:7px;height:52px}
   .kzhdr-brand .kzwm-name b{display:none}
   .kzhdr-menubtn{width:38px;height:38px}
+}
+/* A phone GPU re-blurs the whole strip behind the pill on every frame that
+   scrolls under it, and saturate() is a second pass over those same pixels for a
+   tint nothing at this size reads. Half the radius is indistinguishable behind a
+   pill this opaque and costs a fraction of the samples. */
+@media (pointer:coarse){
+  .kzhdr{
+    backdrop-filter:blur(10px);
+    -webkit-backdrop-filter:blur(10px);
+  }
 }
 @media (prefers-reduced-motion:reduce){
   .kzhdr{transition:none}
@@ -490,12 +506,12 @@ export function KzHeader() {
                 letterSpacing: "0.05em",
               }}
             >
-              <a href="tel:+917699002237" style={{ color: "var(--ink)", padding: "4px 0" }}>
-                +91 76990 02237
+              <a href={phoneHref} style={{ color: "var(--ink)", padding: "4px 0" }}>
+                {phoneDisplay}
               </a>
               <span>·</span>
-              <a href="mailto:kenzedtechlab@gmail.com" style={{ color: "var(--ink)", padding: "4px 0" }}>
-                kenzedtechlab@gmail.com
+              <a href={emailHref} style={{ color: "var(--ink)", padding: "4px 0" }}>
+                {site.email}
               </a>
             </div>
             <Link
