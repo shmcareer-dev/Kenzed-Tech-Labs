@@ -5,7 +5,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { KzWordmark } from "./KzWordmark";
-import { useKzTheme } from "./KzThemeProvider";
 import { KZ_EASE_CSS, KzCommandPalette } from "./motion/KzNav";
 import { site, emailHref, phoneDisplay, phoneHref } from "@/content/site";
 
@@ -124,13 +123,6 @@ const KZ_HDR_CSS = `
 .kzhdr .kzcp-trigger .kzcp-kbd{padding:1px 5px;font-size:.55rem}
 
 .kzhdr-end{display:flex;align-items:center;justify-content:flex-end;gap:8px}
-.kzhdr-theme{
-  width:40px;height:40px;flex:0 0 auto;display:grid;place-items:center;
-  border:1px solid var(--line);border-radius:9px;background:transparent;
-  color:var(--ink);cursor:pointer;font-size:.92rem;
-  transition:border-color .25s ${KZ_EASE_CSS},color .25s ${KZ_EASE_CSS};
-}
-.kzhdr-theme:hover{border-color:var(--line2)}
 .kzhdr-cta{
   display:inline-flex;align-items:center;gap:17px;min-height:42px;padding:0 14px;
   border:1px solid color-mix(in srgb,var(--acc) 38%,transparent);border-radius:8px;
@@ -187,7 +179,6 @@ const KZ_HDR_CSS = `
 
 export function KzHeader() {
   const pathname = usePathname();
-  const { isDark, toggleTheme } = useKzTheme();
   const [compact, setCompact] = useState(false);
   const [hidden, setHidden] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -358,15 +349,6 @@ export function KzHeader() {
         </nav>
 
         <div className="kzhdr-end">
-          <button
-            type="button"
-            className="kzhdr-theme"
-            onClick={toggleTheme}
-            aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
-          >
-            {isDark ? "☀" : "☾"}
-          </button>
-
           <Link href="/contact" className="kzhdr-cta">
             Start a project <span aria-hidden="true">→</span>
           </Link>

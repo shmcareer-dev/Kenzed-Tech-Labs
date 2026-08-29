@@ -2,7 +2,12 @@
 
 /* ==========================================================================
    Kenzed Tech Lab design tokens — ported from Kenzed Tech Lab.dc.html
-   Dark by default; light mode opts in via data-kz-theme="light".
+   Dark, always. There is no longer any way to reach the light palette: the
+   header toggle and the theme provider that stamped data-kz-theme are both
+   gone, so nothing sets the attribute and :root below is what every visitor
+   gets. The light token block is kept, unreachable, because it is the only
+   record of the light palette and re-enabling the feature means restoring a
+   toggle rather than re-deriving thirty-five colours.
    ========================================================================== */
 @theme {
   --color-bg: var(--bg);
@@ -122,6 +127,12 @@
   --err: #ff6b6b;
 }
 
+/* UNREACHABLE. Nothing sets data-kz-theme any more — the header toggle and the
+   provider that stamped it were removed — so this block never matches and the
+   :root palette above is what every visitor sees. It is kept because it is the
+   only record of the light palette, and the contrast notes below it were
+   measured rather than guessed. Restoring light mode means restoring a control
+   that sets the attribute; it does not mean rebuilding these colours. */
 [data-kz-theme="light"] {
   --bg: #f4f5f8;
   --bg2: #ffffff;

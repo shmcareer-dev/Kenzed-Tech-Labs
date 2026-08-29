@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
-import { KzThemeProvider } from "@/components/kz/KzThemeProvider";
 import { KzHeader } from "@/components/kz/KzHeader";
 import { KzFooter } from "@/components/kz/KzFooter";
 import { KzChatbot } from "@/components/kz/KzChatbot";
@@ -17,10 +16,10 @@ import { OG_IMAGE, organizationSchema } from "@/lib/seo";
 import "./globals.css";
 
 export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f4f5f8" },
-    { media: "(prefers-color-scheme: dark)", color: "#05080d" },
-  ],
+  /* One value, not a light/dark pair: the site is dark whatever the OS
+     prefers, and advertising a light theme-color painted the browser chrome
+     pale above a dark page. */
+  themeColor: "#05080d",
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
@@ -92,44 +91,42 @@ export default function RootLayout({
         </noscript>
 
         <JsonLd data={organizationSchema()} />
-        <KzThemeProvider>
-          {/* Damped scrolling and the scroll read-out are installed before any
-              content mounts, so the first ScrollTrigger refresh measures a
-              page that already has its final scroller. Both no-op entirely
-              under prefers-reduced-motion. */}
-          <KzSmoothScroll />
-          <KzScrollProgress />
-          <KzCustomCursor />
+        {/* Damped scrolling and the scroll read-out are installed before any
+            content mounts, so the first ScrollTrigger refresh measures a
+            page that already has its final scroller. Both no-op entirely
+            under prefers-reduced-motion. */}
+        <KzSmoothScroll />
+        <KzScrollProgress />
+        <KzCustomCursor />
 
-          <KzHeader />
-          {/* Fixed chrome stays OUTSIDE the transition wrapper: the wrapper
-              carries a transform mid-route-change, which would otherwise
-              become the containing block for everything fixed inside it. */}
-          <main style={{ position: "relative", zIndex: 1 }}>
-            <KzPageTransition>{children}</KzPageTransition>
-          </main>
-          <KzFooter />
-          <KzChatbot />
-          <KzBackTop />
+        <KzHeader />
+        {/* Fixed chrome stays OUTSIDE the transition wrapper: the wrapper
+            carries a transform mid-route-change, which would otherwise
+            become the containing block for everything fixed inside it. */}
+        <main style={{ position: "relative", zIndex: 1 }}>
+          <KzPageTransition>{children}</KzPageTransition>
+        </main>
+        <KzFooter />
+        <KzChatbot />
+        <KzBackTop />
 
-          {/* The palette owns Cmd/Ctrl+K. Its visible trigger is parked
-              opposite the chatbot where a thumb can reach it — but only on
-              viewports where the header pill's own trigger is collapsed;
-              above 920px the pill carries the visible trigger and this dock
-              hides (display:none keeps the component mounted, so the hotkey
-              binding survives). */}
-          <div
-            className="kz-palette-dock"
-            style={{
-              position: "fixed",
-              left: "clamp(14px, 4vw, 26px)",
-              bottom: "calc(clamp(14px, 4vw, 26px) + env(safe-area-inset-bottom, 0px))",
-              zIndex: 40,
-            }}
-          >
-            <KzCommandPalette triggerLabel="Search" />
-          </div>
-        </KzThemeProvider>
+        {/* The palette owns Cmd/Ctrl+K. Its visible trigger is parked
+            opposite the chatbot where a thumb can reach it — but only on
+            viewports where the header pill's own trigger is collapsed;
+            above 920px the pill carries the visible trigger and this dock
+            hides (display:none keeps the component mounted, so the hotkey
+            binding survives). */}
+        <div
+          className="kz-palette-dock"
+          style={{
+            position: "fixed",
+            left: "clamp(14px, 4vw, 26px)",
+            bottom: "calc(clamp(14px, 4vw, 26px) + env(safe-area-inset-bottom, 0px))",
+            zIndex: 40,
+          }}
+        >
+          <KzCommandPalette triggerLabel="Search" />
+        </div>
       </body>
     </html>
   );
