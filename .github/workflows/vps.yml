@@ -133,6 +133,11 @@ jobs:
             exit 1
           fi
           echo "no page/directory collisions"
+
+          # Structured data fails silently: a duplicate FAQPage or an answer
+          # that exists only in the markup costs the rich result months before
+          # anyone notices, and nothing else in this pipeline would catch it.
+          npm run check:seo
           # A Pages bundle here would break every asset URL on the root domain.
           if grep -q '/Kenzed-Tech-Labs/_next' dist/index.html; then
             echo "::error::this bundle was built with a base path; it cannot serve kenzed.in"

@@ -1,3 +1,4 @@
+import { KzFaqSection } from "@/components/kz/KzFaq";
 import { KzProductStudio } from "@/components/kz/screens/KzProductStudio";
 import { JsonLd } from "@/components/ui/JsonLd";
 import { products } from "@/content/products";
@@ -29,6 +30,7 @@ export default function ProductStudioPage() {
           SoftwareApplication is how a search engine reads that. */}
       <JsonLd data={productCatalogSchema(products)} />
       <KzProductStudio />
+      <KzFaqSection path="/product-studio" />
     </>
   );
 }

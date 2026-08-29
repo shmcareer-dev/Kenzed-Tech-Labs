@@ -198,3 +198,69 @@ export function breadcrumbSchema(trail: { name: string; path: string }[]) {
     })),
   };
 }
+
+/**
+ * FAQPage. This is the one piece of structured data on the site that a search
+ * engine will render verbatim, and every LLM that cites a source reads it, so
+ * the text has to be the SAME text the page shows. Emitting an answer here
+ * that a visitor cannot find on the page is cloaking, and Google treats it as
+ * such.
+ *
+ * One FAQPage per page. Two blocks both claiming to be the page's FAQ is
+ * invalid and the usual outcome is that neither is used.
+ */
+export function faqSchema(items: { q: string; a: string }[]) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: items.map((item) => ({
+      "@type": "Question",
+      name: item.q,
+      acceptedAnswer: { "@type": "Answer", text: item.a },
+    })),
+  };
+}
+
+/**
+ * The site as an entity, emitted once in the root layout.
+ *
+ * No `potentialAction` SearchAction here on purpose: Google retired the
+ * sitelinks search box in 2024 and the markup now does nothing but add weight.
+ * Sitelinks are earned from structure — a clean sitemap, stable internal
+ * anchor text, and the navigation graph below — not from a declaration.
+ */
+export function webSiteSchema() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: site.name,
+    alternateName: "Kenzed",
+    url: site.url,
+    description: site.description,
+    inLanguage: "en",
+    publisher: { "@type": "Organization", name: site.legalName, url: site.url },
+  };
+}
+
+/**
+ * The primary navigation, as a graph rather than as a list of links buried in
+ * a header that only exists after hydration. This is the input Google uses
+ * when deciding which pages deserve to appear as sitelinks under the main
+ * result, and it is the cheapest signal on this page to get right.
+ */
+export function siteNavigationSchema(
+  links: { name: string; path: string; description?: string }[]
+) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: `${site.name} — site navigation`,
+    itemListElement: links.map((link, index) => ({
+      "@type": "SiteNavigationElement",
+      position: index + 1,
+      name: link.name,
+      description: link.description,
+      url: canonicalUrl(link.path),
+    })),
+  };
+}

@@ -136,6 +136,7 @@ const footCo = [
   { label: "Infrastructure", href: "/infrastructure" },
   { label: "Technology", href: "/technology" },
   { label: "Process", href: "/process" },
+  { label: "FAQ", href: "/faq" },
   { label: "Contact", href: "/contact" },
 ];
 

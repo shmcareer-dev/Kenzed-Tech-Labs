@@ -1,3 +1,4 @@
+import { KzFaqSection } from "@/components/kz/KzFaq";
 import { KzAbout } from "@/components/kz/screens/KzAbout";
 import { JsonLd } from "@/components/ui/JsonLd";
 import { breadcrumbSchema, pageMetadata } from "@/lib/seo";
@@ -23,6 +24,7 @@ export default function AboutPage() {
         ])}
       />
       <KzAbout />
+      <KzFaqSection path="/about" />
     </>
   );
 }

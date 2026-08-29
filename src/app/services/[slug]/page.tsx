@@ -1,7 +1,9 @@
 import { notFound } from "next/navigation";
 
+import { KzFaq } from "@/components/kz/KzFaq";
 import { KzServiceDetail } from "@/components/kz/screens/KzServiceDetail";
 import { JsonLd } from "@/components/ui/JsonLd";
+import { serviceFaq } from "@/content/faq";
 import { getService, services } from "@/content/services";
 import { breadcrumbSchema, pageMetadata, serviceSchema } from "@/lib/seo";
 
@@ -46,6 +48,27 @@ export default async function ServiceDetailPage({ params }: Props) {
         ])}
       />
       <KzServiceDetail service={service} related={related} />
+
+      {/* Generated from the service's own record rather than written out eight
+          times: a service that gains a deliverable gains the answer with it,
+          and the two cannot drift. These are the questions a search engine
+          actually gets asked about a service page — what it includes, what it
+          costs, which tools, how to start. */}
+      <section
+        aria-labelledby="faq"
+        style={{
+          padding: "clamp(56px, 8vw, 96px) 0 clamp(64px, 9vw, 104px)",
+          background: "var(--bg)",
+          borderTop: "1px solid var(--line)",
+        }}
+      >
+        <div className="kz-wrap">
+          <KzFaq
+            items={serviceFaq(service)}
+            title={`${service.title} — questions`}
+          />
+        </div>
+      </section>
     </>
   );
 }

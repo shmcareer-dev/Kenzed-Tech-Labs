@@ -11,7 +11,8 @@ import { KzScrollProgress } from "@/components/kz/motion/KzScrollFx";
 import { KzCustomCursor } from "@/components/kz/motion/KzPointer";
 import { KzCommandPalette, KzPageTransition } from "@/components/kz/motion/KzNav";
 import { asset, site } from "@/content/site";
-import { OG_IMAGE, organizationSchema } from "@/lib/seo";
+import { primaryNav } from "@/content/nav";
+import { OG_IMAGE, organizationSchema, siteNavigationSchema, webSiteSchema } from "@/lib/seo";
 
 import "./globals.css";
 
@@ -91,6 +92,13 @@ export default function RootLayout({
         </noscript>
 
         <JsonLd data={organizationSchema()} />
+        {/* The site as an entity, and its navigation as a graph. The second is
+            the input Google reads when deciding which pages deserve to appear
+            as sitelinks under the main result — a header rendered by client
+            JavaScript is not that input. Both are emitted once, here, rather
+            than repeated per page. */}
+        <JsonLd data={webSiteSchema()} />
+        <JsonLd data={siteNavigationSchema(primaryNav)} />
         {/* Damped scrolling and the scroll read-out are installed before any
             content mounts, so the first ScrollTrigger refresh measures a
             page that already has its final scroller. Both no-op entirely

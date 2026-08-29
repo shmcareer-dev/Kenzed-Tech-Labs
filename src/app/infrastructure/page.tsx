@@ -1,3 +1,4 @@
+import { KzFaqSection } from "@/components/kz/KzFaq";
 import { KzInfrastructure } from "@/components/kz/screens/KzInfrastructure";
 import { JsonLd } from "@/components/ui/JsonLd";
 import { breadcrumbSchema, pageMetadata } from "@/lib/seo";
@@ -20,6 +21,7 @@ export default function InfrastructurePage() {
         ])}
       />
       <KzInfrastructure />
+      <KzFaqSection path="/infrastructure" />
     </>
   );
 }

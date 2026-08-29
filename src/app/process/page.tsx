@@ -1,3 +1,4 @@
+import { KzFaqSection } from "@/components/kz/KzFaq";
 import { KzProcess } from "@/components/kz/screens/KzProcess";
 import { JsonLd } from "@/components/ui/JsonLd";
 import { breadcrumbSchema, pageMetadata } from "@/lib/seo";
@@ -20,6 +21,7 @@ export default function ProcessPage() {
         ])}
       />
       <KzProcess />
+      <KzFaqSection path="/process" />
     </>
   );
 }

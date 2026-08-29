@@ -1,3 +1,4 @@
+import { KzFaqSection } from "@/components/kz/KzFaq";
 import { KzIndustries } from "@/components/kz/screens/KzIndustries";
 import { JsonLd } from "@/components/ui/JsonLd";
 import { breadcrumbSchema, pageMetadata } from "@/lib/seo";
@@ -20,6 +21,7 @@ export default function IndustriesPage() {
         ])}
       />
       <KzIndustries />
+      <KzFaqSection path="/industries" />
     </>
   );
 }

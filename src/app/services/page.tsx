@@ -1,3 +1,4 @@
+import { KzFaqSection } from "@/components/kz/KzFaq";
 import { KzServices } from "@/components/kz/screens/KzServices";
 import { JsonLd } from "@/components/ui/JsonLd";
 import { breadcrumbSchema, pageMetadata } from "@/lib/seo";
@@ -25,6 +26,7 @@ export default function ServicesPage() {
         ])}
       />
       <KzServices />
+      <KzFaqSection path="/services" />
     </>
   );
 }

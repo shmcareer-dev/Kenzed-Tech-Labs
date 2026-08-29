@@ -1,3 +1,4 @@
+import { KzFaqSection } from "@/components/kz/KzFaq";
 import { KzLiveProjects } from "@/components/kz/screens/KzLiveProjects";
 import { JsonLd } from "@/components/ui/JsonLd";
 import { breadcrumbSchema, pageMetadata } from "@/lib/seo";
@@ -24,6 +25,7 @@ export default function LiveProjectsPage() {
         ])}
       />
       <KzLiveProjects />
+      <KzFaqSection path="/live-projects" />
     </>
   );
 }

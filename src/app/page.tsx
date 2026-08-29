@@ -1,3 +1,4 @@
+import { KzFaqSection } from "@/components/kz/KzFaq";
 import { KzHome } from "@/components/kz/screens/KzHome";
 import { pageMetadata } from "@/lib/seo";
 
@@ -9,5 +10,10 @@ export const metadata = pageMetadata({
 });
 
 export default function HomePage() {
-  return <KzHome />;
+  return (
+    <>
+      <KzHome />
+      <KzFaqSection path="/" />
+    </>
+  );
 }

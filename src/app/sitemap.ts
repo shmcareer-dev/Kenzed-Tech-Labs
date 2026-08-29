@@ -1,40 +1,33 @@
 import type { MetadataRoute } from "next";
 
+import { allNav } from "@/content/nav";
 import { services } from "@/content/services";
 import { canonicalUrl } from "@/lib/seo";
 
 export const dynamic = "force-static";
 
-/** Static routes, highest priority first. */
-const routes: { path: string; priority: number; changeFrequency: "weekly" | "monthly" }[] = [
-  { path: "/", priority: 1, changeFrequency: "weekly" },
-  { path: "/services", priority: 0.9, changeFrequency: "monthly" },
-  { path: "/product-studio", priority: 0.8, changeFrequency: "monthly" },
-  { path: "/live-projects", priority: 0.8, changeFrequency: "weekly" },
-  { path: "/about", priority: 0.8, changeFrequency: "monthly" },
-  { path: "/technology", priority: 0.7, changeFrequency: "monthly" },
-  { path: "/infrastructure", priority: 0.7, changeFrequency: "monthly" },
-  { path: "/industries", priority: 0.7, changeFrequency: "monthly" },
-  { path: "/process", priority: 0.6, changeFrequency: "monthly" },
-  { path: "/team", priority: 0.6, changeFrequency: "monthly" },
-  { path: "/contact", priority: 0.8, changeFrequency: "monthly" },
-  /* Low priority but indexed on purpose: a legal shelf that search engines
-     cannot see is a trust signal nobody receives. */
-  { path: "/terms", priority: 0.3, changeFrequency: "monthly" },
-  { path: "/privacy", priority: 0.3, changeFrequency: "monthly" },
-  { path: "/cookies", priority: 0.2, changeFrequency: "monthly" },
-  { path: "/refund", priority: 0.3, changeFrequency: "monthly" },
-];
-
+/**
+ * The route list used to live here as its own array, maintained by hand
+ * alongside the header's links and the footer's columns. It now reads from
+ * content/nav.ts, which is also what feeds the SiteNavigationElement graph and
+ * llms.txt — so a page cannot be in the sitemap and missing from the machine
+ * -readable navigation, which is exactly the inconsistency that stops Google
+ * treating a section as a sitelink candidate.
+ *
+ * Every URL goes through canonicalUrl(), so the sitemap agrees with the
+ * canonical tag on the page it points at. It did not before: the sitemap
+ * advertised /technology while the page claimed /technology/, which is two
+ * spellings of one page and a redirect on the way in to every entry.
+ */
 export default function sitemap(): MetadataRoute.Sitemap {
   const lastModified = new Date();
 
   return [
-    ...routes.map((route) => ({
-      url: canonicalUrl(route.path),
+    ...allNav.map((entry) => ({
+      url: canonicalUrl(entry.path),
       lastModified,
-      changeFrequency: route.changeFrequency,
-      priority: route.priority,
+      changeFrequency: entry.changeFrequency,
+      priority: entry.priority,
     })),
     ...services.map((service) => ({
       url: canonicalUrl(`/services/${service.slug}`),

@@ -1,3 +1,4 @@
+import { KzFaqSection } from "@/components/kz/KzFaq";
 import { KzContact } from "@/components/kz/screens/KzContact";
 import { JsonLd } from "@/components/ui/JsonLd";
 import { breadcrumbSchema, pageMetadata } from "@/lib/seo";
@@ -20,6 +21,7 @@ export default function ContactPage() {
         ])}
       />
       <KzContact />
+      <KzFaqSection path="/contact" />
     </>
   );
 }
