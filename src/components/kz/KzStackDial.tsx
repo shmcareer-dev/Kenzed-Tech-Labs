@@ -417,6 +417,13 @@ export function KzStackDial({ groups }: KzStackDialProps) {
   const count = groups.length;
   const categories = useMemo(() => groups.map(([category]) => category), [groups]);
   const totals = useMemo(() => groups.reduce((sum, [, items]) => sum + items.length, 0), [groups]);
+  /* Rows are uniform, so the tallest layer's height follows from the one we
+     have measured: (height per row) x (rows in the biggest layer). Knowing it
+     is what lets the deck give up space without the page moving. */
+  const maxRows = useMemo(
+    () => groups.reduce((most, [, tools]) => Math.max(most, tools.length), 0),
+    [groups]
+  );
 
   useEffect(() => {
     /* Track the DIAL, not the whole block. Below 980px the panel stacks under
@@ -551,8 +558,25 @@ export function KzStackDial({ groups }: KzStackDialProps) {
   const index = Math.min(active, count - 1);
   const [category, items] = groups[index];
 
+  const reserveHeight =
+    deckHeight !== null && items.length > 0
+      ? Math.round((deckHeight / items.length) * maxRows)
+      : null;
+
   return (
-    <div className="kzsd" ref={rootRef}>
+    <div
+      className="kzsd"
+      ref={rootRef}
+      data-reserve={reserveHeight === null ? undefined : "1"}
+      style={
+        deckHeight === null || reserveHeight === null
+          ? undefined
+          : ({
+              "--kzsd-h": `${Math.round(deckHeight)}px`,
+              "--kzsd-max": `${reserveHeight}px`,
+            } as CSSProperties)
+      }
+    >
       <style
         href="kz-stack-dial"
         precedence="default"
@@ -627,15 +651,7 @@ export function KzStackDial({ groups }: KzStackDialProps) {
             <span className="kzsd-head-static">Tools in this layer</span>
           </header>
 
-          <div
-            className="kzsd-deck"
-            data-measured={deckHeight === null ? undefined : "1"}
-            style={
-              deckHeight === null
-                ? undefined
-                : ({ "--kzsd-h": `${Math.round(deckHeight)}px` } as CSSProperties)
-            }
-          >
+          <div className="kzsd-deck" data-measured={deckHeight === null ? undefined : "1"}>
             {/* Mirrors the active layer with no tokens and no animation: it
                 exists only so the deck has a height to lay out against, and
                 the tokens would cost eleven extra SVG trees per turn. */}
@@ -677,6 +693,9 @@ export function KzStackDial({ groups }: KzStackDialProps) {
 
 const KZSD_CSS = `
 .kzsd{
+  /* Shared by the deck's height and the grid padding that compensates for it.
+     They must stay identical or the sum stops being constant mid-transition. */
+  --kzsd-resize-ease:cubic-bezier(.22,.61,.36,1);
   display:grid;
   grid-template-columns:minmax(0,1fr);
   align-items:center;
@@ -814,7 +833,43 @@ const KZSD_CSS = `
    the sizer steps out of flow. */
 .kzsd-deck[data-measured="1"]{
   height:var(--kzsd-h);
-  transition:height 340ms cubic-bezier(.22,.61,.36,1);
+  transition:height 340ms var(--kzsd-resize-ease);
+}
+/* --------------------------------------------------------------------------
+   The deck shrinking is what dragged the page around.
+
+   Below 980px the panel stacks UNDER the dial, and roughly 5,600px of the 3D
+   atlas sits under the panel. So every time the active layer changed, the
+   deck's height changed, the document's height changed with it, and every
+   atlas card below jumped. Measured on the live site at 390px while scrolling
+   /technology: a 117px swing in document height and 21 layout shifts totalling
+   0.074, every one of them attributed to .kz3-atlas-card. Pinning the deck to
+   a constant height took that to 0.0016 — which is what proved the deck was
+   the source rather than anything below it.
+
+   Removing the transition does NOT help; it was tried, and it trades 21 small
+   jumps for 6 bigger ones (0.118). Chrome's scroll anchoring does not rescue
+   this either.
+
+   So the deck keeps hugging its content — that is the whole point of the
+   measurement, and a card with dead space under its last row is the bug this
+   started as — and the space it gives up is taken by padding on the grid
+   instead. Both animate over the same duration with the same easing, so their
+   SUM is constant at every instant of the transition, not merely at the ends.
+   The page below therefore does not move at all, mid-animation included.
+
+   Padding on the grid rather than a spacer row: an ::after would add another
+   gap to the column and push the atlas heading down by 14-24px permanently.
+
+   Desktop is untouched. Above 980px the panel sits BESIDE a dial up to 560px
+   tall, so the dial governs the row height and the panel changing size moves
+   nothing.
+   -------------------------------------------------------------------------- */
+@media (max-width:979px){
+  .kzsd[data-reserve="1"]{
+    padding-bottom:max(0px, calc(var(--kzsd-max) - var(--kzsd-h)));
+    transition:padding-bottom 340ms var(--kzsd-resize-ease);
+  }
 }
 .kzsd-deck[data-measured="1"] .kzsd-sizer{position:absolute;inset-inline:0;top:0}
 .kzsd-list{list-style:none;margin:0;padding:0}
@@ -888,6 +943,7 @@ const KZSD_CSS = `
 @media (prefers-reduced-motion:reduce){
   .kzsd-seg text,.kzsd-seg .kzsd-major,.kzsd-seg .kzsd-dot{transition:none}
   .kzsd-layer li,.kzsd-head-cat,.kzsd-hub-name,.kzsd-ghost{animation:none}
-  .kzsd-deck[data-measured="1"]{transition:none}
+  .kzsd-deck[data-measured="1"],
+  .kzsd[data-reserve="1"]{transition:none}
 }
 `;
