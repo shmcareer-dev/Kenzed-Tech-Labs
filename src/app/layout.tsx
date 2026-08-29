@@ -6,8 +6,8 @@ import { KzFooter } from "@/components/kz/KzFooter";
 import { KzChatbot } from "@/components/kz/KzChatbot";
 import { KzBackTop } from "@/components/kz/KzBackTop";
 import { JsonLd } from "@/components/ui/JsonLd";
-import { KzSmoothScroll } from "@/components/kz/motion/KzSmoothScroll";
-import { KzScrollProgress } from "@/components/kz/motion/KzScrollFx";
+import { KzSmoothScrollLoader } from "@/components/kz/motion/KzSmoothScrollLoader";
+import { KzScrollProgress } from "@/components/kz/motion/KzScrollProgress";
 import { KzCustomCursor } from "@/components/kz/motion/KzPointer";
 import { KzCommandPalette, KzPageTransition } from "@/components/kz/motion/KzNav";
 import { asset, site } from "@/content/site";
@@ -138,7 +138,7 @@ export default function RootLayout({
             content mounts, so the first ScrollTrigger refresh measures a
             page that already has its final scroller. Both no-op entirely
             under prefers-reduced-motion. */}
-        <KzSmoothScroll />
+        <KzSmoothScrollLoader />
         <KzScrollProgress />
         <KzCustomCursor />
 

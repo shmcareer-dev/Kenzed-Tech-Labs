@@ -14,25 +14,24 @@
  *     deliberate scroll or interaction.
  */
 
-import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   lazy,
   Suspense,
   useCallback,
   useEffect,
-  useId,
-  useLayoutEffect,
   useRef,
   useState,
   useSyncExternalStore,
   type CSSProperties,
-  type KeyboardEvent as ReactKeyboardEvent,
   type ReactNode,
   type RefObject,
 } from "react";
 import { createPortal } from "react-dom";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+/* Was motion/react. Everything this module still animates is a fade with an
+   optional few pixels of travel, which CSS does natively — and the library was
+   132KB of raw JavaScript on every page of the site to provide it. */
+import { useKzReducedMotion as useReducedMotion } from "./KzEntrance";
 
 /* ==========================================================================
    Shared vocabulary
@@ -47,57 +46,6 @@ export const KZ_SPRING = { type: "spring", stiffness: 420, damping: 34, mass: 0.
 
 const FOCUSABLE =
   'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
-
-/** SSR has no layout to read, so the layout effect degrades to a plain effect. */
-const useKzIsomorphicLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
-
-/** Entrance/exit props for an overlay layer, collapsed to a fade when asked. */
-function kzFade(reduced: boolean, y = 0, scale = 1) {
-  if (reduced) {
-    return {
-      initial: { opacity: 0 },
-      animate: { opacity: 1 },
-      exit: { opacity: 0 },
-      transition: { duration: 0.15, ease: KZ_EASE },
-    };
-  }
-  return {
-    initial: { opacity: 0, y, scale },
-    animate: { opacity: 1, y: 0, scale: 1 },
-    exit: { opacity: 0, y: y * 0.6, scale },
-    transition: { duration: 0.28, ease: KZ_EASE },
-  };
-}
-
-/**
- * One rAF-coalesced scroll subscription. The handler is held in a ref so a
- * caller can pass an inline closure without re-binding the listener.
- */
-function useKzScroll(handler: (y: number) => void) {
-  const handlerRef = useRef(handler);
-  useEffect(() => {
-    handlerRef.current = handler;
-  });
-
-  useEffect(() => {
-    let frame = 0;
-    const run = () => {
-      frame = 0;
-      handlerRef.current(window.scrollY);
-    };
-    const schedule = () => {
-      if (frame === 0) frame = requestAnimationFrame(run);
-    };
-    schedule();
-    window.addEventListener("scroll", schedule, { passive: true });
-    window.addEventListener("resize", schedule, { passive: true });
-    return () => {
-      window.removeEventListener("scroll", schedule);
-      window.removeEventListener("resize", schedule);
-      if (frame !== 0) cancelAnimationFrame(frame);
-    };
-  }, []);
-}
 
 /**
  * Portals only exist after mount; a static export prerenders without a body.
@@ -448,174 +396,24 @@ export function KzPageTransition({ children, className, style }: KzPageTransitio
     );
   }
 
+  /* Keyed on the path, so React remounts the wrapper on navigation and the
+     CSS entrance replays. The exit half of the old crossfade is gone on
+     purpose: `mode="wait"` held the INCOMING page back until the outgoing one
+     had finished animating out, which added its full duration to every
+     navigation. The new page now paints immediately and fades up under its
+     own animation. */
   return (
-    <AnimatePresence mode="wait" initial={false}>
-      <motion.div
-        key={pathname}
-        className={className}
-        style={style}
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -6 }}
-        transition={{ duration: 0.32, ease: KZ_EASE }}
-      >
-        {children}
-      </motion.div>
-    </AnimatePresence>
+    <div key={pathname} className={`kznav-page ${className ?? ""}`} style={style}>
+      {children}
+    </div>
   );
 }
 
 /* ==========================================================================
    07 — Hide-on-scroll header
-   ========================================================================== */
-
-export interface KzHideOnScrollHeaderProps {
-  children: ReactNode;
-  /** Pixels of scroll before hiding is allowed at all. */
-  offset?: number;
-  /** Scroll delta that counts as a direction change; filters trackpad jitter. */
-  threshold?: number;
-  className?: string;
-  style?: CSSProperties;
-}
-
-/** Fixed shell that retracts on scroll down and returns on scroll up. */
-export function KzHideOnScrollHeader({
-  children,
-  offset = 96,
-  threshold = 6,
-  className = "",
-  style,
-}: KzHideOnScrollHeaderProps) {
-  const reduced = useReducedMotion() === true;
-  const [hidden, setHidden] = useState(false);
-  const lastRef = useRef(0);
-
-  useKzScroll((y) => {
-    if (reduced) {
-      setHidden(false);
-      return;
-    }
-    const delta = y - lastRef.current;
-    if (Math.abs(delta) < threshold) return;
-    lastRef.current = y;
-    setHidden(delta > 0 && y > offset);
-  });
-
-  return (
-    <>
-      <KzNavStyles />
-      <div className={`kznav-hide ${className}`.trim()} data-hidden={hidden} style={style}>
-        {children}
-      </div>
-    </>
-  );
-}
 
 /* ==========================================================================
    07 — Sticky CTA
-   ========================================================================== */
-
-export interface KzStickyCtaProps {
-  href: string;
-  label: string;
-  note?: string;
-  action?: string;
-  /** Fraction of the document scrolled before the bar appears. */
-  showAt?: number;
-  dismissible?: boolean;
-  onDismiss?: () => void;
-}
-
-/** A single conversion prompt that arrives once the reader is committed. */
-export function KzStickyCta({
-  href,
-  label,
-  note,
-  action = "Start",
-  showAt = 0.4,
-  dismissible = true,
-  onDismiss,
-}: KzStickyCtaProps) {
-  const reduced = useReducedMotion() === true;
-  const [shown, setShown] = useState(false);
-  const [dismissed, setDismissed] = useState(false);
-
-  // `showAt` is a fraction of the scrollable range, and the old code recovered
-  // that range from `documentElement.scrollHeight` inside the scroll handler —
-  // a read the engine cannot cache, so every scroll frame laid out the whole
-  // document. It then called setShown unconditionally, so React was re-entered
-  // on every frame to be told the same boolean. The range is measured here
-  // instead, and the handler compares one scalar and a ref.
-  const thresholdRef = useRef(Number.POSITIVE_INFINITY);
-  const shownRef = useRef(false);
-
-  useEffect(() => {
-    const measure = () => {
-      const max = document.documentElement.scrollHeight - window.innerHeight;
-      // A page shorter than the viewport never reaches the mark; Infinity says
-      // so without the per-frame handler needing a second guard.
-      thresholdRef.current = max > 0 ? max * showAt : Number.POSITIVE_INFINITY;
-    };
-    measure();
-
-    // Height changes after mount — images landing, a section expanding, the
-    // viewport rotating — arrive here rather than as scroll events, and a stale
-    // threshold would raise the bar at the wrong point in the page.
-    const observer = new ResizeObserver(measure);
-    observer.observe(document.documentElement);
-
-    // The webfont swap reflows every block, so the range measured against
-    // fallback metrics is not the final one.
-    let live = true;
-    document.fonts?.ready.then(() => {
-      if (live) measure();
-    });
-
-    window.addEventListener("resize", measure, { passive: true });
-    return () => {
-      live = false;
-      observer.disconnect();
-      window.removeEventListener("resize", measure);
-    };
-  }, [showAt]);
-
-  useKzScroll((y) => {
-    const next = y >= thresholdRef.current;
-    if (next === shownRef.current) return;
-    shownRef.current = next;
-    setShown(next);
-  });
-
-  const dismiss = useCallback(() => {
-    setDismissed(true);
-    onDismiss?.();
-  }, [onDismiss]);
-
-  return (
-    <>
-      <KzNavStyles />
-      <AnimatePresence>
-        {shown && !dismissed && (
-          <motion.aside className="kzcta" aria-label={label} {...kzFade(reduced, 24)}>
-            <div className="kzcta-copy">
-              <div className="kzcta-label">{label}</div>
-              {note && <div className="kzcta-note">{note}</div>}
-            </div>
-            <Link href={href} className="kzcta-action">
-              {action}
-            </Link>
-            {dismissible && (
-              <button type="button" className="kzcta-close" onClick={dismiss} aria-label="Dismiss">
-                ✕
-              </button>
-            )}
-          </motion.aside>
-        )}
-      </AnimatePresence>
-    </>
-  );
-}
 
 /* ==========================================================================
    08 — Sliding tabs
@@ -626,143 +424,6 @@ export interface KzTabItem {
   label: string;
   /** id of the panel this tab controls, when there is one. */
   controls?: string;
-}
-
-export interface KzSlidingTabsProps {
-  tabs: KzTabItem[];
-  /** Controlled selection. Omit for the uncontrolled form. */
-  value?: string;
-  defaultValue?: string;
-  onValueChange?: (id: string) => void;
-  ariaLabel: string;
-  className?: string;
-  style?: CSSProperties;
-}
-
-/** Roving-tabindex tab strip with a measured pill that only ever transforms. */
-export function KzSlidingTabs({
-  tabs,
-  value,
-  defaultValue,
-  onValueChange,
-  ariaLabel,
-  className = "",
-  style,
-}: KzSlidingTabsProps) {
-  const [internal, setInternal] = useState(defaultValue ?? tabs[0]?.id ?? "");
-  const activeId = value ?? internal;
-  const listRef = useRef<HTMLDivElement | null>(null);
-  const interactedRef = useRef(false);
-
-  const measure = useCallback(() => {
-    const list = listRef.current;
-    if (!list) return;
-    const buttons = Array.from(list.querySelectorAll<HTMLButtonElement>("[data-kztab]"));
-    if (buttons.length === 0) return;
-    const base = Math.max(...buttons.map((button) => button.offsetWidth));
-    if (base <= 0) return;
-    const active = buttons.find((button) => button.dataset.kztab === activeId) ?? buttons[0];
-    list.style.setProperty("--kztabs-w", `${base}px`);
-    list.style.setProperty("--kztabs-x", `${active.offsetLeft}px`);
-    list.style.setProperty("--kztabs-s", `${active.offsetWidth / base}`);
-
-    if (!interactedRef.current) return;
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    list.scrollTo({
-      left: Math.max(0, active.offsetLeft - (list.clientWidth - active.offsetWidth) / 2),
-      behavior: reduced ? "auto" : "smooth",
-    });
-  }, [activeId]);
-
-  useKzIsomorphicLayoutEffect(() => {
-    measure();
-  }, [measure]);
-
-  useEffect(() => {
-    const list = listRef.current;
-    if (!list) return;
-    let cancelled = false;
-    if (typeof document !== "undefined" && "fonts" in document) {
-      // Web fonts land after first paint and change every tab's width.
-      document.fonts.ready.then(() => {
-        if (!cancelled) measure();
-      });
-    }
-    if (typeof ResizeObserver === "undefined") {
-      return () => {
-        cancelled = true;
-      };
-    }
-    const observer = new ResizeObserver(() => measure());
-    observer.observe(list);
-    return () => {
-      cancelled = true;
-      observer.disconnect();
-    };
-  }, [measure]);
-
-  const select = useCallback(
-    (id: string) => {
-      interactedRef.current = true;
-      if (value === undefined) setInternal(id);
-      onValueChange?.(id);
-    },
-    [onValueChange, value]
-  );
-
-  const onKeyDown = useCallback(
-    (event: ReactKeyboardEvent<HTMLDivElement>) => {
-      const keys = ["ArrowLeft", "ArrowRight", "Home", "End"];
-      if (!keys.includes(event.key)) return;
-      event.preventDefault();
-      const index = tabs.findIndex((tab) => tab.id === activeId);
-      const last = tabs.length - 1;
-      let next = index;
-      if (event.key === "ArrowLeft") next = index <= 0 ? last : index - 1;
-      if (event.key === "ArrowRight") next = index >= last ? 0 : index + 1;
-      if (event.key === "Home") next = 0;
-      if (event.key === "End") next = last;
-      const target = tabs[next];
-      if (!target) return;
-      select(target.id);
-      listRef.current?.querySelector<HTMLButtonElement>(`[data-kztab="${target.id}"]`)?.focus();
-    },
-    [activeId, select, tabs]
-  );
-
-  return (
-    <>
-      <KzNavStyles />
-      <div
-        ref={listRef}
-        role="tablist"
-        aria-label={ariaLabel}
-        onKeyDown={onKeyDown}
-        className={`kztabs ${className}`.trim()}
-        style={style}
-      >
-        <span className="kztabs-pill" aria-hidden="true" />
-        {tabs.map((tab) => {
-          const selected = tab.id === activeId;
-          return (
-            <button
-              key={tab.id}
-              type="button"
-              role="tab"
-              data-kztab={tab.id}
-              className="kztab"
-              aria-selected={selected}
-              aria-controls={tab.controls}
-              tabIndex={selected ? 0 : -1}
-              onClick={() => select(tab.id)}
-            >
-              {tab.label}
-            </button>
-          );
-        })}
-      </div>
-    </>
-  );
 }
 
 /* ==========================================================================
@@ -899,27 +560,22 @@ export function KzCommandPalette({
     else groups.push({ name, items: [item] });
   });
 
-  const overlay = (
-    <AnimatePresence>
-      {isOpen && (
-        <div className="kzov kzcp">
-          <motion.div
-            className="kzov-back"
-            onClick={close}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: reduced ? 0.15 : 0.22, ease: KZ_EASE }}
-          />
-          <motion.div
-            ref={panelRef}
-            className="kzov-panel"
-            role="dialog"
-            aria-modal="true"
-            aria-label={label}
-            tabIndex={-1}
-            {...kzFade(reduced, -12, 0.985)}
-          >
+  /* No exit animation. The palette is dismissed deliberately — Escape, a click
+     outside, or running a command — and in every one of those cases the user
+     has already moved on; holding a dialog on screen for another 280ms to fade
+     it is latency dressed as polish. It still fades IN, which is the half that
+     stops it appearing as a hard flash. */
+  const overlay = isOpen ? (
+    <div className="kzov kzcp" data-reduced={reduced ? "1" : undefined}>
+      <div className="kzov-back kznav-in-fade" onClick={close} />
+      <div
+        ref={panelRef}
+        className="kzov-panel kznav-in-pop"
+        role="dialog"
+        aria-modal="true"
+        aria-label={label}
+        tabIndex={-1}
+      >
             <Suspense fallback={<div className="kzcp-empty">Loading search…</div>}>
               <KzLazyCommandList
                 label={label}
@@ -937,11 +593,9 @@ export function KzCommandPalette({
               <span className="kzcp-kbd">Esc</span>
               <span>Close</span>
             </div>
-          </motion.div>
-        </div>
-      )}
-    </AnimatePresence>
-  );
+      </div>
+    </div>
+  ) : null;
 
   return (
     <>
@@ -961,165 +615,6 @@ export function KzCommandPalette({
           </span>
         </button>
       )}
-      {mounted && createPortal(overlay, document.body)}
-    </>
-  );
-}
-
-/* ==========================================================================
-   07 — Back to top
-   ========================================================================== */
-
-export interface KzBackToTopProps {
-  /** Pixels scrolled before the control appears. */
-  showAfter?: number;
-  label?: string;
-  style?: CSSProperties;
-}
-
-/** Fixed control that returns the reader to the top of the document. */
-export function KzBackToTop({ showAfter = 640, label = "Back to top", style }: KzBackToTopProps) {
-  const reduced = useReducedMotion() === true;
-  const [shown, setShown] = useState(false);
-
-  useKzScroll((y) => setShown(y > showAfter));
-
-  const toTop = useCallback(() => {
-    window.scrollTo({
-      top: 0,
-      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
-    });
-  }, []);
-
-  return (
-    <>
-      <KzNavStyles />
-      <AnimatePresence>
-        {shown && (
-          <motion.button
-            type="button"
-            className="kzbtt"
-            onClick={toTop}
-            aria-label={label}
-            title={label}
-            style={style}
-            whileTap={reduced ? undefined : { scale: 0.94 }}
-            {...kzFade(reduced, 14)}
-          >
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-              <path
-                d="M9 15V3M9 3 3.5 8.5M9 3l5.5 5.5"
-                stroke="currentColor"
-                strokeWidth="1.6"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </motion.button>
-        )}
-      </AnimatePresence>
-    </>
-  );
-}
-
-/* ==========================================================================
-   07 — Modal
-   ========================================================================== */
-
-export interface KzModalProps {
-  open: boolean;
-  onClose: () => void;
-  title: string;
-  description?: string;
-  children?: ReactNode;
-  footer?: ReactNode;
-  size?: "sm" | "md" | "lg";
-  closeLabel?: string;
-  /** Element to focus on open. Defaults to the first focusable stop. */
-  initialFocusRef?: RefObject<HTMLElement | null>;
-}
-
-const KZ_MODAL_WIDTH: Record<NonNullable<KzModalProps["size"]>, string> = {
-  sm: "420px",
-  md: "560px",
-  lg: "760px",
-};
-
-/**
- * Portalled dialog with a blurred backdrop. Focus enters on open, Tab is
- * trapped, Escape closes, and focus returns to the trigger on the way out.
- */
-export function KzModal({
-  open,
-  onClose,
-  title,
-  description,
-  children,
-  footer,
-  size = "md",
-  closeLabel = "Close dialog",
-  initialFocusRef,
-}: KzModalProps) {
-  const mounted = useKzMounted();
-  const reduced = useReducedMotion() === true;
-  const panelRef = useRef<HTMLDivElement | null>(null);
-  const titleId = useId();
-  const descriptionId = useId();
-
-  const getInitialFocus = useCallback(
-    () => initialFocusRef?.current ?? null,
-    [initialFocusRef]
-  );
-
-  useKzDialog(open, panelRef, onClose, getInitialFocus);
-
-  const overlay = (
-    <AnimatePresence>
-      {open && (
-        <div className="kzov">
-          <motion.div
-            className="kzov-back"
-            onClick={onClose}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: reduced ? 0.15 : 0.22, ease: KZ_EASE }}
-          />
-          <motion.div
-            ref={panelRef}
-            className="kzov-panel"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby={titleId}
-            aria-describedby={description ? descriptionId : undefined}
-            tabIndex={-1}
-            style={{ "--kzov-max": KZ_MODAL_WIDTH[size] } as CSSProperties}
-            {...kzFade(reduced, 16, 0.98)}
-          >
-            <div className="kzov-head">
-              <h2 id={titleId} className="kzov-title">
-                {title}
-              </h2>
-              <button type="button" className="kzov-x" onClick={onClose} aria-label={closeLabel}>
-                ✕
-              </button>
-            </div>
-            {description && (
-              <p id={descriptionId} className="kzov-desc">
-                {description}
-              </p>
-            )}
-            {children && <div className="kzov-body">{children}</div>}
-            {footer && <div className="kzov-foot">{footer}</div>}
-          </motion.div>
-        </div>
-      )}
-    </AnimatePresence>
-  );
-
-  return (
-    <>
-      <KzNavStyles />
       {mounted && createPortal(overlay, document.body)}
     </>
   );

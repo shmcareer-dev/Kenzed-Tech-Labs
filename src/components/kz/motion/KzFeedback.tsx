@@ -10,7 +10,10 @@ import {
   type CSSProperties,
   type ReactNode,
 } from "react";
-import { useReducedMotion } from "motion/react";
+/* Was `import { useReducedMotion } from "motion/react"` — 132KB of animation
+   library pulled in for one media query. KzEntrance already exports the same
+   hook built on useSyncExternalStore. */
+import { useKzReducedMotion as useReducedMotion } from "./KzEntrance";
 
 export const KZ_FEEDBACK_EASE_CSS = "cubic-bezier(0.22, 1, 0.36, 1)";
 

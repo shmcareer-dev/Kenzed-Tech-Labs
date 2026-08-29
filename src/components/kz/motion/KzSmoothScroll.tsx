@@ -17,7 +17,9 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Lenis from "lenis";
 
-import { KZ_REDUCED_MOTION_QUERY } from "./KzScrollFx";
+/* Was imported from KzScrollFx, which imports GSAP at module scope — so this
+   module pulled the whole animation library in to get one media query string. */
+const KZ_REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
 
 /** Touch, pen and TV remotes — anything whose primary pointer cannot hover. */
 const KZ_COARSE_POINTER_QUERY = "(pointer: coarse)";

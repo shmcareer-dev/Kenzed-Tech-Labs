@@ -1268,3 +1268,61 @@
     overflow-wrap: break-word;
   }
 }
+
+
+/* ---------------------------------------------------------------------------
+   Section entrances (KzFadeUp / KzStagger).
+
+   Both classes are added by JavaScript and never rendered by the server, so
+   with JS off nothing here applies and every block is plain visible content.
+   That is the point: an entrance must not be able to hide content
+   permanently, and the largest element on the page must never be hidden by
+   script — LCP measures exactly that.
+   --------------------------------------------------------------------------- */
+.kz-ent-out {
+  opacity: 0;
+  transform: translate3d(0, var(--kz-ent-y, 24px), 0);
+}
+.kz-ent-in {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity var(--kz-ent-d, 620ms) cubic-bezier(0.22, 1, 0.36, 1) var(--kz-ent-delay, 0ms),
+    transform var(--kz-ent-d, 620ms) cubic-bezier(0.22, 1, 0.36, 1) var(--kz-ent-delay, 0ms);
+}
+/* Belt and braces. The components already skip the whole mechanism under
+   reduced motion; this covers the case where the setting changes after the
+   class has been applied. */
+@media (prefers-reduced-motion: reduce) {
+  .kz-ent-out,
+  .kz-ent-in {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/* Route entrance, and the command palette's. Both replace an AnimatePresence
+   that cost 132KB of library to fade two elements. The route wrapper is keyed
+   on the pathname, so React remounts it on navigation and the animation
+   replays without any JS of its own. */
+.kznav-page {
+  animation: kznavPageIn 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes kznavPageIn {
+  from { opacity: 0; transform: translate3d(0, 10px, 0); }
+  to   { opacity: 1; transform: none; }
+}
+.kznav-in-fade { animation: kznavFadeIn 220ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+.kznav-in-pop  { animation: kznavPopIn 280ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+@keyframes kznavFadeIn { from { opacity: 0 } to { opacity: 1 } }
+@keyframes kznavPopIn {
+  from { opacity: 0; transform: translate3d(0, -12px, 0) scale(.985); }
+  to   { opacity: 1; transform: none; }
+}
+/* The component sets data-reduced when the OS asks for less motion; the media
+   query covers a change made after the dialog opened. */
+.kzov[data-reduced="1"] .kznav-in-pop { animation-name: kznavFadeIn; animation-duration: 150ms; }
+@media (prefers-reduced-motion: reduce) {
+  .kznav-page, .kznav-in-fade, .kznav-in-pop { animation: none; }
+}
