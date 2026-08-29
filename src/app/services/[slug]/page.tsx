@@ -1,3 +1,4 @@
+import { KzBreadcrumb } from "@/components/kz/KzBreadcrumb";
 import { notFound } from "next/navigation";
 
 import { KzFaq } from "@/components/kz/KzFaq";
@@ -5,7 +6,7 @@ import { KzServiceDetail } from "@/components/kz/screens/KzServiceDetail";
 import { JsonLd } from "@/components/ui/JsonLd";
 import { serviceFaq } from "@/content/faq";
 import { getService, services } from "@/content/services";
-import { breadcrumbSchema, pageMetadata, serviceSchema } from "@/lib/seo";
+import { pageMetadata, serviceSchema, webPageSchema } from "@/lib/seo";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -33,6 +34,17 @@ export default async function ServiceDetailPage({ params }: Props) {
 
   return (
     <>
+      {/* This page's own node in the graph, so the Service and the FAQ below
+          both hang off a document that declares what it is and who published
+          it, rather than floating unattached on a shared domain. */}
+      <JsonLd
+        data={webPageSchema({
+          title: service.seo.title,
+          description: service.seo.description,
+          path: `/services/${service.slug}`,
+          breadcrumb: true,
+        })}
+      />
       <JsonLd
         data={serviceSchema({
           name: service.title,
@@ -40,12 +52,12 @@ export default async function ServiceDetailPage({ params }: Props) {
           path: `/services/${service.slug}`,
         })}
       />
-      <JsonLd
-        data={breadcrumbSchema([
+      <KzBreadcrumb
+        trail={[
           { name: "Home", path: "/" },
           { name: "Services", path: "/services" },
           { name: service.title, path: `/services/${service.slug}` },
-        ])}
+        ]}
       />
       <KzServiceDetail service={service} related={related} />
 

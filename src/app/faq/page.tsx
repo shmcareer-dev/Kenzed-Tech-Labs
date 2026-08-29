@@ -1,8 +1,9 @@
+import { KzBreadcrumb } from "@/components/kz/KzBreadcrumb";
 import { KzFaq } from "@/components/kz/KzFaq";
 import { KzPageHero } from "@/components/kz/primitives";
 import { JsonLd } from "@/components/ui/JsonLd";
 import { allFaqItems, faqGroups } from "@/content/faq";
-import { breadcrumbSchema, canonicalUrl, faqSchema, pageMetadata } from "@/lib/seo";
+import { canonicalUrl, faqSchema, pageMetadata, webPageSchemaFor } from "@/lib/seo";
 
 export const metadata = pageMetadata({
   title: "FAQ | Kenzed Tech Lab — Services, Pricing, Process & Support",
@@ -20,11 +21,12 @@ export const metadata = pageMetadata({
 export default function FaqPage() {
   return (
     <>
-      <JsonLd
-        data={breadcrumbSchema([
+      <JsonLd data={webPageSchemaFor("/faq")} />
+      <KzBreadcrumb
+        trail={[
           { name: "Home", path: "/" },
           { name: "FAQ", path: "/faq" },
-        ])}
+        ]}
       />
       {/* ONE FAQPage for the whole hub, covering every question on it. The
           per-group blocks below therefore pass schema={false} — two blocks

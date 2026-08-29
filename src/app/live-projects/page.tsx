@@ -1,7 +1,8 @@
+import { KzBreadcrumb } from "@/components/kz/KzBreadcrumb";
 import { KzFaqSection } from "@/components/kz/KzFaq";
 import { KzLiveProjects } from "@/components/kz/screens/KzLiveProjects";
 import { JsonLd } from "@/components/ui/JsonLd";
-import { breadcrumbSchema, pageMetadata } from "@/lib/seo";
+import { pageMetadata, webPageSchemaFor } from "@/lib/seo";
 
 export const metadata = pageMetadata({
   title: "Live Projects & AI Training in Durgapur | Kenzed Tech Lab",
@@ -18,11 +19,12 @@ export const metadata = pageMetadata({
 export default function LiveProjectsPage() {
   return (
     <>
-      <JsonLd
-        data={breadcrumbSchema([
+      <JsonLd data={webPageSchemaFor("/live-projects")} />
+      <KzBreadcrumb
+        trail={[
           { name: "Home", path: "/" },
           { name: "Live projects & training", path: "/live-projects" },
-        ])}
+        ]}
       />
       <KzLiveProjects />
       <KzFaqSection path="/live-projects" />

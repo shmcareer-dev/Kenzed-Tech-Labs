@@ -1,7 +1,8 @@
+import { KzBreadcrumb } from "@/components/kz/KzBreadcrumb";
 import { KzFaqSection } from "@/components/kz/KzFaq";
 import { KzContact } from "@/components/kz/screens/KzContact";
 import { JsonLd } from "@/components/ui/JsonLd";
-import { breadcrumbSchema, pageMetadata } from "@/lib/seo";
+import { pageMetadata, webPageSchemaFor } from "@/lib/seo";
 
 export const metadata = pageMetadata({
   title: "Contact Kenzed Tech Lab | AI & Software Company, Durgapur & Kolkata",
@@ -14,11 +15,12 @@ export const metadata = pageMetadata({
 export default function ContactPage() {
   return (
     <>
-      <JsonLd
-        data={breadcrumbSchema([
+      <JsonLd data={webPageSchemaFor("/contact")} />
+      <KzBreadcrumb
+        trail={[
           { name: "Home", path: "/" },
           { name: "Contact", path: "/contact" },
-        ])}
+        ]}
       />
       <KzContact />
       <KzFaqSection path="/contact" />

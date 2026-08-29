@@ -56,7 +56,30 @@ export const metadata: Metadata = {
   applicationName: site.name,
   authors: [{ name: site.name, url: site.url }],
   creator: site.name,
-  robots: { index: true, follow: true },
+  /* `index, follow` alone leaves three limits at their defaults, and the
+     defaults are the restrictive ones:
+       - max-snippet defaults to a short, engine-chosen excerpt. -1 removes the
+         cap, which is what lets a full answer be quoted — and AI Overviews and
+         every citing assistant draw on exactly that text.
+       - max-image-preview defaults to "standard", a thumbnail. "large" is what
+         allows the share card to appear at full size in a result.
+       - max-video-preview:-1 is included for completeness; there is no video
+         today, and a default that has to be remembered later is a default that
+         will not be.
+     None of this changes whether the site is indexed. It changes how much of
+     it a result is allowed to show, which is the whole game for answer
+     engines. */
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-snippet": -1,
+      "max-image-preview": "large",
+      "max-video-preview": -1,
+    },
+  },
   icons: {
     icon: [
       { url: asset("/favicon.ico"), sizes: "48x48" },
@@ -82,10 +105,22 @@ export default function RootLayout({
 }) {
   return (
     <html
-      lang="en"
+      /* en-IN, not en. The copy is Indian English, the company is in West
+         Bengal, and the prices, phone format and legal shelf are all Indian.
+         A bare `en` leaves an engine to infer the market from the content. */
+      lang="en-IN"
       className={`${geistSans.variable} ${geistMono.variable}`}
       suppressHydrationWarning
     >
+      <head>
+        {/* Points a reader at the machine-readable copy of this site. There is
+            no registered rel value for llms.txt yet, so this is the honest
+            approximation: an alternate representation, in plain text, with a
+            title that says what it is. Costs one line; the alternative is
+            hoping a crawler guesses the well-known path. */}
+        <link rel="alternate" type="text/plain" href="/llms.txt" title="llms.txt" />
+        <link rel="alternate" type="text/plain" href="/llms-full.txt" title="llms-full.txt" />
+      </head>
       <body>
         <noscript>
           <style>{`.reveal{opacity:1 !important;transform:none !important}`}</style>

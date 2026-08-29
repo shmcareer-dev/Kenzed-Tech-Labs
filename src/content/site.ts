@@ -32,6 +32,29 @@ export const emailHref = `mailto:${site.email}`;
    GitHub Pages deployment (base path /Kenzed-Tech-Labs) every one of them
    resolved to the domain root and 404'd. The root-domain build leaves the
    variable empty, so this is a no-op there. */
+/**
+ * Verified public profiles for this company, and nothing else.
+ *
+ * These become Schema.org `sameAs`, which is the strongest entity-grounding
+ * signal a site has: it is how a search engine and an LLM confirm that the
+ * "Kenzed Tech Lab" on this domain is the same entity as the one on LinkedIn,
+ * on GitHub, in Crunchbase. Without it the company is a name on a page that a
+ * consumer has to disambiguate on string match alone, which is how one company
+ * ends up indexed as several.
+ *
+ * It is EMPTY on purpose. Adding a URL here asserts "this profile is us", and
+ * a guessed handle asserts it falsely — pointing the graph at someone else's
+ * account, or at a 404 that makes the whole claim look unreliable. Every entry
+ * must be a profile someone has actually opened and confirmed.
+ *
+ * This is the single highest-value line in the SEO surface still unfilled.
+ */
+export const socialProfiles: string[] = [
+  // "https://www.linkedin.com/company/...",
+  // "https://github.com/...",
+  // "https://x.com/...",
+];
+
 export const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 export const asset = (path: string) => `${basePath}${path}`;
 

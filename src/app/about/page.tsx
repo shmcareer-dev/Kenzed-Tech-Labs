@@ -1,7 +1,8 @@
+import { KzBreadcrumb } from "@/components/kz/KzBreadcrumb";
 import { KzFaqSection } from "@/components/kz/KzFaq";
 import { KzAbout } from "@/components/kz/screens/KzAbout";
 import { JsonLd } from "@/components/ui/JsonLd";
-import { breadcrumbSchema, pageMetadata } from "@/lib/seo";
+import { pageMetadata, webPageSchemaFor } from "@/lib/seo";
 
 export const metadata = pageMetadata({
   title: "About Kenzed Tech Lab | AI & Software Company in Durgapur & Kolkata",
@@ -17,11 +18,12 @@ export const metadata = pageMetadata({
 export default function AboutPage() {
   return (
     <>
-      <JsonLd
-        data={breadcrumbSchema([
+      <JsonLd data={webPageSchemaFor("/about")} />
+      <KzBreadcrumb
+        trail={[
           { name: "Home", path: "/" },
           { name: "About", path: "/about" },
-        ])}
+        ]}
       />
       <KzAbout />
       <KzFaqSection path="/about" />

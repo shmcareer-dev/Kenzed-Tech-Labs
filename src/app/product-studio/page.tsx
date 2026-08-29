@@ -1,8 +1,9 @@
+import { KzBreadcrumb } from "@/components/kz/KzBreadcrumb";
 import { KzFaqSection } from "@/components/kz/KzFaq";
 import { KzProductStudio } from "@/components/kz/screens/KzProductStudio";
 import { JsonLd } from "@/components/ui/JsonLd";
 import { products } from "@/content/products";
-import { breadcrumbSchema, pageMetadata, productCatalogSchema } from "@/lib/seo";
+import { pageMetadata, productCatalogSchema, webPageSchemaFor } from "@/lib/seo";
 
 export const metadata = pageMetadata({
   title: "Product Studio | Live Software We Built & Run | Kenzed Tech Lab",
@@ -20,11 +21,12 @@ export const metadata = pageMetadata({
 export default function ProductStudioPage() {
   return (
     <>
-      <JsonLd
-        data={breadcrumbSchema([
+      <JsonLd data={webPageSchemaFor("/product-studio")} />
+      <KzBreadcrumb
+        trail={[
           { name: "Home", path: "/" },
           { name: "Product Studio", path: "/product-studio" },
-        ])}
+        ]}
       />
       {/* Each product is a real, reachable application; an ItemList of
           SoftwareApplication is how a search engine reads that. */}

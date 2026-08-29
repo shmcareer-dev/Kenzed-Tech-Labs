@@ -1,7 +1,8 @@
+import { KzBreadcrumb } from "@/components/kz/KzBreadcrumb";
 import { KzLegal } from "@/components/kz/screens/KzLegal";
 import { JsonLd } from "@/components/ui/JsonLd";
 import { refundDoc } from "@/content/legal";
-import { breadcrumbSchema, legalPageSchema, pageMetadata } from "@/lib/seo";
+import { legalPageSchema, pageMetadata, webPageSchemaFor } from "@/lib/seo";
 
 export const metadata = pageMetadata({
   title: refundDoc.metaTitle,
@@ -12,12 +13,13 @@ export const metadata = pageMetadata({
 export default function RefundPage() {
   return (
     <>
+      <JsonLd data={webPageSchemaFor("/refund")} />
       <JsonLd data={legalPageSchema(refundDoc)} />
-      <JsonLd
-        data={breadcrumbSchema([
+      <KzBreadcrumb
+        trail={[
           { name: "Home", path: "/" },
           { name: refundDoc.title, path: "/refund" },
-        ])}
+        ]}
       />
       <KzLegal doc={refundDoc} />
     </>

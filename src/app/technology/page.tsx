@@ -1,7 +1,8 @@
+import { KzBreadcrumb } from "@/components/kz/KzBreadcrumb";
 import { KzFaqSection } from "@/components/kz/KzFaq";
 import { KzTechnology } from "@/components/kz/screens/KzTechnology";
 import { JsonLd } from "@/components/ui/JsonLd";
-import { breadcrumbSchema, pageMetadata } from "@/lib/seo";
+import { pageMetadata, webPageSchemaFor } from "@/lib/seo";
 
 export const metadata = pageMetadata({
   title: "Our Technology Stack | Kenzed Tech Lab — AI, Cloud & Web",
@@ -14,11 +15,12 @@ export const metadata = pageMetadata({
 export default function TechnologyPage() {
   return (
     <>
-      <JsonLd
-        data={breadcrumbSchema([
+      <JsonLd data={webPageSchemaFor("/technology")} />
+      <KzBreadcrumb
+        trail={[
           { name: "Home", path: "/" },
           { name: "Technology", path: "/technology" },
-        ])}
+        ]}
       />
       <KzTechnology />
       <KzFaqSection path="/technology" />

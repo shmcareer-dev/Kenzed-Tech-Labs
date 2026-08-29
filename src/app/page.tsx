@@ -1,6 +1,7 @@
+import { JsonLd } from "@/components/ui/JsonLd";
 import { KzFaqSection } from "@/components/kz/KzFaq";
 import { KzHome } from "@/components/kz/screens/KzHome";
-import { pageMetadata } from "@/lib/seo";
+import { pageMetadata, webPageSchemaFor } from "@/lib/seo";
 
 export const metadata = pageMetadata({
   title: "Kenzed Tech Lab | Agentic AI, ML & Custom Software Development",
@@ -12,6 +13,7 @@ export const metadata = pageMetadata({
 export default function HomePage() {
   return (
     <>
+      <JsonLd data={webPageSchemaFor("/")} />
       <KzHome />
       <KzFaqSection path="/" />
     </>

@@ -1,7 +1,9 @@
+import { services } from "@/content/services";
+import { KzBreadcrumb } from "@/components/kz/KzBreadcrumb";
 import { KzFaqSection } from "@/components/kz/KzFaq";
 import { KzServices } from "@/components/kz/screens/KzServices";
 import { JsonLd } from "@/components/ui/JsonLd";
-import { breadcrumbSchema, pageMetadata } from "@/lib/seo";
+import { pageMetadata, serviceListSchema, webPageSchemaFor } from "@/lib/seo";
 
 export const metadata = pageMetadata({
   title: "AI, ML & Software Development Services | Kenzed Tech Lab",
@@ -19,11 +21,17 @@ export const metadata = pageMetadata({
 export default function ServicesPage() {
   return (
     <>
-      <JsonLd
-        data={breadcrumbSchema([
+      <JsonLd data={webPageSchemaFor("/services")} />
+      {/* The eight services as one ItemList. Individually they are eight
+          Service nodes a consumer has to infer a relationship between; as a
+          list they are a catalogue, which is what makes "what does Kenzed do"
+          answerable from structured data alone. */}
+      <JsonLd data={serviceListSchema(services)} />
+      <KzBreadcrumb
+        trail={[
           { name: "Home", path: "/" },
           { name: "Services", path: "/services" },
-        ])}
+        ]}
       />
       <KzServices />
       <KzFaqSection path="/services" />

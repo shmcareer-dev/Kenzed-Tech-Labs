@@ -1,4 +1,19 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+
+/**
+ * The export shipped TWO robots tags: Next adds `noindex` for the not-found
+ * route, and the root layout's `index, follow` landed alongside it. Two
+ * conflicting directives on one page is ambiguous — the restrictive one
+ * usually wins, but "usually" is not a thing to rely on for the only page on
+ * the site that must never be indexed. Declaring it here replaces the
+ * inherited value rather than adding to it.
+ */
+export const metadata: Metadata = {
+  title: "Page not found | Kenzed Tech Lab",
+  robots: { index: false, follow: true },
+};
+
 
 export default function NotFound() {
   return (
