@@ -28,6 +28,10 @@ Open <http://localhost:3000>.
 Development and production builds deliberately use separate Next.js output
 directories so the development cache never enters a release.
 
+The postbuild script normalizes Next.js segment filenames produced by Windows
+builds so client navigation does not request missing prefetch files. It leaves
+correctly exported Linux CI files unchanged and refuses conflicting files.
+
 ## Project structure
 
 ```text
